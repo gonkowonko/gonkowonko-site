@@ -8,9 +8,47 @@ import AppSection from '../components/AppSection.astro';
 import Setup from '../components/Setup.astro';
 import Faq from '../components/Faq.astro';
 import Footer from '../components/Footer.astro';
+import { apps } from '../config/downloads';
+import { faqs } from '../config/faq';
+import { asset } from '../lib/asset';
+
+const home = new URL(asset('/'), Astro.site).href;
+const author = { '@type': 'Person', name: 'Gary Dalley', url: 'https://github.com/gonkowonko' };
+const app = (a: (typeof apps)[keyof typeof apps], os: string, desc: string, features: string[]) => ({
+  '@type': 'SoftwareApplication',
+  name: a.name,
+  description: desc,
+  operatingSystem: os,
+  applicationCategory: 'HealthApplication',
+  applicationSubCategory: 'Continuous glucose monitoring (CGM) viewer for Nightscout',
+  isAccessibleForFree: true,
+  offers: { '@type': 'Offer', price: '0', priceCurrency: 'GBP' },
+  downloadUrl: a.download,
+  installUrl: a.download,
+  codeRepository: a.repo,
+  license: 'https://opensource.org/licenses/MIT',
+  image: new URL(a.icon, Astro.site).href,
+  url: home,
+  featureList: features,
+  author,
+});
+const jsonld = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    { '@type': 'WebSite', name: 'NightscoutBar & NightscoutWidget', url: home, inLanguage: 'en-GB', author },
+    app(apps.mac, 'macOS 13 or later', 'A native macOS menu bar app that shows your latest Nightscout glucose reading and trend arrow, with a chart, IOB and COB one click away.', [
+      'Glucose and trend arrow in the macOS menu bar', '3, 6, 12 and 24 hour chart', 'IOB and COB from Trio, oref, AAPS and Loop',
+      'Stale data warning', 'mmol/L and mg/dL', 'Launch at login', 'Signed and notarised by Apple']),
+    app(apps.win, 'Windows 10, Windows 11', 'A floating, always-on-top Windows widget that shows your Nightscout glucose, trend arrow, graph, IOB and COB.', [
+      'Always-on-top floating widget', 'Resizable with adjustable opacity', 'Glucose graph with target range', 'IOB and COB',
+      'System tray icon', 'mmol/L and mg/dL', 'Single portable exe, no install']),
+    { '@type': 'FAQPage', mainEntity: faqs.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })) },
+  ],
+};
 ---
 
 <Base>
+  <script slot="head" type="application/ld+json" set:html={JSON.stringify(jsonld)} />
   <Nav />
   <main>
     <Hero />

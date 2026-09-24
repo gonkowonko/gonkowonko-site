@@ -7,10 +7,11 @@ interface Props {
   description?: string;
 }
 const {
-  title = 'Nightscout for your desktop — NightscoutBar & NightscoutWidget',
-  description = 'Free, open-source Nightscout companions for macOS and Windows. Your glucose, trend, IOB and COB — always in view.',
+  title = 'Nightscout desktop apps for Mac and Windows — NightscoutBar & NightscoutWidget',
+  description = 'Free, open-source apps that show your Nightscout CGM glucose on your desktop: a macOS menu bar app and a floating Windows widget, with trend arrow, chart, IOB and COB.',
 } = Astro.props;
-const og = new URL(asset('/icons/nightscoutbar.png'), Astro.site);
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const og = new URL(asset('/og.png'), Astro.site);
 ---
 
 <!doctype html>
@@ -24,11 +25,23 @@ const og = new URL(asset('/icons/nightscoutbar.png'), Astro.site);
     {import.meta.env.PUBLIC_NOINDEX && <meta name="robots" content="noindex, nofollow" />}
     <link rel="icon" type="image/png" href={asset("/favicon.png")} />
     <link rel="apple-touch-icon" href={asset("/icons/nightscoutbar-256.png")} />
+    <link rel="canonical" href={canonical} />
+    <link rel="sitemap" href={asset('/sitemap-index.xml')} />
+    <meta property="og:site_name" content="NightscoutBar & NightscoutWidget" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
     <meta property="og:image" content={og} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="NightscoutBar and NightscoutWidget: Nightscout glucose on your Mac and Windows desktop" />
     <meta property="og:type" content="website" />
-    <meta name="twitter:card" content="summary" />
+    <meta property="og:locale" content="en_GB" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={og} />
+    <slot name="head" />
     <script is:inline>
       document.documentElement.classList.add('js');
       (function () {
