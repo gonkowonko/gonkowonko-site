@@ -45,12 +45,12 @@ const home = asset('/');
         <li>
           Your settings, including your Nightscout URL and access token, are stored only on your computer:
           <ul>
-            <li>NightscoutBar: in the app's macOS preferences</li>
-            <li>NightscoutWidget: in <code>%APPDATA%\NSWidget\config.json</code></li>
+            <li>NightscoutBar: settings in the app's macOS preferences; the token in the macOS Keychain</li>
+            <li>NightscoutWidget: settings in <code>%APPDATA%\NSWidget\config.json</code>; the token encrypted with Windows Data Protection so only your Windows account can read it</li>
           </ul>
         </li>
         <li>Use a <b class="text-fg">read-only</b> (<code>readable</code>) Nightscout token, never your API secret.</li>
-        <li>To remove everything, delete the app and its settings file or preferences.</li>
+        <li>To remove everything, delete the app and its settings (on a Mac, also the “NightscoutBar” item in Keychain Access).</li>
       </ul>
 
       <h2>Your Nightscout site</h2>
