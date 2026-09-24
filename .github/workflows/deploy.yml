@@ -20,6 +20,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: withastro/action@v3
+        with:
+          node-version: 22
         env:
           # Preview lives at https://gonkowonko.github.io/gonkowonko-site/ and is hidden from search engines.
           # For the real launch on gonkowonko.com, remove these three lines and add public/CNAME.
