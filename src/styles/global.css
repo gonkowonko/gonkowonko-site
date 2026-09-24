@@ -1,0 +1,212 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/inter';
+@import '@fontsource-variable/jetbrains-mono';
+
+@theme {
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, monospace;
+
+  --color-ink: #05080f;
+  --color-navy: #0d1630;
+  --color-teal: #0a2e3c;
+  --color-panel: #1b1e27;
+  --color-panel-2: #101218;
+  --color-pill: #232734;
+  --color-fg: #f2f4f8;
+  --color-dim: #7d8494;
+  --color-faint: #4a5062;
+  --color-range: #30d158;
+  --color-high: #ff9f0a;
+  --color-low: #ff453a;
+  --color-accent: #39c5ff;
+  --color-cob: #c792ea;
+  --color-gold: #ffd54a;
+}
+
+@property --angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+html {
+  background: var(--color-ink);
+  color: var(--color-fg);
+  color-scheme: dark;
+  -webkit-font-smoothing: antialiased;
+}
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+body {
+  font-family: var(--font-sans);
+  background:
+    radial-gradient(1200px 700px at 15% -10%, #12306080 0%, transparent 60%),
+    radial-gradient(900px 600px at 95% 10%, #0a3a4a80 0%, transparent 60%),
+    linear-gradient(180deg, #070c1a 0%, #05080f 40%, #061018 100%);
+  overflow-x: hidden;
+}
+
+::selection {
+  background: #30d15855;
+}
+
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- glass + glow primitives ---------- */
+.glass {
+  background: linear-gradient(180deg, #ffffff0d, #ffffff05);
+  border: 1px solid #ffffff14;
+  backdrop-filter: blur(16px) saturate(140%);
+}
+
+.glow-card {
+  position: relative;
+  isolation: isolate;
+  --mx: 50%;
+  --my: 50%;
+}
+.glow-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(420px circle at var(--mx) var(--my), #39c5ff1f, transparent 45%);
+  opacity: 0;
+  transition: opacity 0.3s;
+  z-index: -1;
+}
+.glow-card:hover::before {
+  opacity: 1;
+}
+
+/* Animated gradient-border download button */
+.btn-glow {
+  position: relative;
+  isolation: isolate;
+  border-radius: 999px;
+}
+.btn-glow::before {
+  content: '';
+  position: absolute;
+  inset: -1.5px;
+  border-radius: inherit;
+  background: conic-gradient(from var(--angle), #30d158, #39c5ff, #c792ea, #ff9f0a, #30d158);
+  animation: angle-spin 4s linear infinite;
+  z-index: -2;
+}
+.btn-glow::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: #0b1222;
+  z-index: -1;
+  transition: background 0.3s;
+}
+.btn-glow:hover::after {
+  background: #0f1a30;
+}
+.btn-glow.is-primary::after {
+  background: linear-gradient(180deg, #f2f4f8, #d9deea);
+}
+.btn-glow.is-primary {
+  color: #05080f;
+  box-shadow: 0 10px 40px -10px #39c5ff80;
+}
+@keyframes angle-spin {
+  to {
+    --angle: 360deg;
+  }
+}
+
+.text-gradient {
+  background: linear-gradient(100deg, #f2f4f8 10%, #9fe8ff 45%, #7ef0a3 70%, #f2f4f8 95%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shimmer 8s linear infinite;
+}
+@keyframes shimmer {
+  to {
+    background-position: -200% center;
+  }
+}
+
+.pulse {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: cgm-pulse 1.8s ease-out infinite;
+}
+@keyframes cgm-pulse {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+.twinkle {
+  animation: twinkle 3s ease-in-out infinite alternate;
+}
+@keyframes twinkle {
+  from {
+    opacity: 0.15;
+  }
+  to {
+    opacity: 0.9;
+  }
+}
+
+/* Hero trace loops by sliding one tile width */
+.trace-track {
+  animation: trace-scroll 40s linear infinite;
+}
+@keyframes trace-scroll {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* Rolling number */
+.roll {
+  display: inline-grid;
+  overflow: hidden;
+  vertical-align: bottom;
+}
+.roll > span {
+  grid-area: 1 / 1;
+}
+
+/* JS adds .js to <html>; only then hide reveal targets so no-JS still shows content */
+.js [data-reveal] {
+  opacity: 0;
+}
+
+details summary::-webkit-details-marker {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .js [data-reveal] {
+    opacity: 1;
+  }
+}

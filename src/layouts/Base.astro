@@ -1,0 +1,45 @@
+---
+import { asset } from '../lib/asset';
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+const {
+  title = 'Nightscout for your desktop — NightscoutBar & NightscoutWidget',
+  description = 'Free, open-source Nightscout companions for macOS and Windows. Your glucose, trend, IOB and COB — always in view.',
+} = Astro.props;
+const og = new URL(asset('/icons/nightscoutbar.png'), Astro.site);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#05080f" />
+    {import.meta.env.PUBLIC_NOINDEX && <meta name="robots" content="noindex, nofollow" />}
+    <link rel="icon" type="image/png" href={asset("/favicon.png")} />
+    <link rel="apple-touch-icon" href={asset("/icons/nightscoutbar-256.png")} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={og} />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary" />
+    <script is:inline>
+      document.documentElement.classList.add('js');
+      (function () {
+        var ua = navigator.userAgent, p = (navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || '';
+        var os = /win/i.test(p) || /Windows/.test(ua) ? 'win' : /mac/i.test(p) || /Mac OS X/.test(ua) ? 'mac' : 'other';
+        if (/iPhone|iPad|Android/.test(ua)) os = 'other';
+        document.documentElement.dataset.os = os;
+      })();
+    </script>
+  </head>
+  <body class="min-h-dvh">
+    <slot />
+  </body>
+</html>

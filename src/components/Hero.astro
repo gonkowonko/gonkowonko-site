@@ -1,0 +1,83 @@
+---
+import { asset } from '../lib/asset';
+import DownloadButton from './DownloadButton.astro';
+
+// Periodic CGM-like trace so two tiles can loop seamlessly.
+const W = 1600;
+const H = 520;
+const BAND_TOP = 0.36;
+const BAND_BOT = 0.66;
+const N = 40;
+const f = (t: number) =>
+  0.5 +
+  0.2 * Math.sin(2 * Math.PI * t * 2 + 0.3) +
+  0.12 * Math.sin(2 * Math.PI * t * 5 + 1) +
+  0.06 * Math.sin(2 * Math.PI * t * 9 + 2);
+const pts = Array.from({ length: N }, (_, i) => {
+  const t = i / N;
+  const y = f(t);
+  const color = y < BAND_TOP ? '#FF9F0A' : y > BAND_BOT ? '#FF453A' : '#30D158';
+  return { x: t * W, y: y * H, color };
+});
+const tile = [...pts, ...pts.map((p) => ({ ...p, x: p.x + W })), { ...pts[0], x: 2 * W }];
+const path = tile.map((p, i) => `${i ? 'L' : 'M'}${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ');
+
+const stars = Array.from({ length: 70 }, (_, i) => {
+  const r = (n: number) => ((Math.sin(i * 9301 + n * 49297) * 233280) % 1 + 1) % 1;
+  return { x: r(1) * 100, y: r(2) * 60, s: 0.5 + r(3) * 1.4, d: r(4) * 3 };
+});
+---
+
+<section id="top" class="relative isolate flex min-h-[100svh] flex-col overflow-hidden pt-28 sm:pt-32">
+  <!-- stars -->
+  <div class="pointer-events-none absolute inset-0 -z-10" aria-hidden="true">
+    {stars.map((s) => (
+      <span class="twinkle absolute rounded-full bg-white" style={`left:${s.x}%;top:${s.y}%;width:${s.s}px;height:${s.s}px;animation-delay:${s.d}s`} />
+    ))}
+  </div>
+
+  <div class="relative z-10 mx-auto flex max-w-4xl flex-col items-center px-5 text-center">
+    <div class="hero-icon relative mb-8" data-tilt>
+      <div class="absolute inset-4 rounded-[28%] bg-range/30 blur-3xl" aria-hidden="true"></div>
+      <img src={asset("/icons/nightscoutbar.png")} alt="NightscoutBar app icon" width="132" height="132" class="relative size-28 drop-shadow-2xl sm:size-33" />
+    </div>
+
+    <p class="hero-kicker mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-fg/80 backdrop-blur">
+      <span class="relative flex size-2"><span class="absolute inline-flex size-full animate-ping rounded-full bg-range opacity-75"></span><span class="relative inline-flex size-2 rounded-full bg-range"></span></span>
+      Free &amp; open source · for Nightscout users
+    </p>
+
+    <h1 class="hero-title text-5xl font-bold tracking-tight text-balance sm:text-7xl" data-split>
+      Your glucose, <span class="text-gradient">always in view.</span>
+    </h1>
+
+    <p class="hero-sub mt-6 max-w-2xl text-lg text-fg/65 text-pretty sm:text-xl">
+      Your Nightscout reading, trend arrow, IOB and COB right on your desktop. <span class="text-fg/90">NightscoutBar</span> lives in the Mac menu bar. <span class="text-fg/90">NightscoutWidget</span> floats above everything on Windows.
+    </p>
+
+    <div id="download" class="hero-cta mt-10 flex flex-col items-center gap-3 sm:flex-row sm:gap-4 scroll-mt-32">
+      <DownloadButton app="mac" />
+      <DownloadButton app="win" />
+    </div>
+    <a href="#demo" class="hero-cta mt-6 text-sm text-fg/50 transition-colors hover:text-fg">See it live ↓</a>
+  </div>
+
+  <!-- animated trace -->
+  <div class="pointer-events-none relative mt-auto h-[38vh] min-h-56 w-full [mask-image:linear-gradient(90deg,transparent,#000_12%,#000_88%,transparent)]" aria-hidden="true">
+    <div class="absolute inset-x-0 top-[36%] h-[30%] bg-range/[0.07] border-y border-dashed border-y-white/10"></div>
+    <div class="absolute inset-0 overflow-hidden">
+      <svg class="trace-track absolute inset-y-0 left-0 h-full w-[200%]" viewBox={`0 0 ${W * 2} ${H}`} preserveAspectRatio="none">
+        <path class="trace-line" d={path} fill="none" stroke="#ffffff" stroke-opacity=".35" stroke-width="2.5" vector-effect="non-scaling-stroke" stroke-linejoin="round" />
+      </svg>
+      <!-- dots in a separate HTML layer so they stay round regardless of aspect ratio -->
+      <div class="trace-track absolute inset-y-0 left-0 w-[200%]">
+        {tile.slice(0, -1).map((p) => (
+          <span
+            class="trace-dot absolute size-3 -translate-x-1/2 -translate-y-1/2 rounded-full sm:size-3.5"
+            style={`left:${(p.x / (W * 2)) * 100}%;top:${(p.y / H) * 100}%;background:${p.color};box-shadow:0 0 14px 3px ${p.color}88`}
+          />
+        ))}
+      </div>
+    </div>
+  </div>
+</section>

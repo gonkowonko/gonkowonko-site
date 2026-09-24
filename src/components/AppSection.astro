@@ -1,0 +1,57 @@
+---
+import { apps, type AppKey } from '../config/downloads';
+import DownloadButton from './DownloadButton.astro';
+import MacDemo from './MacDemo.astro';
+import WinDemo from './WinDemo.astro';
+
+interface Props {
+  app: AppKey;
+  id: string;
+  eyebrow: string;
+  title: string;
+  blurb: string;
+  points: string[];
+  reverse?: boolean;
+}
+const { app, id, eyebrow, title, blurb, points, reverse = false } = Astro.props;
+const a = apps[app];
+const size = app === 'mac' ? 'w-[520px] h-[460px]' : 'w-[520px] h-[360px]';
+const aspect = app === 'mac' ? 'aspect-[520/460]' : 'aspect-[520/360]';
+---
+
+<section id={id} class="relative px-4 py-20 sm:py-28 scroll-mt-16">
+  <div class:list={['mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-2 lg:gap-20', reverse && 'lg:[&>*:first-child]:order-2']}>
+    <div data-reveal="side" data-from={reverse ? 'right' : 'left'} class="relative">
+      <div class="absolute -inset-10 -z-10 rounded-full blur-3xl" style={`background:radial-gradient(closest-side,${app === 'mac' ? '#30d15833' : '#39c5ff33'},transparent)`}></div>
+      <div class="rounded-[22px] border border-white/10 bg-white/5 p-2 shadow-2xl shadow-black/50">
+        <div data-scale-box class:list={['relative w-full overflow-hidden rounded-2xl', aspect]}>
+          <div data-scale-inner class:list={['absolute left-0 top-0 origin-top-left', size]}>
+            {app === 'mac' ? <MacDemo compact /> : <WinDemo compact />}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div data-stagger>
+      <div class="flex items-center gap-3">
+        <img src={a.icon} alt="" width="48" height="48" class="size-12" />
+        <p class="text-sm font-semibold tracking-widest uppercase" style={`color:${app === 'mac' ? '#30d158' : '#39c5ff'}`}>{eyebrow}</p>
+      </div>
+      <h2 class="mt-4 text-4xl font-bold tracking-tight text-balance sm:text-5xl">{title}</h2>
+      <p class="mt-4 text-lg text-fg/60 text-pretty">{blurb}</p>
+      <ul class="mt-6 space-y-2.5">
+        {points.map((p) => (
+          <li class="flex gap-3 text-fg/80">
+            <svg class="mt-1 size-4 shrink-0 text-range" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 8.5 3 3 7-7"/></svg>
+            <span>{p}</span>
+          </li>
+        ))}
+      </ul>
+      <div class="mt-8 flex flex-wrap items-center gap-4">
+        <DownloadButton app={app} size="md" />
+        <a href={a.repo} target="_blank" rel="noopener" class="text-sm text-fg/60 underline-offset-4 transition-colors hover:text-fg hover:underline">View source on GitHub →</a>
+      </div>
+      <p class="mt-4 text-xs text-fg/40">Needs {a.requirements}</p>
+    </div>
+  </div>
+</section>

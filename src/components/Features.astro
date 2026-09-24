@@ -1,0 +1,189 @@
+---
+const arrows = ['⇊', '↓', '↘', '→', '↗', '↑', '⇈'];
+const spark = Array.from({ length: 24 }, (_, i) => {
+  const y = 50 + 26 * Math.sin(i / 3.2) + 10 * Math.sin(i / 1.3);
+  return [i * 12 + 6, y] as const;
+});
+const sparkPath = spark.map(([x, y], i) => `${i ? 'L' : 'M'}${x} ${y.toFixed(1)}`).join(' ');
+const card = 'glow-card glass group relative overflow-hidden rounded-3xl p-6';
+---
+
+<section id="features" class="relative px-4 py-24 sm:py-32 scroll-mt-16">
+  <div class="mx-auto max-w-3xl text-center">
+    <p data-reveal class="text-sm font-semibold tracking-widest text-range uppercase">Features</p>
+    <h2 data-reveal class="mt-3 text-4xl font-bold tracking-tight text-balance sm:text-5xl">What you'd check on your phone, already on screen.</h2>
+  </div>
+
+  <div data-stagger class="mx-auto mt-14 grid max-w-6xl gap-4 md:grid-cols-6">
+    <!-- colour-coded -->
+    <article class={`${card} md:col-span-3`}>
+      <div class="flex h-28 items-center justify-center gap-3">
+        {[
+          ['3.4', 'Low', '#FF453A'],
+          ['6.1', 'In range', '#30D158'],
+          ['11.8', 'High', '#FF9F0A'],
+        ].map(([v, l, c], i) => (
+          <div class="feat-range flex flex-col items-center rounded-2xl border border-white/10 bg-black/30 px-4 py-3" style={`--c:${c};animation-delay:${i * 1.2}s`}>
+            <span class="tnum text-3xl font-bold" style={`color:${c}`}>{v}</span>
+            <span class="text-xs text-fg/50">{l}</span>
+          </div>
+        ))}
+      </div>
+      <h3 class="mt-4 text-lg font-semibold">Colours you can read at a glance</h3>
+      <p class="mt-1 text-sm text-fg/60">Green when you're in range, orange when high, red when low. The thresholds come from your own settings.</p>
+    </article>
+
+    <!-- trend arrows -->
+    <article class={`${card} md:col-span-3`}>
+      <div class="flex h-28 items-center justify-center gap-1.5 sm:gap-3">
+        {arrows.map((a, i) => (
+          <span class="feat-arrow grid size-10 place-items-center rounded-xl bg-white/5 text-xl font-bold text-fg/40 sm:size-12 sm:text-2xl" style={`animation-delay:${i * 0.35}s`}>{a}</span>
+        ))}
+      </div>
+      <h3 class="mt-4 text-lg font-semibold">Trend arrow and delta</h3>
+      <p class="mt-1 text-sm text-fg/60">Which way you're heading and how fast, the change since the last reading, and how many minutes ago it came in.</p>
+    </article>
+
+    <!-- chart -->
+    <article class={`${card} md:col-span-2`}>
+      <svg viewBox="0 0 290 100" class="h-28 w-full">
+        <rect x="0" y="30" width="290" height="40" fill="#30D158" fill-opacity=".08" />
+        <path class="feat-spark" d={sparkPath} fill="none" stroke="#fff" stroke-opacity=".4" stroke-width="1.5" pathLength="1" />
+        {spark.map(([x, y], i) => (
+          <circle class="feat-spark-dot" cx={x} cy={y} r="3" fill={y < 30 ? '#FF9F0A' : y > 70 ? '#FF453A' : '#30D158'} style={`animation-delay:${i * 0.06}s`} />
+        ))}
+      </svg>
+      <h3 class="mt-4 text-lg font-semibold">3, 6, 12 or 24 hours</h3>
+      <p class="mt-1 text-sm text-fg/60">A scrolling glucose chart with your target range shaded and a line at each threshold.</p>
+    </article>
+
+    <!-- IOB / COB -->
+    <article class={`${card} md:col-span-2`}>
+      <div class="flex h-28 flex-col justify-center gap-3">
+        <div class="flex items-center gap-3 text-sm"><b class="w-10 text-accent">IOB</b><div class="h-2 flex-1 overflow-hidden rounded-full bg-white/5"><div class="feat-bar h-full rounded-full bg-accent" style="--w:62%"></div></div><span class="tnum w-14 text-right text-fg/70">2.4 U</span></div>
+        <div class="flex items-center gap-3 text-sm"><b class="w-10 text-cob">COB</b><div class="h-2 flex-1 overflow-hidden rounded-full bg-white/5"><div class="feat-bar h-full rounded-full bg-cob" style="--w:38%;animation-delay:.4s"></div></div><span class="tnum w-14 text-right text-fg/70">28 g</span></div>
+      </div>
+      <h3 class="mt-4 text-lg font-semibold">Insulin and carbs on board</h3>
+      <p class="mt-1 text-sm text-fg/60">IOB and COB are read from your Nightscout device status, so they work with uploads from Trio, oref and Loop.</p>
+    </article>
+
+    <!-- stale -->
+    <article class={`${card} md:col-span-2`}>
+      <div class="flex h-28 items-center justify-center">
+        <span class="tnum rounded-lg bg-white/10 px-3 py-1.5 text-2xl font-semibold text-fg/50">5.6→ <span class="feat-warn inline-block text-high">⚠︎</span></span>
+      </div>
+      <h3 class="mt-4 text-lg font-semibold">Warns you when data is old</h3>
+      <p class="mt-1 text-sm text-fg/60">If no reading has arrived for 12 minutes, the value goes grey and a warning appears, so you don't trust an old number.</p>
+    </article>
+
+    <!-- small row -->
+    <article class={`${card} md:col-span-2`}>
+      <div class="flex items-center gap-4">
+        <svg class="size-10 shrink-0 animate-[spin_3s_linear_infinite] text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 5v6h-6"/></svg>
+        <div>
+          <h3 class="font-semibold">Refreshes on its own</h3>
+          <p class="text-sm text-fg/60">Every 30 seconds up to every 5 minutes, and you can refresh by hand too.</p>
+        </div>
+      </div>
+    </article>
+    <article class={`${card} md:col-span-2`}>
+      <div class="flex items-center gap-4">
+        <span class="relative h-7 w-12 shrink-0 rounded-full bg-white/10"><span class="feat-toggle absolute inset-0 rounded-full bg-range"></span><span class="feat-knob absolute left-0.5 top-0.5 size-6 rounded-full bg-white shadow"></span></span>
+        <div>
+          <h3 class="font-semibold">Starts with your computer</h3>
+          <p class="text-sm text-fg/60">Launch at login on the Mac. On Windows, put a shortcut in your Startup folder.</p>
+        </div>
+      </div>
+    </article>
+    <article class={`${card} md:col-span-2`}>
+      <div class="flex items-center gap-4">
+        <span class="feat-units roll tnum shrink-0 rounded-xl bg-white/5 px-3 py-2 text-lg font-bold text-range"><span>5.6</span><span>101</span></span>
+        <div>
+          <h3 class="font-semibold">mmol/L or mg/dL</h3>
+          <p class="text-sm text-fg/60">Pick your units and set your own target range.</p>
+        </div>
+      </div>
+    </article>
+
+    <article class={`${card} md:col-span-6 flex flex-col items-center gap-6 text-center md:flex-row md:text-left`}>
+      <svg class="size-12 shrink-0 text-range" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/><circle cx="12" cy="15.5" r="1.3" fill="currentColor"/></svg>
+      <div class="flex-1">
+        <h3 class="text-lg font-semibold">Your data only goes to your own Nightscout</h3>
+        <p class="mt-1 text-sm text-fg/60">The apps talk straight to your Nightscout site using a read-only token, or no token if your site is public. There's no account, no tracking, and no server in between.</p>
+      </div>
+      <div class="flex flex-wrap justify-center gap-2 text-xs font-medium">
+        {['Nightscout', 'Trio', 'oref / AAPS', 'Loop'].map((b) => <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1.5">{b}</span>)}
+      </div>
+    </article>
+  </div>
+</section>
+
+<style>
+  .feat-range {
+    animation: range-focus 3.6s ease-in-out infinite;
+  }
+  @keyframes range-focus {
+    0%, 100% { transform: scale(0.94); opacity: 0.55; box-shadow: none; }
+    15%, 30% { transform: scale(1.06); opacity: 1; box-shadow: 0 0 32px -6px var(--c); border-color: color-mix(in srgb, var(--c) 50%, transparent); }
+    45% { transform: scale(0.94); opacity: 0.55; }
+  }
+  .feat-arrow {
+    animation: arrow-hit 2.45s ease-in-out infinite;
+  }
+  @keyframes arrow-hit {
+    0%, 30%, 100% { color: rgb(242 244 248 / 0.4); background: rgb(255 255 255 / 0.05); transform: translateY(0); }
+    8%, 14% { color: #05080f; background: #f2f4f8; transform: translateY(-6px); }
+  }
+  .feat-spark {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+  }
+  :global(.in-view) .feat-spark {
+    animation: draw 2.2s ease forwards;
+  }
+  .feat-spark-dot {
+    transform-box: fill-box;
+    transform-origin: center;
+    transform: scale(0);
+  }
+  :global(.in-view) .feat-spark-dot {
+    animation: pop 0.4s cubic-bezier(0.3, 1.6, 0.5, 1) forwards;
+  }
+  @keyframes draw { to { stroke-dashoffset: 0; } }
+  @keyframes pop { to { transform: scale(1); } }
+  .feat-bar {
+    width: 0;
+    animation: bar 4s ease-in-out infinite;
+  }
+  @keyframes bar {
+    0% { width: 0; }
+    35%, 75% { width: var(--w); }
+    100% { width: 0; }
+  }
+  .feat-warn {
+    animation: warn 1.2s ease-in-out infinite alternate;
+  }
+  @keyframes warn {
+    to { opacity: 0.25; transform: scale(0.85); }
+  }
+  .feat-toggle {
+    animation: tog-bg 3s ease-in-out infinite;
+  }
+  .feat-knob {
+    animation: tog 3s ease-in-out infinite;
+  }
+  @keyframes tog-bg { 0%, 20% { opacity: 0; } 35%, 80% { opacity: 1; } 95%, 100% { opacity: 0; } }
+  @keyframes tog { 0%, 20% { transform: translateX(0); } 35%, 80% { transform: translateX(20px); } 95%, 100% { transform: translateX(0); } }
+  .feat-units > span {
+    animation: flip 4s ease-in-out infinite;
+  }
+  .feat-units > span:last-child {
+    animation-delay: -2s;
+  }
+  @keyframes flip {
+    0%, 40% { transform: translateY(0); opacity: 1; }
+    50%, 90% { transform: translateY(-110%); opacity: 0; }
+    90.01% { transform: translateY(110%); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+  }
+</style>

@@ -1,0 +1,46 @@
+---
+import { asset } from '../lib/asset';
+const links = [
+  ['Demo', '#demo'],
+  ['Features', '#features'],
+  ['macOS', '#mac'],
+  ['Windows', '#windows'],
+  ['FAQ', '#faq'],
+];
+---
+
+<header id="nav" class="fixed inset-x-0 top-0 z-50 transition-all duration-500">
+  <nav class="mx-auto mt-3 flex max-w-6xl items-center justify-between gap-4 rounded-full px-3 py-2 sm:px-4 transition-all duration-500" data-nav-inner>
+    <a href="#top" data-nav-logo class="flex items-center opacity-0 -translate-y-1 scale-75 pointer-events-none transition-all duration-500" aria-label="Back to top">
+      <img src={asset("/icons/nightscoutbar-256.png")} alt="" class="size-9 -my-1.5" width="36" height="36" />
+    </a>
+    <ul class="hidden items-center gap-1 text-sm text-fg/70 md:flex">
+      {links.map(([label, href]) => (
+        <li><a href={href} class="rounded-full px-3 py-1.5 transition-colors hover:bg-white/5 hover:text-fg">{label}</a></li>
+      ))}
+    </ul>
+    <div class="flex items-center gap-2">
+      <a href="#download" data-nav-dl class="rounded-full bg-fg px-4 py-2 text-sm font-semibold text-ink transition-transform hover:scale-[1.03]">Download</a>
+    </div>
+  </nav>
+</header>
+
+<script>
+  const nav = document.querySelector<HTMLElement>('[data-nav-inner]')!;
+  const logo = document.querySelector<HTMLElement>('[data-nav-logo]')!;
+  const heroIcon = document.querySelector<HTMLElement>('.hero-icon');
+  const onScroll = () => {
+    const scrolled = window.scrollY > 24;
+    // the hero already shows the big icon; only bring the small one in once that's gone
+    const showLogo = !heroIcon || heroIcon.getBoundingClientRect().bottom < 60;
+    logo.classList.toggle('opacity-0', !showLogo);
+    logo.classList.toggle('-translate-y-1', !showLogo);
+    logo.classList.toggle('scale-75', !showLogo);
+    logo.classList.toggle('pointer-events-none', !showLogo);
+    nav.classList.toggle('glass', scrolled);
+    nav.classList.toggle('shadow-2xl', scrolled);
+    nav.classList.toggle('shadow-black/40', scrolled);
+  };
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+</script>

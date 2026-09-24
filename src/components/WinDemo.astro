@@ -1,0 +1,53 @@
+---
+import { asset } from '../lib/asset';
+// Faithful HTML recreation of NightscoutWidget (WPF): frameless 340×210 panel on a Windows 11 desktop.
+interface Props { compact?: boolean }
+const { compact = false } = Astro.props;
+---
+
+<div data-app="win" class="relative h-full w-full overflow-hidden rounded-[inherit] font-['Segoe_UI',system-ui,sans-serif]">
+  <!-- wallpaper (Windows 11 bloom-ish) -->
+  <div class="absolute inset-0" style="background:radial-gradient(45% 60% at 50% 60%,#2f6bff 0%,transparent 70%),radial-gradient(30% 45% at 40% 55%,#8fb8ff 0%,transparent 70%),radial-gradient(35% 50% at 62% 50%,#1848c8 0%,transparent 70%),linear-gradient(180deg,#081435,#0b1f55 60%,#0a1a45)"></div>
+
+  <!-- floating widget -->
+  <div data-win-widget class="absolute z-10 cursor-grab touch-none select-none active:cursor-grabbing" style={compact ? 'left:50%;top:44%;transform:translate(-50%,-50%)' : 'right:56px;top:48px'}>
+    <div class="relative w-[340px] h-[210px] p-2.5">
+      <div class="absolute inset-[12px_12px_6px] rounded-[20px] bg-black/45 blur-[16px]"></div>
+      <div class="relative flex h-full flex-col rounded-[18px] border border-white/[0.04] px-3.5 py-2.5 text-[#F2F4F8]" style="background:linear-gradient(180deg,#1B1E27 0%,#14161C 55%,#101218 100%)">
+        <div class="flex items-center">
+          <span data-bg class="tnum text-[44px] leading-none font-bold">5.6</span>
+          <span data-arrow class="ml-2 text-[28px] leading-none font-bold">→</span>
+          <div class="ml-auto text-right">
+            <div data-delta class="tnum text-[15px] font-bold">+0.1</div>
+            <div data-ago class="text-[12px] text-[#7D8494]">just now</div>
+          </div>
+        </div>
+        <div class="mt-[7px] flex gap-2 text-[12px]">
+          <span class="rounded-full bg-[#232734] px-2.5 py-1 text-[#7D8494]">IOB <b data-iob class="tnum font-semibold text-[#39C5FF]">1.35</b></span>
+          <span class="rounded-full bg-[#232734] px-2.5 py-1 text-[#7D8494]">COB <b data-cob class="tnum font-semibold text-[#C792EA]">12</b></span>
+        </div>
+        <svg data-chart data-hours="3" data-style="win" viewBox="0 0 312 80" preserveAspectRatio="none" class="mt-2 min-h-0 w-full flex-1"></svg>
+        <svg class="absolute bottom-2.5 right-3 size-3 text-[#4A5062]" viewBox="0 0 12 12" stroke="currentColor"><path d="M12 0 0 12M12 5 5 12M12 10l-2 2"/></svg>
+      </div>
+    </div>
+    {!compact && (
+      <div data-drag-hint class="pointer-events-none absolute -bottom-7 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-black/50 px-3 py-1 text-xs text-white/80 backdrop-blur">
+        ✋ Drag me anywhere
+      </div>
+    )}
+  </div>
+
+  <!-- taskbar -->
+  <div class="absolute inset-x-0 bottom-0 z-20 flex h-12 items-center justify-center border-t border-white/10 bg-[#1c2230]/80 backdrop-blur-2xl">
+    <div class="flex items-center gap-1.5">
+      <span class="grid size-9 place-items-center rounded-md hover:bg-white/10"><svg class="size-5 text-[#4cc2ff]" viewBox="0 0 24 24" fill="currentColor"><path d="M1 1h10.5v10.5H1zm11.5 0H23v10.5H12.5zM1 12.5h10.5V23H1zm11.5 0H23V23H12.5z"/></svg></span>
+      {!compact && ['#f5c542', '#3b82f6', '#22c55e', '#e879f9'].map((c) => (
+        <span class="grid size-9 place-items-center rounded-md"><span class="size-5 rounded-[5px]" style={`background:${c};opacity:.85`}></span></span>
+      ))}
+    </div>
+    <div class="absolute right-3 flex items-center gap-3 text-[11px] text-white/85">
+      <img src={asset("/icons/nightscoutwidget.png")} alt="" class="size-4" title="NightscoutWidget (tray)" />
+      {!compact && <span class="text-right leading-tight tnum"><span data-clock-short>10:42</span><br/><span data-date></span></span>}
+    </div>
+  </div>
+</div>

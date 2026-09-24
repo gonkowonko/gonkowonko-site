@@ -1,0 +1,53 @@
+---
+import Base from '../layouts/Base.astro';
+import Nav from '../components/Nav.astro';
+import Hero from '../components/Hero.astro';
+import DemoStage from '../components/DemoStage.astro';
+import Features from '../components/Features.astro';
+import AppSection from '../components/AppSection.astro';
+import Setup from '../components/Setup.astro';
+import Faq from '../components/Faq.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<Base>
+  <Nav />
+  <main>
+    <Hero />
+    <DemoStage />
+    <Features />
+    <AppSection
+      app="mac"
+      id="mac"
+      eyebrow="NightscoutBar · macOS"
+      title="Your reading in the menu bar."
+      blurb="A small native SwiftUI app that puts your latest reading and trend next to the clock. Click it to open the full chart."
+      points={[
+        'Reading and trend arrow in the menu bar, with ⚠︎ when data is old',
+        'Pop-up chart for 3, 6, 12 or 24 hours with Swift Charts',
+        'IOB and COB from Trio, oref and Loop',
+        'Launch at login with one switch',
+      ]}
+    />
+    <AppSection
+      app="win"
+      id="windows"
+      eyebrow="NightscoutWidget · Windows"
+      title="A widget that stays on top."
+      blurb="A frameless, see-through widget that sits above your other windows. Drag it anywhere, resize it, and fade it to the opacity you want."
+      points={[
+        'One portable exe, with nothing else to install',
+        'Resizable, with a graph that appears when it’s tall enough',
+        'System tray icon and right-click menu',
+        'Only one copy runs at a time',
+      ]}
+      reverse
+    />
+    <Setup />
+    <Faq />
+  </main>
+  <Footer />
+  <script>
+    import '../scripts/main';
+  </script>
+</Base>

@@ -1,0 +1,36 @@
+---
+const steps = [
+  {
+    t: 'Download and open it',
+    d: 'On a Mac, open the .dmg and drag NightscoutBar into Applications. On Windows, run NightscoutWidget.exe. There is no installer and no .NET download.',
+  },
+  {
+    t: 'Enter your Nightscout URL',
+    d: 'Paste your site address into Settings, for example https://yourname.herokuapp.com.',
+  },
+  {
+    t: 'Add a token if your site needs one',
+    d: 'In Nightscout, go to Admin Tools, add a subject with the “readable” role and copy its token. Public sites can skip this step.',
+  },
+];
+---
+
+<section class="relative px-4 py-24 sm:py-32">
+  <div class="mx-auto max-w-3xl text-center">
+    <p data-reveal class="text-sm font-semibold tracking-widest text-cob uppercase">Setup</p>
+    <h2 data-reveal class="mt-3 text-4xl font-bold tracking-tight sm:text-5xl">Up and running in about a minute.</h2>
+  </div>
+  <ol data-steps class="relative mx-auto mt-16 max-w-2xl">
+    <div class="absolute left-5 top-2 bottom-2 w-px bg-white/10" aria-hidden="true"></div>
+    <div data-steps-line class="absolute left-5 top-2 bottom-2 w-px origin-top bg-gradient-to-b from-range via-accent to-cob" aria-hidden="true"></div>
+    {steps.map((s, i) => (
+      <li data-reveal class="relative flex gap-6 pb-12 last:pb-0">
+        <span class="relative z-10 grid size-10 shrink-0 place-items-center rounded-full border border-white/15 bg-ink font-mono text-sm font-bold shadow-[0_0_0_6px_#05080f]">{i + 1}</span>
+        <div class="pt-1.5">
+          <h3 class="text-xl font-semibold">{s.t}</h3>
+          <p class="mt-2 text-fg/60 text-pretty">{s.d}</p>
+        </div>
+      </li>
+    ))}
+  </ol>
+</section>

@@ -1,0 +1,35 @@
+---
+import { asset } from '../lib/asset';
+import { apps } from '../config/downloads';
+import DownloadButton from './DownloadButton.astro';
+const year = new Date().getFullYear();
+---
+
+<section class="relative overflow-hidden px-4 py-24 sm:py-32">
+  <div class="absolute inset-0 -z-10 bg-[radial-gradient(50%_60%_at_50%_100%,#0a3a4a,transparent)]" aria-hidden="true"></div>
+  <div data-stagger class="mx-auto max-w-3xl text-center">
+    <img src={asset("/icons/nightscoutbar.png")} alt="" width="96" height="96" class="mx-auto size-24" />
+    <h2 class="mt-6 text-4xl font-bold tracking-tight sm:text-6xl">Stop reaching for your phone.</h2>
+    <p class="mt-4 text-lg text-fg/60">Free for macOS and Windows.</p>
+    <div class="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
+      <DownloadButton app="mac" />
+      <DownloadButton app="win" />
+    </div>
+  </div>
+</section>
+
+<footer class="border-t border-white/5 px-4 py-10">
+  <div class="mx-auto max-w-6xl">
+    <p class="mx-auto max-w-3xl rounded-2xl border border-high/20 bg-high/5 px-5 py-4 text-center text-sm text-fg/70">
+      <b class="text-high">Not a medical device.</b> NightscoutBar and NightscoutWidget show data from your own Nightscout site for convenience only. Don't make treatment decisions from them. Always check your CGM app or meter.
+    </p>
+    <div class="mt-8 flex flex-col items-center justify-between gap-4 text-sm text-fg/40 sm:flex-row">
+      <p>© {year} gonkowonko. Not affiliated with the Nightscout Foundation.</p>
+      <div class="flex gap-5">
+        <a class="hover:text-fg" href={apps.mac.repo} target="_blank" rel="noopener">NightscoutBar</a>
+        <a class="hover:text-fg" href={apps.win.repo} target="_blank" rel="noopener">NightscoutWidget</a>
+        <a class="hover:text-fg" href="https://nightscout.github.io/" target="_blank" rel="noopener">Nightscout</a>
+      </div>
+    </div>
+  </div>
+</footer>

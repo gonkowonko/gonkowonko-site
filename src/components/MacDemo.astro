@@ -1,0 +1,57 @@
+---
+// Faithful HTML recreation of NightscoutBar: menu-bar item + SwiftUI popover (380pt wide).
+interface Props { compact?: boolean }
+const { compact = false } = Astro.props;
+---
+
+<div data-app="mac" class="relative h-full w-full overflow-hidden rounded-[inherit] font-[system-ui,-apple-system,'SF_Pro_Text',sans-serif]">
+  <!-- wallpaper -->
+  <div class="absolute inset-0" style="background:radial-gradient(60% 80% at 20% 90%,#3b1d6e 0%,transparent 60%),radial-gradient(70% 70% at 90% 100%,#0f5a73 0%,transparent 60%),radial-gradient(50% 60% at 70% 20%,#1e3a8a 0%,transparent 70%),linear-gradient(160deg,#0b1026,#10183a 50%,#0a2233)"></div>
+
+  <!-- menu bar -->
+  <div class="relative z-10 flex h-7 items-center justify-between bg-black/25 px-4 text-[13px] text-white/90 backdrop-blur-xl">
+    <div class="flex items-center gap-5">
+      <svg class="size-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/></svg>
+      {!compact && <>
+        <span class="font-semibold">Finder</span><span>File</span><span>Edit</span><span>View</span><span>Go</span><span>Window</span><span>Help</span>
+      </>}
+    </div>
+    <div class="flex items-center gap-3.5">
+      <button type="button" data-mac-toggle class="tnum -mx-1 rounded-[5px] bg-white/20 px-2 py-0.5 font-medium" aria-label="Toggle NightscoutBar popover"><span data-menubar>5.6→</span></button>
+      <svg class="size-4 opacity-90" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 9a15 15 0 0 1 20 0M5.5 12.5a10 10 0 0 1 13 0M9 16a5 5 0 0 1 6 0"/><circle cx="12" cy="19.5" r="1" fill="currentColor"/></svg>
+      <svg class="h-3 w-6 opacity-90" viewBox="0 0 26 12" fill="none"><rect x=".5" y=".5" width="22" height="11" rx="3" stroke="currentColor" opacity=".5"/><rect x="2" y="2" width="16" height="8" rx="1.6" fill="currentColor"/><path d="M24 4v4" stroke="currentColor" stroke-linecap="round" opacity=".5"/></svg>
+      {!compact && <span class="tnum" data-clock>Tue 10:42</span>}
+    </div>
+  </div>
+
+  <!-- popover -->
+  <div data-mac-popover class="absolute z-20 w-[380px] origin-top rounded-xl border border-white/10 bg-[#1f2026]/85 p-4 text-white shadow-[0_24px_60px_-12px_rgba(0,0,0,.7)] backdrop-blur-2xl" style={compact ? 'right:50%;transform:translateX(50%);top:40px' : 'right:92px;top:36px'}>
+    <div class="flex items-center gap-2">
+      <span data-bg class="tnum text-[44px] leading-none font-bold [font-family:ui-rounded,system-ui]">5.6</span>
+      <span data-arrow class="text-[30px] leading-none font-semibold">→</span>
+      <div class="ml-auto text-right">
+        <div class="text-[14px] font-bold tnum"><span data-delta>+0.1</span> <span data-units>mmol/L</span></div>
+        <div data-ago class="text-[11px] text-white/50">just now</div>
+      </div>
+    </div>
+
+    <div class="mt-3 flex gap-2 text-[12px]">
+      <div class="flex items-center gap-1.5 rounded-md bg-white/[0.06] px-2 py-1"><b class="text-[10px] text-[#64D2FF]">IOB</b><span data-iob class="tnum">1.35 U</span></div>
+      <div class="flex items-center gap-1.5 rounded-md bg-white/[0.06] px-2 py-1"><b class="text-[10px] text-[#FF9F0A]">COB</b><span data-cob class="tnum">12 g</span></div>
+    </div>
+
+    <div class="mt-3 grid grid-cols-4 rounded-md bg-white/[0.07] p-0.5 text-[12px]" role="tablist" data-hours-picker>
+      {[3, 6, 12, 24].map((h) => (
+        <button type="button" data-hours={h} class:list={['rounded-[5px] py-0.5 transition-colors', h === 6 && 'bg-white/20']}>{h}h</button>
+      ))}
+    </div>
+
+    <svg data-chart data-hours="6" data-style="mac" viewBox="0 0 348 170" class="mt-3 h-[170px] w-full"></svg>
+
+    <div class="mt-2 flex items-center gap-3 text-white/60">
+      <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 5v6h-6"/></svg>
+      <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3M4.9 4.9 7 7m10 10 2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></svg>
+      <span class="ml-auto text-[10px]" data-updated>Updated 10:42</span>
+    </div>
+  </div>
+</div>

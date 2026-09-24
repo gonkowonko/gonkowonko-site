@@ -1,0 +1,45 @@
+---
+const faqs = [
+  ['Is it free?', 'Yes, both apps are free and the code is open source on GitHub. There are no accounts, subscriptions or ads.'],
+  [
+    'macOS says the app “can’t be opened because it is from an unidentified developer”.',
+    'The app isn’t notarised by Apple yet. Right-click NightscoutBar in Applications and choose Open, then click Open again. You can also go to System Settings › Privacy & Security and click “Open Anyway”. You only need to do this once.',
+  ],
+  [
+    'Windows shows “Windows protected your PC”.',
+    'SmartScreen shows this for apps that aren’t code-signed. Click More info, then Run anyway.',
+  ],
+  [
+    'Why is the Windows download around 70 MB?',
+    'The .NET runtime is built into the exe, so it runs on any Windows 10 or 11 PC with nothing else to install.',
+  ],
+  [
+    'What’s a “readable” token?',
+    'It’s a read-only access token from your Nightscout site. In Nightscout, open Admin Tools, add a subject with the readable role, and copy its token into the app’s settings. If your site is public (AUTH_DEFAULT_ROLES=readable), you don’t need one.',
+  ],
+  [
+    'Where do IOB and COB come from?',
+    'From your Nightscout device status. The apps understand uploads from Trio and oref (openaps.iob, suggested and enacted) and from Loop (loop.iob and loop.cob).',
+  ],
+  ['Does my data go anywhere else?', 'No. The apps only connect to the Nightscout URL you enter. Nothing is sent to us or to anyone else.'],
+];
+---
+
+<section id="faq" class="relative px-4 py-24 sm:py-32 scroll-mt-16">
+  <div class="mx-auto max-w-3xl">
+    <h2 data-reveal class="text-center text-4xl font-bold tracking-tight sm:text-5xl">Questions</h2>
+    <div data-stagger class="mt-12 space-y-3">
+      {faqs.map(([q, a]) => (
+        <details class="glass group rounded-2xl px-5 open:bg-white/[0.06]">
+          <summary class="flex cursor-pointer list-none items-center justify-between gap-4 py-4 font-medium">
+            {q}
+            <span class="grid size-7 shrink-0 place-items-center rounded-full bg-white/5 transition-transform duration-300 group-open:rotate-45">
+              <svg class="size-3.5" viewBox="0 0 12 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 1v10M1 6h10"/></svg>
+            </span>
+          </summary>
+          <p class="pb-5 text-fg/60 text-pretty">{a}</p>
+        </details>
+      ))}
+    </div>
+  </div>
+</section>
