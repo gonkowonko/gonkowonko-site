@@ -40,7 +40,7 @@ const { compact = false } = Astro.props;
   <!-- taskbar -->
   <div class="absolute inset-x-0 bottom-0 z-20 flex h-12 items-center justify-center border-t border-white/10 bg-[#1c2230]/80 backdrop-blur-2xl">
     <div class="flex items-center gap-1.5">
-      <span class="grid size-9 place-items-center rounded-md hover:bg-white/10"><svg class="size-5 text-[#4cc2ff]" viewBox="0 0 24 24" fill="currentColor"><path d="M1 1h10.5v10.5H1zm11.5 0H23v10.5H12.5zM1 12.5h10.5V23H1zm11.5 0H23V23H12.5z"/></svg></span>
+      <span class="grid size-9 place-items-center rounded-md hover:bg-white/10"><span class="size-5 rounded-full border-2 border-[#4cc2ff]" aria-hidden="true"></span></span>
       {!compact && ['#f5c542', '#3b82f6', '#22c55e', '#e879f9'].map((c) => (
         <span class="grid size-9 place-items-center rounded-md"><span class="size-5 rounded-[5px]" style={`background:${c};opacity:.85`}></span></span>
       ))}
