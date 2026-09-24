@@ -1,4 +1,4 @@
-name: Deploy preview to GitHub Pages
+name: Deploy to GitHub Pages
 
 on:
   push:
@@ -23,10 +23,8 @@ jobs:
         with:
           node-version: 22
         env:
-          # Preview lives at https://gonkowonko.github.io/gonkowonko-site/ and is hidden from search engines.
-          # For the real launch on gonkowonko.com, remove these three lines and add public/CNAME.
-          SITE: https://gonkowonko.github.io
-          BASE: /gonkowonko-site
+          # Served at https://gonkowonko.com but hidden from search engines until launch.
+          # To launch: delete these two lines (robots.txt then allows crawlers and the noindex tag goes).
           PUBLIC_NOINDEX: 'true'
 
   deploy:
