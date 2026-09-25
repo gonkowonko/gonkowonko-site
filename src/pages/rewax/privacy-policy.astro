@@ -1,0 +1,177 @@
+---
+import Base from '../../layouts/Base.astro';
+import Wordmark from '../../components/rewax/Wordmark.astro';
+
+// Linked from the app's About page and App Store Connect, so the address
+// (/rewax/privacy-policy.html) must not change.
+const updated = '25 September 2026';
+---
+
+<Base
+  title="Privacy Policy — Rewax"
+  description="What the Rewax iPhone app does, and doesn't do, with your data. Everything stays on your iPhone; it only talks to Strava."
+  siteName="Rewax"
+  favicon="/rewax/favicon.png"
+  touchIcon="/rewax/icon-256.png"
+  themeColor="#111210"
+  image={null}
+>
+  <header class="px-4 pt-20 pb-6 text-center">
+    <div class="text-[28px] sm:text-[36px]">
+      <Wordmark />
+    </div>
+  </header>
+
+  <main class="px-4 pb-24">
+    <article class="rewax-article mx-auto max-w-2xl">
+      <h1>Privacy Policy</h1>
+      <p class="updated">Last updated {updated}</p>
+
+      <p class="lede">
+        Rewax is an iPhone app that keeps track of how far each of your bikes has been ridden since its chain was last waxed, and tells you when it's time to rewax. It's made by Gary Dalley (“I”, “me”).
+      </p>
+      <p>
+        In short: <b>your data stays on your iPhone.</b> Rewax has no servers, no user accounts, no ads, no analytics and no tracking. The only service it talks to is Strava, and only to read your bikes and rides.
+      </p>
+
+      <h2>What Rewax reads from Strava</h2>
+      <p>When you connect your Strava account, you give Rewax read-only access to:</p>
+      <ul>
+        <li><b>Your profile:</b> your name, shown in Settings as the account you're connected as.</li>
+        <li><b>Your bikes:</b> each bike's name, total distance, and whether it's retired.</li>
+        <li>
+          <b>Your rides:</b> for each recent ride, its name, date, distance and the bike it was ridden on. This includes rides you've made private on Strava, so that every ride counts towards a chain's wear. Rewax doesn't read routes, locations, heart rate, power, photos or any other ride details.
+        </li>
+      </ul>
+      <p>Rewax never posts, edits or deletes anything on Strava.</p>
+
+      <h2>What Rewax stores, and where</h2>
+      <p>Everything is stored on your iPhone:</p>
+      <ul>
+        <li>The data read from Strava, listed above.</li>
+        <li>The things you enter in Rewax: the waxes you log, your chain links, bike nicknames, limits and other settings.</li>
+        <li>Your Strava sign-in tokens, which are kept in the iOS Keychain.</li>
+      </ul>
+      <p>
+        Rewax's Home Screen widgets read this data from the same iPhone. It isn't sent to me or to anyone else. If you use iCloud Backup or back up your iPhone to a computer, Rewax's data is included in that backup like any other app's data. Apple handles those backups under its own privacy policy.
+      </p>
+
+      <h2>What Rewax sends, and to whom</h2>
+      <p>
+        Rewax connects only to Strava (<code>strava.com</code>), to sign you in, read the data listed above, and revoke its access when you disconnect. Strava's handling of your data is covered by
+        <a href="https://www.strava.com/legal/privacy" target="_blank" rel="noopener">Strava's privacy policy</a>.
+      </p>
+      <p>
+        Rewax doesn't send your data to me or to any third party. It contains no advertising, analytics, crash reporting or tracking software, and it doesn't track you across other apps or websites.
+      </p>
+
+      <h2>Notifications</h2>
+      <p>If you allow notifications, Rewax sends alerts about overdue chains. They're scheduled on your iPhone, and no notification server is involved.</p>
+
+      <h2>Your choices</h2>
+      <ul>
+        <li><b>Disconnect Strava</b> (Settings → Disconnect Strava): this revokes Rewax's access on Strava and deletes your bikes, wax log and chain links from your iPhone. Your settings are kept.</li>
+        <li><b>Delete the app:</b> this removes all of Rewax's data from your iPhone.</li>
+        <li>You can also revoke Rewax's access at any time from Strava, under Settings → My Apps.</li>
+      </ul>
+      <p>Because I never receive your data, I have nothing to access, correct or delete on your behalf. All of it stays under your control on your iPhone.</p>
+
+      <h2>Children</h2>
+      <p>Rewax isn't directed at children under 13 and doesn't knowingly collect any data from them.</p>
+
+      <h2>Changes to this policy</h2>
+      <p>
+        If this policy changes, the new version will be posted here with a new “Last updated” date. If Rewax ever starts handling data differently from what's described here, the app will tell you before that happens.
+      </p>
+
+      <p class="footnote">Rewax is an independent app. It isn't made, sponsored or endorsed by Strava.</p>
+    </article>
+  </main>
+</Base>
+
+<style is:global>
+  /* Rewax's own palette (Theme in the app, dark), not the Nightscout pages'. */
+  html:has(.rewax-article) {
+    background: #111210;
+    color-scheme: dark;
+  }
+  html:has(.rewax-article) body {
+    background: #111210;
+    color: #eceae3;
+  }
+  html:has(.rewax-article) ::selection {
+    background: #ffb22455;
+  }
+</style>
+
+<style>
+  .rewax-article {
+    color: #b9b7af;
+    line-height: 1.65;
+  }
+  h1 {
+    margin-top: 1.5rem;
+    font-size: 2.25rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: #eceae3;
+  }
+  .updated {
+    margin-top: 0.25rem;
+    font-size: 0.875rem;
+    color: #8e8c84;
+  }
+  .lede {
+    margin-top: 1.75rem;
+    font-size: 1.125rem;
+  }
+  h2 {
+    margin-top: 2.75rem;
+    padding-top: 1.75rem;
+    border-top: 1px solid #2c2d29;
+    font-size: 1.375rem;
+    font-weight: 600;
+    color: #eceae3;
+  }
+  p,
+  ul {
+    margin-top: 0.85rem;
+  }
+  ul {
+    list-style: disc;
+    padding-left: 1.5rem;
+  }
+  li {
+    margin-top: 0.5rem;
+  }
+  li::marker {
+    color: #ffb224;
+  }
+  b {
+    color: #eceae3;
+    font-weight: 600;
+  }
+  a {
+    color: #ffb224;
+    text-underline-offset: 4px;
+  }
+  a:hover {
+    text-decoration: underline;
+  }
+  code {
+    border-radius: 0.3rem;
+    background: #272824;
+    padding: 0.1rem 0.4rem;
+    font-size: 0.875em;
+  }
+  .footnote {
+    margin-top: 3rem;
+    font-size: 0.875rem;
+    color: #8e8c84;
+  }
+  @media (min-width: 640px) {
+    h1 {
+      font-size: 3rem;
+    }
+  }
+</style>

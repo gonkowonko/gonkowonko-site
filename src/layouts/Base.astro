@@ -5,13 +5,27 @@ import '../styles/global.css';
 interface Props {
   title?: string;
   description?: string;
+  // For pages about another app (e.g. Rewax): its own name, icons and colour.
+  siteName?: string;
+  favicon?: string;
+  touchIcon?: string;
+  themeColor?: string;
+  /** Share image path, or null for none. */
+  image?: string | null;
+  imageAlt?: string;
 }
 const {
   title = 'Nightscout desktop apps for Mac and Windows — NightscoutBar & NightscoutWidget',
   description = 'Free, open-source apps that show your Nightscout CGM glucose on your desktop: a macOS menu bar app and a floating Windows widget, with trend arrow, chart, IOB and COB.',
+  siteName = 'NightscoutBar & NightscoutWidget',
+  favicon = '/favicon.png',
+  touchIcon = '/icons/nightscoutbar-256.png',
+  themeColor = '#05080f',
+  image = '/og.png',
+  imageAlt = 'NightscoutBar and NightscoutWidget: Nightscout glucose on your Mac and Windows desktop',
 } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site);
-const og = new URL(asset('/og.png'), Astro.site);
+const og = image && new URL(asset(image), Astro.site);
 ---
 
 <!doctype html>
@@ -21,26 +35,30 @@ const og = new URL(asset('/og.png'), Astro.site);
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={description} />
-    <meta name="theme-color" content="#05080f" />
+    <meta name="theme-color" content={themeColor} />
     {import.meta.env.PUBLIC_NOINDEX && <meta name="robots" content="noindex, nofollow" />}
-    <link rel="icon" type="image/png" href={asset("/favicon.png")} />
-    <link rel="apple-touch-icon" href={asset("/icons/nightscoutbar-256.png")} />
+    <link rel="icon" type="image/png" href={asset(favicon)} />
+    <link rel="apple-touch-icon" href={asset(touchIcon)} />
     <link rel="canonical" href={canonical} />
     <link rel="sitemap" href={asset('/sitemap-index.xml')} />
-    <meta property="og:site_name" content="NightscoutBar & NightscoutWidget" />
+    <meta property="og:site_name" content={siteName} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
-    <meta property="og:image" content={og} />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="NightscoutBar and NightscoutWidget: Nightscout glucose on your Mac and Windows desktop" />
+    {og && (
+      <>
+        <meta property="og:image" content={og} />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content={imageAlt} />
+      </>
+    )}
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="en_GB" />
-    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:card" content={og ? "summary_large_image" : "summary"} />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
-    <meta name="twitter:image" content={og} />
+    {og && <meta name="twitter:image" content={og} />}
     <slot name="head" />
     <script is:inline>
       document.documentElement.classList.add('js');

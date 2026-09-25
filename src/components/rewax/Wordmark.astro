@@ -1,0 +1,67 @@
+---
+// Rewax's wordmark, as the iOS app draws it on its bike list and welcome
+// screen (Wordmark in Rewax/Views/Components.swift): the drop, "REWAX" in
+// tracked heavy capitals, over a faint length of the app's chain. The chain is
+// ChainBar(fraction: 0, plates: 6) from Rewax/Shared/SharedUI.swift, traced to
+// SVG. Everything is sized in em, so font-size scales the whole mark.
+---
+
+<div class="rewax-wordmark" role="img" aria-label="Rewax">
+  <svg class="chain" viewBox="0 0 206 20" aria-hidden="true">
+    <defs>
+      <!-- The outer plates' outlines and every rivet are cut through, as the
+           app cuts them in the background colour. -->
+      <mask id="rewax-inner" maskUnits="userSpaceOnUse" x="0" y="0" width="206" height="20">
+        <rect width="206" height="20" fill="#fff" />
+        <g fill="#000"><path d="M10 0Q25.5 7.2 41 0V20Q25.5 12.8 10 20Z" /><circle cx="10" cy="10" r="10" /><circle cx="41" cy="10" r="10" /><path d="M72 0Q87.5 7.2 103 0V20Q87.5 12.8 72 20Z" /><circle cx="72" cy="10" r="10" /><circle cx="103" cy="10" r="10" /><path d="M134 0Q149.5 7.2 165 0V20Q149.5 12.8 134 20Z" /><circle cx="134" cy="10" r="10" /><circle cx="165" cy="10" r="10" /><circle cx="10" cy="10" r="3.4" /><circle cx="41" cy="10" r="3.4" /><circle cx="72" cy="10" r="3.4" /><circle cx="103" cy="10" r="3.4" /><circle cx="134" cy="10" r="3.4" /><circle cx="165" cy="10" r="3.4" /><circle cx="196" cy="10" r="3.4" /></g>
+      </mask>
+      <mask id="rewax-outer" maskUnits="userSpaceOnUse" x="0" y="0" width="206" height="20">
+        <rect width="206" height="20" fill="#fff" />
+        <g fill="#000"><circle cx="10" cy="10" r="3.4" /><circle cx="41" cy="10" r="3.4" /><circle cx="72" cy="10" r="3.4" /><circle cx="103" cy="10" r="3.4" /><circle cx="134" cy="10" r="3.4" /><circle cx="165" cy="10" r="3.4" /><circle cx="196" cy="10" r="3.4" /></g>
+      </mask>
+    </defs>
+    <!-- Inner plates sit behind, a little smaller and darker. -->
+    <g mask="url(#rewax-inner)" fill="#3a3b36" opacity="0.7"><path d="M41 1Q56.5 6.2 72 1V19Q56.5 13.8 41 19Z" /><circle cx="41" cy="10" r="9" /><circle cx="72" cy="10" r="9" /><path d="M103 1Q118.5 6.2 134 1V19Q118.5 13.8 103 19Z" /><circle cx="103" cy="10" r="9" /><circle cx="134" cy="10" r="9" /><path d="M165 1Q180.5 6.2 196 1V19Q180.5 13.8 165 19Z" /><circle cx="165" cy="10" r="9" /><circle cx="196" cy="10" r="9" /></g>
+    <g mask="url(#rewax-outer)" fill="#3a3b36"><path d="M10 0.7Q25.5 8.9 41 0.7V19.3Q25.5 11.1 10 19.3Z" /><circle cx="10" cy="10" r="9.3" /><circle cx="41" cy="10" r="9.3" /><path d="M72 0.7Q87.5 8.9 103 0.7V19.3Q87.5 11.1 72 19.3Z" /><circle cx="72" cy="10" r="9.3" /><circle cx="103" cy="10" r="9.3" /><path d="M134 0.7Q149.5 8.9 165 0.7V19.3Q149.5 11.1 134 19.3Z" /><circle cx="134" cy="10" r="9.3" /><circle cx="165" cy="10" r="9.3" /></g>
+  </svg>
+  <span class="word" aria-hidden="true">
+    <svg class="drop" viewBox="0 0 24 24"><path d="M12 1.5C12 1.5 4.5 10.3 4.5 15.2a7.5 7.5 0 0 0 15 0C19.5 10.3 12 1.5 12 1.5Z" /></svg>
+    REWAX
+  </span>
+</div>
+
+<style>
+  .rewax-wordmark {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  /* 190pt wide beside 16pt letters in the app, at 40% opacity. */
+  .chain {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 11.875em;
+    transform: translate(-50%, -50%);
+    opacity: 0.4;
+    overflow: visible;
+  }
+  .word {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375em;
+    font-weight: 900;
+    letter-spacing: 0.1875em;
+    /* Tracking trails the last letter; pull it back so the word centres. */
+    margin-right: -0.1875em;
+    line-height: 1;
+    color: #eceae3;
+  }
+  .drop {
+    width: 0.95em;
+    height: 0.95em;
+    fill: #ffb224;
+  }
+</style>
