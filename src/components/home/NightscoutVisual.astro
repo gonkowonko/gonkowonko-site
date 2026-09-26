@@ -1,0 +1,14 @@
+---
+import MacDemo from '../MacDemo.astro';
+import WinDemo from '../WinDemo.astro';
+// The Nightscout card's picture: the same app mockups as the live demo on
+// /nightscout/, overlapping, painted once by scripts/home.ts and scaled to fit.
+const frame = 'absolute overflow-hidden rounded-xl shadow-[0_30px_60px_-20px_#000c] ring-1 ring-white/10';
+---
+
+<div data-fit class="absolute inset-6 sm:inset-10" inert aria-hidden="true">
+  <div data-fit-inner class="absolute left-0 top-0 h-[430px] w-[780px] origin-top-left">
+    <div class:list={[frame, 'left-0 top-0 h-[410px] w-[440px]']}><MacDemo compact /></div>
+    <div class:list={[frame, 'left-[380px] top-[170px] h-[260px] w-[400px]']}><WinDemo compact /></div>
+  </div>
+</div>

@@ -30,8 +30,6 @@
 }
 
 html {
-  background: var(--color-ink);
-  color: var(--color-fg);
   color-scheme: dark;
   -webkit-font-smoothing: antialiased;
 }
@@ -45,15 +43,43 @@ html.lenis body {
 
 body {
   font-family: var(--font-sans);
+  overflow-x: hidden;
+}
+
+/* ---------- page themes (Base.astro sets data-theme on <html>) ---------- */
+
+/* The portfolio pages: plain and near-neutral, so each project brings its own colour. */
+[data-theme='gonkowonko'],
+[data-theme='gonkowonko'] body {
+  background: #0c0c0d;
+  color: #e9e8e4;
+}
+[data-theme='gonkowonko'] ::selection {
+  background: #ffffff33;
+}
+
+[data-theme='nightscout'] {
+  background: var(--color-ink);
+  color: var(--color-fg);
+}
+[data-theme='nightscout'] body {
   background:
     radial-gradient(1200px 700px at 15% -10%, #12306080 0%, transparent 60%),
     radial-gradient(900px 600px at 95% 10%, #0a3a4a80 0%, transparent 60%),
     linear-gradient(180deg, #070c1a 0%, #05080f 40%, #061018 100%);
-  overflow-x: hidden;
+}
+[data-theme='nightscout'] ::selection {
+  background: #30d15855;
 }
 
-::selection {
-  background: #30d15855;
+/* Rewax's own palette (Theme in the app, dark). */
+[data-theme='rewax'],
+[data-theme='rewax'] body {
+  background: #111210;
+  color: #eceae3;
+}
+[data-theme='rewax'] ::selection {
+  background: #ffb22455;
 }
 
 .tnum {

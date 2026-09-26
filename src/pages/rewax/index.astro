@@ -1,0 +1,85 @@
+---
+import { Image } from 'astro:assets';
+import Base from '../../layouts/Base.astro';
+import Wordmark from '../../components/rewax/Wordmark.astro';
+import { asset } from '../../lib/asset';
+import welcome from '../../assets/rewax/store/welcome.webp';
+import bikes from '../../assets/rewax/store/bikes.webp';
+import logWax from '../../assets/rewax/store/log-wax.webp';
+
+// A first, short page for Rewax while it's in beta. It'll grow into a full
+// page like /nightscout/ once it's on the App Store.
+const screens = [
+  { src: bikes, alt: 'The bike list: miles since each chain was last waxed, drawn as a chain that fills up.' },
+  { src: logWax, alt: 'Logging a wax on a bike, with the date and an optional note.' },
+  { src: welcome, alt: 'The welcome screen: connect Strava, or explore with demo data.' },
+];
+const features = [
+  ['Every chain at a glance', 'Miles since the last wax for each bike, counted from your Strava rides, against a limit you set per bike.'],
+  ['Log a wax in a tap', 'Backdate it up to a year and add a note. The count starts again from zero.'],
+  ['Reminders', 'A notification when a chain goes over its limit, and an optional count on the app icon.'],
+  ['Chain links', 'Keep track of how many more uses a reusable quick link has left.'],
+  ['Home Screen widgets', 'See your chains without opening the app.'],
+  ['Private by design', 'No account, no ads, no analytics. Your data stays on your iPhone, and Rewax talks only to Strava.'],
+];
+---
+
+<Base
+  title="Rewax — know when to rewax your bike chain"
+  description="Rewax is an iPhone app that counts how far each bike has been ridden since its chain was last waxed, from your Strava rides, and reminds you when it's time to rewax. In beta, coming soon."
+  theme="rewax"
+  siteName="Rewax"
+  favicon="/rewax/favicon.png"
+  touchIcon="/rewax/icon-256.png"
+  themeColor="#111210"
+  image={null}
+>
+  <div class="mx-auto max-w-[1080px] px-4 sm:px-8">
+    <header class="flex items-center justify-between py-6 text-sm">
+      <a href={asset('/')} class="text-[#8e8c84] hover:text-[#eceae3]">← gonkowonko</a>
+      <a href={asset('/rewax/privacy-policy.html')} class="text-[#8e8c84] hover:text-[#eceae3]">Privacy</a>
+    </header>
+
+    <main>
+      <section class="pt-16 pb-14 text-center sm:pt-24">
+        <div class="text-[26px] sm:text-[34px]"><Wordmark /></div>
+        <h1 class="mx-auto mt-10 max-w-[18ch] text-4xl leading-[1.08] font-semibold tracking-[-0.03em] text-balance sm:text-6xl">
+          Know when to <span class="text-[#ffb224]">rewax</span> your chain.
+        </h1>
+        <p class="mx-auto mt-6 max-w-[52ch] text-lg leading-relaxed text-[#b9b7af] text-pretty">
+          An iPhone app for riders with waxed chains. It reads your rides from Strava, counts how far each bike has gone since its chain was last waxed, and tells you when it’s time to do it again.
+        </p>
+        <p class="mt-8 inline-flex items-center gap-2 rounded-full border border-[#ffb224]/25 px-4 py-1.5 font-mono text-[11px] tracking-wider text-[#ffb224] uppercase">
+          <span class="size-1.5 rounded-full bg-[#ffb224]"></span>
+          In beta · coming soon to the App Store
+        </p>
+      </section>
+
+      <section aria-label="Screenshots" class="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-4 sm:mx-0 sm:grid sm:grid-cols-3 sm:gap-6 sm:overflow-visible sm:px-0">
+        {screens.map((s) => (
+          <Image src={s.src} alt={s.alt} widths={[340, 680]} sizes="(min-width: 1080px) 330px, (min-width: 640px) 30vw, 70vw" class="w-[70vw] shrink-0 snap-center rounded-2xl border border-white/[0.06] sm:w-full" />
+        ))}
+      </section>
+
+      <section class="mt-24 border-t border-[#2c2d29] pt-4">
+        <h2 class="font-mono text-[11px] tracking-wider text-[#8e8c84] uppercase">What it does</h2>
+        <dl class="mt-8 grid gap-x-12 gap-y-9 sm:grid-cols-2 lg:grid-cols-3">
+          {features.map(([t, d]) => (
+            <div>
+              <dt class="font-semibold">{t}</dt>
+              <dd class="mt-1.5 leading-relaxed text-[#b9b7af]">{d}</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+    </main>
+
+    <footer class="mt-24 flex flex-col gap-3 border-t border-[#2c2d29] py-8 text-sm text-[#8e8c84] sm:flex-row sm:justify-between">
+      <p>Rewax is an independent app. It isn’t made, sponsored or endorsed by Strava.</p>
+      <div class="flex gap-5">
+        <a href={asset('/rewax/privacy-policy.html')} class="hover:text-[#eceae3]">Privacy policy</a>
+        <a href={asset('/')} class="hover:text-[#eceae3]">gonkowonko</a>
+      </div>
+    </footer>
+  </div>
+</Base>

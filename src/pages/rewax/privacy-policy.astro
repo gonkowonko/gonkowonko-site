@@ -10,6 +10,7 @@ const updated = '25 September 2026';
 <Base
   title="Privacy Policy — Rewax"
   description="What the Rewax iPhone app does, and doesn't do, with your data. Everything stays on your iPhone; it only talks to Strava."
+  theme="rewax"
   siteName="Rewax"
   favicon="/rewax/favicon.png"
   touchIcon="/rewax/icon-256.png"
@@ -88,21 +89,6 @@ const updated = '25 September 2026';
     </article>
   </main>
 </Base>
-
-<style is:global>
-  /* Rewax's own palette (Theme in the app, dark), not the Nightscout pages'. */
-  html:has(.rewax-article) {
-    background: #111210;
-    color-scheme: dark;
-  }
-  html:has(.rewax-article) body {
-    background: #111210;
-    color: #eceae3;
-  }
-  html:has(.rewax-article) ::selection {
-    background: #ffb22455;
-  }
-</style>
 
 <style>
   .rewax-article {

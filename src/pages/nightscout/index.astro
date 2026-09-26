@@ -1,0 +1,102 @@
+---
+import Base from '../../layouts/Base.astro';
+import Nav from '../../components/Nav.astro';
+import Hero from '../../components/Hero.astro';
+import DemoStage from '../../components/DemoStage.astro';
+import Features from '../../components/Features.astro';
+import AppSection from '../../components/AppSection.astro';
+import Setup from '../../components/Setup.astro';
+import Faq from '../../components/Faq.astro';
+import Footer from '../../components/Footer.astro';
+import { apps } from '../../config/downloads';
+import { faqs } from '../../config/faq';
+import { asset } from '../../lib/asset';
+
+const home = new URL(asset('/nightscout/'), Astro.site).href;
+const site = new URL(asset('/'), Astro.site).href;
+const author = { '@type': 'Person', name: 'Gary Dalley', url: 'https://github.com/gonkowonko' };
+const app = (a: (typeof apps)[keyof typeof apps], os: string, desc: string, features: string[]) => ({
+  '@type': 'SoftwareApplication',
+  name: a.name,
+  description: desc,
+  operatingSystem: os,
+  applicationCategory: 'HealthApplication',
+  applicationSubCategory: 'Continuous glucose monitoring (CGM) viewer for Nightscout',
+  isAccessibleForFree: true,
+  offers: { '@type': 'Offer', price: '0', priceCurrency: 'GBP' },
+  downloadUrl: a.download,
+  installUrl: a.download,
+  codeRepository: a.repo,
+  license: 'https://opensource.org/licenses/MIT',
+  image: new URL(a.icon, Astro.site).href,
+  url: home,
+  featureList: features,
+  author,
+});
+const jsonld = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    { '@type': 'WebPage', name: 'NightscoutBar & NightscoutWidget', url: home, inLanguage: 'en-GB', isPartOf: { '@type': 'WebSite', name: 'gonkowonko', url: site }, author },
+    app(apps.mac, 'macOS 13 or later', 'A native macOS menu bar app that shows your latest Nightscout glucose reading and trend arrow, with a chart, IOB and COB one click away.', [
+      'Glucose and trend arrow in the macOS menu bar', '3, 6, 12 and 24 hour chart', 'IOB and COB from Trio, oref, AAPS and Loop',
+      'Stale data warning', 'mmol/L and mg/dL', 'Launch at login', 'Signed and notarised by Apple']),
+    app(apps.win, 'Windows 10, Windows 11', 'A floating, always-on-top Windows widget that shows your Nightscout glucose, trend arrow, graph, IOB and COB.', [
+      'Always-on-top floating widget', 'Resizable with adjustable opacity', 'Glucose graph with target range', 'IOB and COB',
+      'System tray icon', 'mmol/L and mg/dL', 'Single portable exe, no install']),
+    { '@type': 'FAQPage', mainEntity: faqs.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })) },
+  ],
+};
+---
+
+<Base
+  title="Nightscout desktop apps for Mac and Windows — NightscoutBar & NightscoutWidget"
+  description="Free, open-source apps that show your Nightscout CGM glucose on your desktop: a macOS menu bar app and a floating Windows widget, with trend arrow, chart, IOB and COB."
+  theme="nightscout"
+  siteName="NightscoutBar & NightscoutWidget"
+  favicon="/nightscout/favicon.png"
+  touchIcon="/icons/nightscoutbar-256.png"
+  themeColor="#05080f"
+  image="/nightscout/og.png"
+  imageAlt="NightscoutBar and NightscoutWidget: Nightscout glucose on your Mac and Windows desktop"
+>
+  <script slot="head" type="application/ld+json" set:html={JSON.stringify(jsonld)} />
+  <Nav />
+  <main>
+    <Hero />
+    <DemoStage />
+    <Features />
+    <AppSection
+      app="mac"
+      id="mac"
+      eyebrow="NightscoutBar · macOS"
+      title="Your reading in the menu bar."
+      blurb="A small native SwiftUI app that puts your latest reading and trend next to the clock. Click it to open the full chart."
+      points={[
+        'Reading and trend arrow in the menu bar, with ⚠︎ when data is old',
+        'Pop-up chart for 3, 6, 12 or 24 hours with Swift Charts',
+        'IOB and COB from Trio, oref and Loop',
+        'Launch at login with one switch',
+      ]}
+    />
+    <AppSection
+      app="win"
+      id="windows"
+      eyebrow="NightscoutWidget · Windows"
+      title="A widget that stays on top."
+      blurb="A frameless, see-through widget that sits above your other windows. Drag it anywhere, resize it, and fade it to the opacity you want."
+      points={[
+        'One portable exe, with nothing else to install',
+        'Resizable, with a graph that appears when it’s tall enough',
+        'System tray icon and right-click menu',
+        'Only one copy runs at a time',
+      ]}
+      reverse
+    />
+    <Setup />
+    <Faq />
+  </main>
+  <Footer />
+  <script>
+    import '../../scripts/main';
+  </script>
+</Base>
