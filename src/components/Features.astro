@@ -64,7 +64,7 @@ const card = 'glow-card glass group relative overflow-hidden rounded-3xl p-6';
         <div class="flex items-center gap-3 text-sm"><b class="w-10 text-cob">COB</b><div class="h-2 flex-1 overflow-hidden rounded-full bg-white/5"><div class="feat-bar h-full rounded-full bg-cob" style="--w:38%;animation-delay:.4s"></div></div><span class="tnum w-14 text-right text-fg/70">28 g</span></div>
       </div>
       <h3 class="mt-4 text-lg font-semibold">Insulin and carbs on board</h3>
-      <p class="mt-1 text-sm text-fg/60">IOB and COB are read from your Nightscout device status, so they work with uploads from Trio, oref and Loop.</p>
+      <p class="mt-1 text-sm text-fg/60">IOB and COB are read from your Nightscout device status, so they work with uploads from Trio, Loop and AAPS.</p>
     </article>
 
     <!-- stale -->
@@ -112,7 +112,7 @@ const card = 'glow-card glass group relative overflow-hidden rounded-3xl p-6';
         <p class="mt-1 text-sm text-fg/60">The apps talk straight to your Nightscout site using a read-only token, or no token if your site is public. There's no account, no tracking, and no server in between.</p>
       </div>
       <div class="flex flex-wrap justify-center gap-2 text-xs font-medium">
-        {['Nightscout', 'Trio', 'oref / AAPS', 'Loop'].map((b) => <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1.5">{b}</span>)}
+        {['Nightscout', 'Trio', 'Loop', 'AAPS'].map((b) => <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1.5">{b}</span>)}
       </div>
     </article>
   </div>

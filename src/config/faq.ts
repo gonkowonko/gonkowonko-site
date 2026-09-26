@@ -23,7 +23,7 @@ export const faqs: [question: string, answer: string][] = [
   ],
   [
     'Where do IOB and COB come from?',
-    'From your Nightscout device status. The apps understand uploads from Trio and oref (openaps.iob, suggested and enacted) and from Loop (loop.iob and loop.cob).',
+    'From your Nightscout device status. The apps understand uploads from Trio and AAPS (openaps.iob, suggested and enacted) and from Loop (loop.iob and loop.cob).',
   ],
   ['Does my data go anywhere else?', 'No. The apps only connect to the Nightscout URL you enter. Nothing is sent to us or to anyone else.'],
 ];

@@ -20,7 +20,7 @@ export const GET: APIRoute = ({ site }) => {
 - Price: free. Licence: MIT. No account, no ads, no analytics.
 - Data: the apps connect only to the user's own Nightscout site. Nothing is sent to the developer or any third party. Access tokens are stored in the macOS Keychain or encrypted with Windows DPAPI.
 - Works with any CGM that uploads to Nightscout (e.g. Dexcom G6/G7/ONE, FreeStyle Libre 2/3 via Dexcom Share bridge, xDrip+, xDrip4iOS, Juggluco, Loop, Trio or AAPS).
-- Units: mmol/L and mg/dL. IOB/COB from Trio, oref/AAPS and Loop device status.
+- Units: mmol/L and mg/dL. IOB/COB from Trio, Loop and AAPS device status.
 - Not affiliated with the Nightscout Foundation.
 
 ## FAQ
