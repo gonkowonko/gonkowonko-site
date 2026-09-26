@@ -30,6 +30,10 @@
 }
 
 html {
+  /* Clip, not hide: side reveals start 80px off-screen and glows spill past
+     the edges, and on mobile hidden on body alone still widens the layout
+     viewport. Clip also keeps position: sticky working. */
+  overflow-x: clip;
   color-scheme: dark;
   -webkit-font-smoothing: antialiased;
 }
@@ -43,7 +47,7 @@ html.lenis body {
 
 body {
   font-family: var(--font-sans);
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 /* ---------- page themes (Base.astro sets data-theme on <html>) ---------- */
