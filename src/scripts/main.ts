@@ -304,15 +304,19 @@ $$('[data-win-widget]').forEach((w) => {
 // platform tabs
 const pill = $('[data-tab-pill]')!;
 const tabs = $$('[data-tab]');
-function showTab(key: string, animate = true) {
-  const btn = tabs.find((t) => t.dataset.tab === key)!;
+const placePill = () => {
+  const btn = tabs.find((t) => t.getAttribute('aria-selected') === 'true')!;
   pill.style.width = `${btn.offsetWidth}px`;
   pill.style.transform = `translateX(${btn.offsetLeft - 4}px)`;
+};
+function showTab(key: string, animate = true) {
+  const btn = tabs.find((t) => t.dataset.tab === key)!;
   tabs.forEach((t) => {
     t.classList.toggle('text-ink', t === btn);
     t.classList.toggle('text-fg/60', t !== btn);
     t.setAttribute('aria-selected', String(t === btn));
   });
+  placePill();
   $$('[data-panel]').forEach((p) => {
     const on = p.dataset.panel === key;
     if (!animate || reduced) {
@@ -326,7 +330,9 @@ function showTab(key: string, animate = true) {
 }
 tabs.forEach((t) => t.addEventListener('click', () => showTab(t.dataset.tab!)));
 showTab(primary, false);
-addEventListener('resize', () => showTab(tabs.find((t) => t.getAttribute('aria-selected') === 'true')!.dataset.tab!, false));
+// buttons are first measured before Inter loads; re-place the pill when they change size (font swap, resize)
+const tabRo = new ResizeObserver(placePill);
+tabs.forEach((t) => tabRo.observe(t));
 
 // clocks
 const tick = () => {
