@@ -24,12 +24,12 @@ const year = new Date().getFullYear();
       <b class="text-high">Not a medical device.</b> NightscoutBar and NightscoutWidget show data from your own Nightscout site for convenience only. Don't make treatment decisions from them. Always check your CGM app or meter.
     </p>
     <div class="mt-8 flex flex-col items-center justify-between gap-4 text-sm text-fg/40 sm:flex-row">
-      <p>© {year} gonkowonko. Not affiliated with the Nightscout Foundation.</p>
+      <p>© {year} <a class="hover:text-fg" href={asset('/')}>gonkowonko</a>. Not affiliated with the Nightscout Foundation.</p>
       <div class="flex gap-5">
         <a class="hover:text-fg" href={apps.mac.repo} target="_blank" rel="noopener">NightscoutBar</a>
         <a class="hover:text-fg" href={apps.win.repo} target="_blank" rel="noopener">NightscoutWidget</a>
         <a class="hover:text-fg" href="https://nightscout.github.io/" target="_blank" rel="noopener">Nightscout</a>
-        <a class="hover:text-fg" href={asset('/privacy/')}>Privacy</a>
+        <a class="hover:text-fg" href={asset('/nightscout/privacy/')}>Privacy</a>
       </div>
     </div>
   </div>

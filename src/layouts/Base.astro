@@ -5,7 +5,9 @@ import '../styles/global.css';
 interface Props {
   title?: string;
   description?: string;
-  // For pages about another app (e.g. Rewax): its own name, icons and colour.
+  /** Colours and background for the page: the portfolio's own, or a project's. */
+  theme?: 'gonkowonko' | 'nightscout' | 'rewax';
+  // For a project's pages: its own name, icons and colour.
   siteName?: string;
   favicon?: string;
   touchIcon?: string;
@@ -15,21 +17,22 @@ interface Props {
   imageAlt?: string;
 }
 const {
-  title = 'Nightscout desktop apps for Mac and Windows — NightscoutBar & NightscoutWidget',
-  description = 'Free, open-source apps that show your Nightscout CGM glucose on your desktop: a macOS menu bar app and a floating Windows widget, with trend arrow, chart, IOB and COB.',
-  siteName = 'NightscoutBar & NightscoutWidget',
+  title = 'gonkowonko — apps by Gary Dalley',
+  description = 'Small, focused apps by Gary Dalley: NightscoutBar and NightscoutWidget for Nightscout glucose on Mac and Windows, and Rewax for waxed bike chains on iPhone.',
+  theme = 'gonkowonko',
+  siteName = 'gonkowonko',
   favicon = '/favicon.png',
-  touchIcon = '/icons/nightscoutbar-256.png',
-  themeColor = '#05080f',
+  touchIcon = '/icons/gonkowonko-256.png',
+  themeColor = '#0c0c0d',
   image = '/og.png',
-  imageAlt = 'NightscoutBar and NightscoutWidget: Nightscout glucose on your Mac and Windows desktop',
+  imageAlt = 'gonkowonko: apps by Gary Dalley',
 } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 const og = image && new URL(asset(image), Astro.site);
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme={theme}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />

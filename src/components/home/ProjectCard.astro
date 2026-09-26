@@ -1,0 +1,45 @@
+---
+import type { projects } from '../../config/projects';
+
+interface Props {
+  project: (typeof projects)[number];
+  /** Background behind the picture: the project's own colours. */
+  tint: string;
+  /** Picture on the left on wide screens. On narrow ones it's always on top. */
+  reverse?: boolean;
+}
+const { project: p, tint, reverse = false } = Astro.props;
+---
+
+<!-- The whole card opens the project's page: the name's link is stretched over
+     it, and the button is only a visual cue for that same link. -->
+<article id={p.id} class="group relative grid overflow-hidden rounded-2xl border border-white/[0.08] bg-[#111112] transition-colors hover:border-white/20 has-[a:focus-visible]:outline-2 has-[a:focus-visible]:outline-offset-2 has-[a:focus-visible]:outline-white/60 lg:grid-cols-[5fr_7fr]">
+  <div class="flex flex-col justify-center p-7 sm:p-10">
+    <div class="flex items-center justify-between gap-4">
+      <p class="font-mono text-[11px] tracking-wider text-white/40 uppercase">{p.platforms}</p>
+      <p class="inline-flex shrink-0 items-center gap-2 rounded-full border border-white/10 px-2.5 py-1 text-xs text-white/65">
+        <span class:list={['size-1.5 rounded-full', p.status.live ? 'bg-[#30d158]' : 'bg-[#ffb224]']}></span>
+        {p.status.label}
+      </p>
+    </div>
+
+    <div class="mt-5 flex items-center gap-3">
+      <img src={p.icon} alt="" width="40" height="40" class="size-10 rounded-[22%]" />
+      <h3 class="text-xl font-semibold tracking-tight text-white">
+        <a href={p.href} class="outline-none after:absolute after:inset-0 after:z-20">{p.name}</a>
+      </h3>
+    </div>
+
+    <p class="mt-5 text-[15px] leading-relaxed text-white/60 text-pretty">{p.summary}</p>
+
+    <div class="mt-8 text-sm">
+      <span aria-hidden="true" class="inline-block rounded-md bg-[#e9e8e4] px-4 py-2 font-medium text-[#0c0c0d] transition-colors group-hover:bg-white">
+        {p.cta} <span class="inline-block transition-transform group-hover:translate-x-0.5">→</span>
+      </span>
+    </div>
+  </div>
+
+  <div class:list={['relative order-first min-h-[300px] overflow-hidden border-b border-white/[0.08] sm:min-h-[400px] lg:border-b-0', reverse ? 'lg:border-r' : 'lg:order-last lg:border-l']} style={`background:${tint}`}>
+    <slot />
+  </div>
+</article>

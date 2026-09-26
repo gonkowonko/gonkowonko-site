@@ -1,0 +1,18 @@
+---
+import { Image } from 'astro:assets';
+import welcome from '../../assets/rewax/welcome.png';
+import bikes from '../../assets/rewax/bikes.png';
+import logWax from '../../assets/rewax/log-wax.png';
+// The Rewax card's picture: three screens from the app, rising out of the
+// bottom of the card. The crops are the phone frame only; the rounded corners
+// here follow the frame's (92px on a 662px-wide crop).
+const phone = 'w-auto shrink-0 rounded-[13.9%/6.5%] shadow-[0_30px_60px_-15px_#000]';
+const side = 'h-[78%] translate-y-[14%] brightness-[.55]';
+const sizes = '(min-width: 1024px) 220px, 45vw';
+---
+
+<div class="absolute inset-x-0 top-12 -bottom-8 flex justify-center" aria-hidden="true">
+  <Image src={welcome} alt="" widths={[260, 520]} {sizes} class:list={[phone, side, '-mr-16']} />
+  <Image src={bikes} alt="" widths={[260, 520]} {sizes} class:list={[phone, 'relative z-10 h-full']} />
+  <Image src={logWax} alt="" widths={[260, 520]} {sizes} class:list={[phone, side, '-ml-16']} />
+</div>

@@ -15,6 +15,8 @@ export default defineConfig({
   build: { format: 'preserve' },
   integrations: [
     sitemap({
+      // /privacy/ only redirects to /nightscout/privacy/ now.
+      filter: (page) => !/\/privacy\/?$/.test(page) || page.includes('/nightscout/'),
       // The sitemap drops the ending 'preserve' builds with; put it back so
       // each URL matches its page's canonical: a slash for a folder's index,
       // .html for anything else.
