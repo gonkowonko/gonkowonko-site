@@ -2,67 +2,189 @@
 import { Image } from 'astro:assets';
 import Base from '../../layouts/Base.astro';
 import Wordmark from '../../components/rewax/Wordmark.astro';
+import Phone from '../../components/rewax/Phone.astro';
 import { asset } from '../../lib/asset';
-import welcome from '../../assets/rewax/store/welcome.webp';
-import bikes from '../../assets/rewax/store/bikes.webp';
-import logWax from '../../assets/rewax/store/log-wax.webp';
+import { author } from '../../config/projects';
 
-// A first, short page for Rewax while it's in beta. It'll grow into a full
-// page like /nightscout/ once it's on the App Store.
+import iList from '../../assets/rewax/iphone/bikes.png';
+import iBike from '../../assets/rewax/iphone/bike.png';
+import iHistory from '../../assets/rewax/iphone/history.png';
+import iLogWax from '../../assets/rewax/iphone/log-wax.png';
+import iWelcome from '../../assets/rewax/iphone/welcome.png';
+import iWidget from '../../assets/rewax/iphone/home-widget.png';
+import aList from '../../assets/rewax/android/bikes.png';
+import aBike from '../../assets/rewax/android/bike.png';
+import aHistory from '../../assets/rewax/android/history.png';
+import aLogWax from '../../assets/rewax/android/log-wax.png';
+import aWelcome from '../../assets/rewax/android/welcome.png';
+import aWidget from '../../assets/rewax/android/home-widget.png';
+
+// One app on two phones. The screenshots come in matching pairs, taken from
+// the same demo data in each app, and a toggle swaps the set shown. It starts
+// on Android for Android visitors, and on iPhone for everyone else.
 const screens = [
-  { src: bikes, alt: 'The bike list: miles since each chain was last waxed, drawn as a chain that fills up.' },
-  { src: logWax, alt: 'Logging a wax on a bike, with the date and an optional note.' },
-  { src: welcome, alt: 'The welcome screen: connect Strava, or explore with demo data.' },
+  { title: 'Every bike at a glance', text: 'Miles since each chain was waxed, drawn as a chain that fills up and turns amber, then red.', iphone: iList, android: aList, alt: 'The bike list: three bikes, each with the miles since its last wax and a chain that fills as it’s ridden.' },
+  { title: 'One bike in detail', text: 'How far over or under the limit it is, when it was waxed, and when the next one’s due.', iphone: iBike, android: aBike, alt: 'A bike’s page: 50 miles over the limit, last waxed on 20 September, with its chain link’s uses.' },
+  { title: 'Every wax, logged', text: 'How far each wax lasted, with your average, shortest and longest.', iphone: iHistory, android: aHistory, alt: 'The history page: a bar for each wax showing how far the bike rode on it, and the wax log below.' },
+  { title: 'Log a wax in a tap', text: 'Backdate it up to a year and add a note. The count starts again from zero.', iphone: iLogWax, android: aLogWax, alt: 'Logging a wax: the date and time it was waxed, and an optional note.' },
+  { title: 'Try it first', text: 'Connect Strava for your own bikes, or explore with demo data. No account needed.', iphone: iWelcome, android: aWelcome, alt: 'The welcome screen: connect with Strava, or explore with demo data.' },
+];
+const steps = [
+  ['Connect Strava', 'Rewax reads the rides you record on Strava and the bikes you ride them on. Nothing else.'],
+  ['Log a wax', 'Tap Log chain wax after you wax a chain. That bike’s count starts again from zero.'],
+  ['Ride', 'Every ride counts towards the limit you set. When a chain goes over, you get a reminder.'],
 ];
 const features = [
-  ['Every chain at a glance', 'Miles since the last wax for each bike, counted from your Strava rides, against a limit you set per bike.'],
-  ['Log a wax in a tap', 'Backdate it up to a year and add a note. The count starts again from zero.'],
-  ['Reminders', 'A notification when a chain goes over its limit, and an optional count on the app icon.'],
-  ['Chain links', 'Keep track of how many more uses a reusable quick link has left.'],
-  ['Home Screen widgets', 'See your chains without opening the app.'],
-  ['Private by design', 'No account, no ads, no analytics. Your data stays on your iPhone, and Rewax talks only to Strava.'],
+  ['Limits for each bike', 'One limit for every bike, or a different one for the bike that sees the worst of the weather. Miles or kilometres.'],
+  ['Reminders', 'A notification when a chain goes over its limit, with a button to log the wax straight from it.'],
+  ['Chain links', 'Keep track of how many more uses a reusable quick link has left, and when it’s time for a new one.'],
+  ['A forecast', 'From how much you’ve been riding, Rewax works out roughly when each chain will be due.'],
+  ['Backup and restore', 'Save everything to a file, and restore it on a new phone, iPhone or Android.'],
+  ['Private by design', 'No account, no ads, no analytics. Your data stays on your phone, and Rewax only talks to Strava.'],
 ];
+const platforms = [
+  {
+    id: 'iphone',
+    name: 'iPhone',
+    needs: 'iOS 26 or later',
+    points: ['Home Screen and Lock Screen widgets', 'Overdue bikes counted on the app icon', 'Built in SwiftUI, with Liquid Glass'],
+  },
+  {
+    id: 'android',
+    name: 'Android',
+    needs: 'Android 12 or later',
+    points: ['Home screen widgets that resize, from one bike to all of them', 'A themed icon that follows your wallpaper', 'Built in Jetpack Compose, with Material 3'],
+  },
+];
+const faqs = [
+  ['Do I need a paid Strava subscription?', 'No, a free Strava account is all Rewax needs. Rides recorded on a Garmin, Wahoo or anything else count too, as long as they reach Strava with a bike chosen for them.'],
+  ['Can I try it without Strava?', 'Yes. Choose Explore with demo data on the first screen and Rewax fills up with sample bikes, so you can try everything before connecting your own.'],
+  ['What happens to my data?', 'It stays on your phone. There’s no Rewax account and no Rewax server: the app talks only to Strava, to read your rides and bikes. The privacy policy has the details.'],
+  ['Can I move from iPhone to Android, or back?', 'Yes. Make a backup in Settings on one phone and restore it on the other. Your bikes, wax log and chain links come with you.'],
+  ['When can I get it?', 'Rewax is being tested by a small group of riders at the moment. It’s coming to the App Store and Google Play once testing is done.'],
+];
+
+const page = new URL(asset('/rewax/'), Astro.site).href;
+const site = new URL(asset('/'), Astro.site).href;
+const person = { '@type': 'Person', name: author.name, url: author.github };
+const app = (os: string, device: string) => ({
+  '@type': 'SoftwareApplication',
+  name: 'Rewax',
+  description: `An ${device} app that counts how far each bike has been ridden since its chain was last waxed, from your Strava rides, and reminds you when it’s time to rewax.`,
+  operatingSystem: os,
+  applicationCategory: 'SportsApplication',
+  image: new URL(asset('/rewax/icon-256.png'), Astro.site).href,
+  url: page,
+  featureList: ['Miles since each chain was waxed, from Strava', 'Limits for each bike', 'Overdue reminders', 'Chain link uses', 'Widgets', 'Backup and restore between iPhone and Android'],
+  author: person,
+});
+const jsonld = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    { '@type': 'WebPage', name: 'Rewax', url: page, inLanguage: 'en-GB', isPartOf: { '@type': 'WebSite', name: 'gonkowonko', url: site }, author: person },
+    app('iOS 26 or later', 'iPhone'),
+    app('Android 12 or later', 'Android'),
+    { '@type': 'FAQPage', mainEntity: faqs.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })) },
+  ],
+};
+
+const label = 'font-mono text-[11px] tracking-wider text-[#8e8c84] uppercase';
 ---
 
 <Base
   title="Rewax — know when to rewax your bike chain"
-  description="Rewax is an iPhone app that counts how far each bike has been ridden since its chain was last waxed, from your Strava rides, and reminds you when it's time to rewax. In beta, coming soon."
+  description="Rewax is an app for iPhone and Android that counts how far each bike has been ridden since its chain was last waxed, from your Strava rides, and reminds you when it's time to rewax. In beta testing, coming soon."
   theme="rewax"
   siteName="Rewax"
   favicon="/rewax/favicon.png"
   touchIcon="/rewax/icon-256.png"
   themeColor="#111210"
-  image={null}
+  image="/rewax/og.png"
+  imageAlt="Rewax on an iPhone and an Android phone: know when to rewax your chain"
 >
+  <script slot="head" type="application/ld+json" set:html={JSON.stringify(jsonld)} />
+
   <div class="mx-auto max-w-[1080px] px-4 sm:px-8">
     <header class="flex items-center justify-between py-6 text-sm">
       <a href={asset('/')} class="text-[#8e8c84] hover:text-[#eceae3]">← gonkowonko</a>
-      <a href={asset('/rewax/privacy-policy.html')} class="text-[#8e8c84] hover:text-[#eceae3]">Privacy</a>
+      <nav class="flex gap-5 text-[#8e8c84]">
+        <a href="#screens" class="hover:text-[#eceae3]">Screens</a>
+        <a href="#faq" class="hover:text-[#eceae3]">FAQ</a>
+        <a href={asset('/rewax/privacy-policy.html')} class="hover:text-[#eceae3]">Privacy</a>
+      </nav>
     </header>
 
     <main>
-      <section class="pt-16 pb-14 text-center sm:pt-24">
+      <!-- Hero: the pitch, and the app on both phones -->
+      <section class="pt-14 text-center sm:pt-20">
         <div class="text-[26px] sm:text-[34px]"><Wordmark /></div>
         <h1 class="mx-auto mt-10 max-w-[18ch] text-4xl leading-[1.08] font-semibold tracking-[-0.03em] text-balance sm:text-6xl">
           Know when to <span class="text-[#ffb224]">rewax</span> your chain.
         </h1>
-        <p class="mx-auto mt-6 max-w-[52ch] text-lg leading-relaxed text-[#b9b7af] text-pretty">
-          An iPhone app for riders with waxed chains. It reads your rides from Strava, counts how far each bike has gone since its chain was last waxed, and tells you when it’s time to do it again.
+        <p class="mx-auto mt-6 max-w-[54ch] text-lg leading-relaxed text-[#b9b7af] text-pretty">
+          An app for riders with waxed chains, on iPhone and Android. It reads your rides from Strava, counts how far each bike has gone since its chain was last waxed, and tells you when it’s time to do it again.
         </p>
         <p class="mt-8 inline-flex items-center gap-2 rounded-full border border-[#ffb224]/25 px-4 py-1.5 font-mono text-[11px] tracking-wider text-[#ffb224] uppercase">
-          <span class="size-1.5 rounded-full bg-[#ffb224]"></span>
-          In beta · coming soon to the App Store
+          <span class="size-1.5 animate-pulse rounded-full bg-[#ffb224]"></span>
+          In beta testing · coming soon
         </p>
+
+        <div class="relative mt-16 flex items-start justify-center sm:mt-20" aria-label="Rewax on an iPhone and an Android phone" role="img">
+          <div aria-hidden="true" class="absolute inset-x-0 top-[20%] -z-10 mx-auto h-[70%] max-w-[640px] rounded-full bg-[radial-gradient(closest-side,#ffb2242e,transparent)] blur-2xl"></div>
+          <Phone src={iList} alt="" platform="iphone" sizes="(min-width: 640px) 280px, 46vw" eager class="relative z-10 w-[46%] max-w-[280px] -rotate-[4deg] sm:-mr-6" />
+          <Phone src={aBike} alt="" platform="android" sizes="(min-width: 640px) 280px, 46vw" eager class="-ml-4 w-[46%] max-w-[280px] translate-y-[10%] rotate-[4deg]" />
+        </div>
       </section>
 
-      <section aria-label="Screenshots" class="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-4 sm:mx-0 sm:grid sm:grid-cols-3 sm:gap-6 sm:overflow-visible sm:px-0">
-        {screens.map((s) => (
-          <Image src={s.src} alt={s.alt} widths={[340, 680]} sizes="(min-width: 1080px) 330px, (min-width: 640px) 30vw, 70vw" class="w-[70vw] shrink-0 snap-center rounded-2xl border border-white/[0.06] sm:w-full" />
+      <!-- How it works -->
+      <section class="mt-40 border-t border-[#2c2d29] pt-4 sm:mt-48">
+        <h2 class={label}>How it works</h2>
+        <ol class="mt-8 grid gap-10 sm:grid-cols-3">
+          {steps.map(([t, d], i) => (
+            <li>
+              <p class="font-mono text-sm text-[#ffb224] tnum">0{i + 1}</p>
+              <h3 class="mt-3 text-xl font-semibold tracking-tight">{t}</h3>
+              <p class="mt-2 leading-relaxed text-[#b9b7af]">{d}</p>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      <!-- Screens, with the iPhone / Android toggle -->
+      <section id="screens" class="mt-28 scroll-mt-8 border-t border-[#2c2d29] pt-4" data-platforms>
+        <div class="flex flex-wrap items-end justify-between gap-6">
+          <div>
+            <h2 class={label}>A closer look</h2>
+            <p class="mt-8 max-w-[34ch] text-3xl leading-tight font-semibold tracking-tight text-balance">The same app, made for each phone.</p>
+          </div>
+          <div class="relative flex rounded-full border border-white/10 bg-white/[0.03] p-1 text-sm" role="tablist" aria-label="Phone">
+            <span data-pill aria-hidden="true" class="absolute inset-y-1 left-1 rounded-full bg-[#eceae3] transition-all duration-300 ease-out"></span>
+            {platforms.map((p, i) => (
+              <button type="button" role="tab" id={`tab-${p.id}`} aria-controls={`screens-${p.id}`} aria-selected={i === 0 ? 'true' : 'false'} data-platform={p.id} class="relative z-10 rounded-full px-5 py-2 font-medium text-[#b9b7af] transition-colors aria-selected:text-[#111210]">
+                {p.name}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {platforms.map((p, i) => (
+          <div id={`screens-${p.id}`} role="tabpanel" aria-labelledby={`tab-${p.id}`} data-panel={p.id} hidden={i !== 0} class="-mx-4 mt-10 flex snap-x snap-mandatory gap-5 overflow-x-auto px-4 pb-6 sm:-mx-8 sm:px-8 lg:mx-0 lg:grid lg:grid-cols-5 lg:gap-6 lg:overflow-visible lg:px-0">
+            {screens.map((s) => (
+              <figure class="w-[62vw] max-w-[240px] shrink-0 snap-center lg:w-auto lg:max-w-none">
+                <Phone src={s[p.id as 'iphone' | 'android']} alt={s.alt} platform={p.id as 'iphone' | 'android'} sizes="(min-width: 1024px) 190px, 62vw" />
+                <figcaption class="mt-5">
+                  <p class="font-semibold">{s.title}</p>
+                  <p class="mt-1 text-sm leading-relaxed text-[#8e8c84]">{s.text}</p>
+                </figcaption>
+              </figure>
+            ))}
+          </div>
         ))}
       </section>
 
+      <!-- Features -->
       <section class="mt-24 border-t border-[#2c2d29] pt-4">
-        <h2 class="font-mono text-[11px] tracking-wider text-[#8e8c84] uppercase">What it does</h2>
+        <h2 class={label}>What it does</h2>
         <dl class="mt-8 grid gap-x-12 gap-y-9 sm:grid-cols-2 lg:grid-cols-3">
           {features.map(([t, d]) => (
             <div>
@@ -71,6 +193,81 @@ const features = [
             </div>
           ))}
         </dl>
+      </section>
+
+      <!-- Widgets -->
+      <section class="mt-28 border-t border-[#2c2d29] pt-4">
+        <h2 class={label}>Widgets</h2>
+        <div class="mt-8 grid items-center gap-10 lg:grid-cols-[5fr_7fr]">
+          <div>
+            <p class="max-w-[20ch] text-3xl leading-tight font-semibold tracking-tight text-balance">Your chains, without opening the app.</p>
+            <p class="mt-4 max-w-[46ch] leading-relaxed text-[#b9b7af]">
+              Put the bike that’s most due on your home screen, one particular bike, or all of them at once. Widgets update as your rides come in.
+            </p>
+          </div>
+          <div class="grid gap-5 sm:grid-cols-2">
+            <figure>
+              <Image src={iWidget} alt="The Rewax bikes overview widget on an iPhone Home Screen: Canyon Aeroad 50 miles over, with two more bikes below." widths={[400, 800]} sizes="(min-width: 1024px) 300px, (min-width: 640px) 45vw, 92vw" class="w-full rounded-2xl border border-white/[0.06]" />
+              <figcaption class={`${label} mt-3`}>iPhone</figcaption>
+            </figure>
+            <figure>
+              <Image src={aWidget} alt="The Rewax bikes overview widget on an Android home screen: Canyon Aeroad 50 miles over, with two more bikes below." widths={[400, 800]} sizes="(min-width: 1024px) 300px, (min-width: 640px) 45vw, 92vw" class="w-full rounded-2xl border border-white/[0.06]" />
+              <figcaption class={`${label} mt-3`}>Android</figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      <!-- The two phones -->
+      <section class="mt-28 border-t border-[#2c2d29] pt-4">
+        <h2 class={label}>iPhone and Android</h2>
+        <div class="mt-8 grid gap-5 sm:grid-cols-2">
+          {platforms.map((p) => (
+            <article class="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-7 sm:p-8">
+              <div class="flex items-center justify-between gap-4">
+                <h3 class="text-2xl font-semibold tracking-tight">{p.name}</h3>
+                <p class="inline-flex items-center gap-2 rounded-full border border-white/10 px-2.5 py-1 text-xs text-[#b9b7af]">
+                  <span class="size-1.5 rounded-full bg-[#ffb224]"></span>
+                  In beta testing
+                </p>
+              </div>
+              <p class="mt-1 text-sm text-[#8e8c84]">Needs {p.needs}</p>
+              <ul class="mt-6 space-y-2.5">
+                {p.points.map((pt) => (
+                  <li class="flex gap-3 text-[#b9b7af]">
+                    <svg class="mt-1.5 size-3.5 shrink-0 text-[#ffb224]" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 8.5 3 3 7-7" /></svg>
+                    <span>{pt}</span>
+                  </li>
+                ))}
+              </ul>
+            </article>
+          ))}
+        </div>
+        <div class="mt-5 flex flex-col gap-2 rounded-2xl border border-[#ffb224]/20 bg-[#ffb224]/[0.04] p-7 sm:flex-row sm:items-center sm:gap-8 sm:p-8">
+          <p class="shrink-0 text-lg font-semibold">Switch phones, keep your history.</p>
+          <p class="leading-relaxed text-[#b9b7af]">A backup made on an iPhone restores on Android, and the other way round, with every bike, wax and chain link.</p>
+        </div>
+      </section>
+
+      <!-- FAQ -->
+      <section id="faq" class="mt-28 scroll-mt-8 border-t border-[#2c2d29] pt-4">
+        <h2 class={label}>Questions</h2>
+        <div class="mt-6 divide-y divide-[#2c2d29]">
+          {faqs.map(([q, a]) => (
+            <details class="group py-5">
+              <summary class="flex cursor-pointer list-none items-center justify-between gap-6 text-lg font-medium [&::-webkit-details-marker]:hidden">
+                {q}
+                <span aria-hidden="true" class="text-2xl leading-none font-light text-[#8e8c84] transition-transform group-open:rotate-45">+</span>
+              </summary>
+              <p class="mt-3 max-w-[66ch] leading-relaxed text-[#b9b7af]">
+                {a}
+                {q.startsWith('What happens') && (
+                  <> <a href={asset('/rewax/privacy-policy.html')} class="text-[#ffb224] underline-offset-4 hover:underline">Read the privacy policy</a>.</>
+                )}
+              </p>
+            </details>
+          ))}
+        </div>
       </section>
     </main>
 
@@ -82,4 +279,35 @@ const features = [
       </div>
     </footer>
   </div>
+
+  <script>
+    // The iPhone / Android toggle. Android visitors start on Android.
+    const root = document.querySelector<HTMLElement>('[data-platforms]')!;
+    const pill = root.querySelector<HTMLElement>('[data-pill]')!;
+    const tabs = [...root.querySelectorAll<HTMLButtonElement>('[data-platform]')];
+    const panels = [...root.querySelectorAll<HTMLElement>('[data-panel]')];
+
+    function place() {
+      const on = tabs.find((t) => t.getAttribute('aria-selected') === 'true')!;
+      pill.style.width = `${on.offsetWidth}px`;
+      pill.style.transform = `translateX(${on.offsetLeft - 4}px)`;
+    }
+    function show(id: string) {
+      tabs.forEach((t) => t.setAttribute('aria-selected', String(t.dataset.platform === id)));
+      panels.forEach((p) => (p.hidden = p.dataset.panel !== id));
+      place();
+    }
+    tabs.forEach((t) => {
+      t.addEventListener('click', () => show(t.dataset.platform!));
+      t.addEventListener('keydown', (e) => {
+        if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+        const next = tabs[(tabs.indexOf(t) + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length];
+        show(next.dataset.platform!);
+        next.focus();
+      });
+    });
+    if (/Android/.test(navigator.userAgent)) show('android');
+    new ResizeObserver(place).observe(tabs[0]);
+    document.fonts?.ready.then(place);
+  </script>
 </Base>

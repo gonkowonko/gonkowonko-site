@@ -24,7 +24,7 @@ export const projects = [
     icon: asset('/rewax/icon-256.png'),
     summary:
       'Know when to rewax your bike chain. Rewax reads your rides from Strava, counts how far each bike has gone since its chain was last waxed, and reminds you when it’s due.',
-    platforms: 'iPhone',
-    status: { label: 'Beta · coming soon', live: false },
+    platforms: 'iPhone · Android',
+    status: { label: 'In beta testing', live: false },
   },
 ] as const;

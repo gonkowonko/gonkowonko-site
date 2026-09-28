@@ -1,18 +1,13 @@
 ---
-import { Image } from 'astro:assets';
-import welcome from '../../assets/rewax/welcome.png';
-import bikes from '../../assets/rewax/bikes.png';
-import logWax from '../../assets/rewax/log-wax.png';
-// The Rewax card's picture: three screens from the app, rising out of the
-// bottom of the card. The crops are the phone frame only; the rounded corners
-// here follow the frame's (92px on a 662px-wide crop).
-const phone = 'w-auto shrink-0 rounded-[13.9%/6.5%] shadow-[0_30px_60px_-15px_#000]';
-const side = 'h-[78%] translate-y-[14%] brightness-[.55]';
-const sizes = '(min-width: 1024px) 220px, 45vw';
+import Phone from '../rewax/Phone.astro';
+import iList from '../../assets/rewax/iphone/bikes.png';
+import aBike from '../../assets/rewax/android/bike.png';
+// The Rewax card's picture: the app on both phones, rising out of the bottom
+// of the card, the iPhone's bike list in front of the Android bike page.
+const sizes = '(min-width: 1024px) 230px, 42vw';
 ---
 
-<div class="absolute inset-x-0 top-12 -bottom-8 flex justify-center" aria-hidden="true">
-  <Image src={welcome} alt="" widths={[260, 520]} {sizes} class:list={[phone, side, '-mr-16']} />
-  <Image src={bikes} alt="" widths={[260, 520]} {sizes} class:list={[phone, 'relative z-10 h-full']} />
-  <Image src={logWax} alt="" widths={[260, 520]} {sizes} class:list={[phone, side, '-ml-16']} />
+<div class="absolute inset-x-0 top-12 -bottom-24 flex justify-center gap-0" aria-hidden="true">
+  <Phone src={iList} alt="" platform="iphone" {sizes} class="relative z-10 h-fit w-[42%] max-w-[230px] -rotate-[4deg] -mr-4" />
+  <Phone src={aBike} alt="" platform="android" {sizes} class="h-fit w-[42%] max-w-[230px] translate-y-[8%] rotate-[4deg] brightness-[.7]" />
 </div>
