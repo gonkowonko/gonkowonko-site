@@ -2,14 +2,14 @@
 import Base from '../../layouts/Base.astro';
 import Wordmark from '../../components/rewax/Wordmark.astro';
 
-// Linked from the app's About page and App Store Connect, so the address
+// Linked from both apps' About pages, App Store Connect and Google Play, so the address
 // (/rewax/privacy-policy.html) must not change.
-const updated = '25 September 2026';
+const updated = '28 September 2026';
 ---
 
 <Base
   title="Privacy Policy — Rewax"
-  description="What the Rewax iPhone app does, and doesn't do, with your data. Everything stays on your iPhone; it only talks to Strava."
+  description="What the Rewax app for iPhone and Android does, and doesn't do, with your data. Everything stays on your phone; it only talks to Strava."
   theme="rewax"
   siteName="Rewax"
   favicon="/rewax/favicon.png"
@@ -29,10 +29,10 @@ const updated = '25 September 2026';
       <p class="updated">Last updated {updated}</p>
 
       <p class="lede">
-        Rewax is an iPhone app that keeps track of how far each of your bikes has been ridden since its chain was last waxed, and tells you when it's time to rewax. It's made by Gary Dalley (“I”, “me”).
+        Rewax is an app for iPhone and Android that keeps track of how far each of your bikes has been ridden since its chain was last waxed, and tells you when it's time to rewax. It's made by Gary Dalley (“I”, “me”).
       </p>
       <p>
-        In short: <b>your data stays on your iPhone.</b> Rewax has no servers, no user accounts, no ads, no analytics and no tracking. The only service it talks to is Strava, and only to read your bikes and rides.
+        In short: <b>your data stays on your phone.</b> Rewax has no servers, no user accounts, no ads, no analytics and no tracking. The only service it talks to is Strava, and only to read your bikes and rides.
       </p>
 
       <h2>What Rewax reads from Strava</h2>
@@ -47,14 +47,20 @@ const updated = '25 September 2026';
       <p>Rewax never posts, edits or deletes anything on Strava.</p>
 
       <h2>What Rewax stores, and where</h2>
-      <p>Everything is stored on your iPhone:</p>
+      <p>Everything is stored on your phone:</p>
       <ul>
         <li>The data read from Strava, listed above.</li>
         <li>The things you enter in Rewax: the waxes you log, your chain links, bike nicknames, limits and other settings.</li>
-        <li>Your Strava sign-in tokens, which are kept in the iOS Keychain.</li>
+        <li>Your Strava sign-in tokens. On iPhone they're kept in the iOS Keychain; on Android they're encrypted with a key held in the Android Keystore, which never leaves your phone.</li>
       </ul>
       <p>
-        Rewax's Home Screen widgets read this data from the same iPhone. It isn't sent to me or to anyone else. If you use iCloud Backup or back up your iPhone to a computer, Rewax's data is included in that backup like any other app's data. Apple handles those backups under its own privacy policy.
+        Rewax's Home Screen widgets read this data from the same phone. It isn't sent to me or to anyone else.
+      </p>
+      <p>
+        Your phone's own backups include Rewax's data like any other app's. On iPhone that's iCloud Backup or a backup to a computer. On Android it's Backup by Google, which keeps everything above except your Strava sign-in, so after moving to a new phone you connect Strava again. Apple and Google handle those backups under their own privacy policies.
+      </p>
+      <p>
+        You can also save a Rewax backup file yourself, from Settings → Backup &amp; restore. It goes wherever you choose to save or send it, and it holds the same data as the app, apart from your Strava sign-in.
       </p>
 
       <h2>What Rewax sends, and to whom</h2>
@@ -67,15 +73,15 @@ const updated = '25 September 2026';
       </p>
 
       <h2>Notifications</h2>
-      <p>If you allow notifications, Rewax sends alerts about overdue chains. They're scheduled on your iPhone, and no notification server is involved.</p>
+      <p>If you allow notifications, Rewax sends alerts about overdue chains. They're created on your phone, and no notification server is involved.</p>
 
       <h2>Your choices</h2>
       <ul>
-        <li><b>Disconnect Strava</b> (Settings → Disconnect Strava): this revokes Rewax's access on Strava and deletes your bikes, wax log and chain links from your iPhone. Your settings are kept.</li>
-        <li><b>Delete the app:</b> this removes all of Rewax's data from your iPhone.</li>
+        <li><b>Disconnect Strava</b> (Settings → Disconnect Strava): this revokes Rewax's access on Strava and deletes your bikes, wax log and chain links from your phone. Your settings are kept.</li>
+        <li><b>Delete the app:</b> this removes all of Rewax's data from your phone.</li>
         <li>You can also revoke Rewax's access at any time from Strava, under Settings → My Apps.</li>
       </ul>
-      <p>Because I never receive your data, I have nothing to access, correct or delete on your behalf. All of it stays under your control on your iPhone.</p>
+      <p>Because I never receive your data, I have nothing to access, correct or delete on your behalf. All of it stays under your control on your phone.</p>
 
       <h2>Children</h2>
       <p>Rewax isn't directed at children under 13 and doesn't knowingly collect any data from them.</p>
