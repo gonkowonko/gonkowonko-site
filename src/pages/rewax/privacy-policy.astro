@@ -94,7 +94,7 @@ const updated = '28 September 2026';
 
       <h2>Contact</h2>
       <p>
-        Questions about this policy or about your data can go to
+        Questions about this policy or about your data can go to{' '}
         <Email user="rewax" domain="gonkowonko.com" />.
       </p>
 
@@ -155,6 +155,14 @@ const updated = '28 September 2026';
     text-underline-offset: 4px;
   }
   a:hover {
+    text-decoration: underline;
+  }
+  /* The email link is drawn by a component, which the rules above don't reach. */
+  .rewax-article :global(a.email) {
+    color: #ffb224;
+    text-underline-offset: 4px;
+  }
+  .rewax-article :global(a.email:hover) {
     text-decoration: underline;
   }
   code {
