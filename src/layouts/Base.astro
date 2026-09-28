@@ -41,6 +41,8 @@ const og = image && new URL(asset(image), Astro.site);
     <meta name="theme-color" content={themeColor} />
     {import.meta.env.PUBLIC_NOINDEX && <meta name="robots" content="noindex, nofollow" />}
     <link rel="icon" type="image/png" href={asset(favicon)} />
+    {/* The site's own icon is also drawn as an SVG, sharp at any size; browsers that read SVG icons use it. */}
+    {favicon === '/favicon.png' && <link rel="icon" type="image/svg+xml" href={asset('/favicon.svg')} />}
     <link rel="apple-touch-icon" href={asset(touchIcon)} />
     <link rel="canonical" href={canonical} />
     <link rel="sitemap" href={asset('/sitemap-index.xml')} />

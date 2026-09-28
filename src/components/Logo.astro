@@ -1,0 +1,135 @@
+---
+// The gonkowonko wordmark: GONKOWONKO in heavy tracked capitals, with the
+// first O of each half, gonko and wonko, drawn as the bike's two wheels.
+// Sized in em, so font-size scales the whole mark.
+//
+// By default: time-in-range rims, the tagline underneath, and a roll on load.
+// Options, for trying ideas out:
+// - rim "blue": deep carbon rims in the blue of the diabetes blue circle.
+// - rim "range": the rims drawn as a time-in-range ring, the chart a CGM app
+//   shows, mostly green with slices of amber for highs and red for lows.
+// - semicolon: ends the name with a semicolon whose dot is a finger-prick drop.
+// - under: the faded line underneath (".com" by default, or a tagline).
+// - spin: the wheels roll once when the page loads, and again on hover.
+interface Props {
+  rim?: 'blue' | 'range';
+  semicolon?: boolean;
+  under?: string | false;
+  spin?: boolean;
+}
+const { rim = 'range', semicolon = false, under = 'Code, carbs and carbon', spin = true } = Astro.props;
+const range = rim === 'range';
+const blue = '#4aa8ff';
+const spokeColour = range ? '#a39d91' : blue;
+
+// Both wheels on a 100 × 100 box: a thin tyre, then a deep rim (about 60 mm on
+// a road wheel, a fifth of its radius), then thin spokes to the hub.
+const pt = (r: number, a: number) => `${(50 + r * Math.cos(a)).toFixed(2)} ${(50 + r * Math.sin(a)).toFixed(2)}`;
+// 24 spokes, laced so they cross, leaving a narrow hub flange round a small hub.
+const spokes = Array.from({ length: 24 }, (_, i) => {
+  const a = (i * 2 * Math.PI) / 24;
+  return `M${pt(6.5, a)}L${pt(33.5, a + (i % 2 ? 0.5 : -0.5))}`;
+}).join('');
+// Time in range round the rim, clockwise from the top: 71% in range, 23% high,
+// 4% low, with hairline gaps between (the rim's circumference is 2π × 39).
+const C = 2 * Math.PI * 39;
+const gap = 1.3;
+const slices = [
+  { colour: '#30d158', share: 0.71 },
+  { colour: '#ffb224', share: 0.23 },
+  { colour: '#ff5a4f', share: 0.06 },
+];
+let start = 0;
+const arcs = slices.map(({ colour, share }) => {
+  const len = share * C - gap;
+  const arc = { colour, dash: `${len.toFixed(2)} ${(C - len).toFixed(2)}`, offset: (-start).toFixed(2) };
+  start += share * C;
+  return arc;
+});
+// One wheel, used for both O's: tyre, rim, then the spokes and hub that turn.
+const rimMarkup = range
+  ? arcs.map((a) => `<circle cx="50" cy="50" r="39" fill="none" stroke="${a.colour}" stroke-width="11" stroke-dasharray="${a.dash}" stroke-dashoffset="${a.offset}" transform="rotate(-90 50 50)" />`).join('')
+  : `<circle cx="50" cy="50" r="39" fill="none" stroke="${blue}" stroke-width="11" />`;
+// Inline sizing: a wheel stands in for an O, at cap height, with the letters' tracking after it.
+const wheel = `<svg class="wheel" viewBox="0 0 100 100" style="width:.78em;height:.78em;margin-right:.14em;flex-shrink:0"><circle cx="50" cy="50" r="47" fill="none" stroke="${blue}" stroke-opacity=".45" stroke-width="3.6" />${rimMarkup}<g class="turn"><path d="${spokes}" stroke="${spokeColour}" stroke-width="1.5" stroke-linecap="round" /><circle cx="50" cy="50" r="6.5" fill="none" stroke="${spokeColour}" stroke-width="1.6" /><circle cx="50" cy="50" r="3.6" fill="${spokeColour}" /></g></svg>`;
+const label = `gonkowonko${semicolon ? ';' : ''}${under === '.com' ? '.com' : ''}`;
+---
+
+<span class:list={['gonko-logo', { spin }]} role="img" aria-label={label}>
+  <span class="name" aria-hidden="true">
+    <span>G</span><Fragment set:html={wheel} /><span>NKOW</span><Fragment set:html={wheel} /><span>NKO</span>{semicolon && (
+      <svg class="semi" viewBox="0 0 34 100">
+        <path d="M17 24C17 24 9.5 33.5 9.5 38.6a7.5 7.5 0 0 0 15 0C24.5 33.5 17 24 17 24Z" fill="#ff5a4f" />
+        <path d="M17 66a8 8 0 0 1 8 8.5c0 7-4.2 13.5-10.5 17.5l-2.6-3c3.2-2.6 5-5.4 5.4-8.3A8 8 0 0 1 17 66Z" fill="#eceae3" />
+      </svg>
+    )}
+  </span>
+  {under && <span class:list={['under', { tagline: under !== '.com' }]} aria-hidden="true">{under}</span>}
+</span>
+
+<style>
+  .gonko-logo {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-end;
+    font-family: var(--font-sans);
+    line-height: 1;
+    color: #eceae3;
+    white-space: nowrap;
+  }
+  .name {
+    display: inline-flex;
+    align-items: center;
+    font-weight: 900;
+    letter-spacing: 0.14em;
+    /* Tracking trails the last letter; pull it back so the mark ends on it. */
+    margin-right: -0.14em;
+  }
+  /* The semicolon: the height of a line, so its drop sits at x-height and its comma drops below the baseline. */
+  .semi {
+    width: 0.34em;
+    height: 1em;
+    margin-left: -0.08em;
+    margin-right: 0.14em;
+    flex-shrink: 0;
+  }
+  /* The faded line under the end of the name: .com, or a tagline. */
+  .under {
+    margin-top: 0.22em;
+    font-size: 0.42em;
+    font-weight: 700;
+    letter-spacing: 0.3em;
+    margin-right: -0.3em;
+    opacity: 0.38;
+  }
+  .under.tagline {
+    font-size: 0.3em;
+    letter-spacing: 0.32em;
+    margin-right: -0.32em;
+    margin-top: 0.4em;
+    text-transform: uppercase;
+    opacity: 0.5;
+  }
+  /* Rolling: only the spokes and hub turn, as they would; the rim's colours stay put. */
+  .spin :global(.turn) {
+    transform-origin: 50px 50px;
+    animation: roll 1.6s cubic-bezier(0.2, 0.7, 0.2, 1) 0.3s;
+  }
+  .spin:hover :global(.turn) {
+    animation: roll-again 1.6s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+  @keyframes roll {
+    from { transform: rotate(-360deg); }
+    to { transform: rotate(0deg); }
+  }
+  @keyframes roll-again {
+    from { transform: rotate(-360deg); }
+    to { transform: rotate(0deg); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .spin :global(.turn),
+    .spin:hover :global(.turn) {
+      animation: none;
+    }
+  }
+</style>

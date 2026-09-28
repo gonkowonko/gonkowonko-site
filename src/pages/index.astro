@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import Logo from '../components/Logo.astro';
 import ProjectCard from '../components/home/ProjectCard.astro';
 import NightscoutVisual from '../components/home/NightscoutVisual.astro';
 import RewaxVisual from '../components/home/RewaxVisual.astro';
@@ -28,7 +29,7 @@ const year = new Date().getFullYear();
 
   <div class="mx-auto max-w-[1080px] px-4 sm:px-8">
     <header class="flex items-center justify-between py-6 text-sm">
-      <a href={asset('/')} class="font-semibold tracking-tight text-white">gonkowonko</a>
+      <a href={asset('/')} class="text-[22px]"><Logo /></a>
       <nav class="flex gap-5 text-white/55">
         <a href={author.github} rel="noopener" class="hover:text-white">GitHub</a>
       </nav>
