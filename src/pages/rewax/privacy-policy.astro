@@ -1,6 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
 import Wordmark from '../../components/rewax/Wordmark.astro';
+import Email from '../../components/Email.astro';
 
 // Linked from both apps' About pages, App Store Connect and Google Play, so the address
 // (/rewax/privacy-policy.html) must not change.
@@ -89,6 +90,12 @@ const updated = '28 September 2026';
       <h2>Changes to this policy</h2>
       <p>
         If this policy changes, the new version will be posted here with a new “Last updated” date. If Rewax ever starts handling data differently from what's described here, the app will tell you before that happens.
+      </p>
+
+      <h2>Contact</h2>
+      <p>
+        Questions about this policy or about your data can go to
+        <Email user="rewax" domain="gonkowonko.com" />.
       </p>
 
       <p class="footnote">Rewax is an independent app. It isn't made, sponsored or endorsed by Strava.</p>

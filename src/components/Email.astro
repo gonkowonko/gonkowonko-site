@@ -1,0 +1,23 @@
+---
+// An email link that isn't in the page's HTML, so the harvesters that read
+// pages without running them never see it. The address goes out reversed and
+// in two halves; a script puts it back together as a mailto link once the
+// page loads. Without scripts, readers get "rewax at gonkowonko.com" to type.
+interface Props {
+  user: string;
+  domain: string;
+}
+const { user, domain } = Astro.props;
+const reversed = (s: string) => [...s].reverse().join('');
+---
+
+<a class="email" data-u={reversed(user)} data-d={reversed(domain)}>{user} at {domain.replaceAll('.', ' dot ')}</a>
+
+<script>
+  for (const link of document.querySelectorAll<HTMLAnchorElement>('a.email[data-u]')) {
+    const flip = (s = '') => [...s].reverse().join('');
+    const address = `${flip(link.dataset.u)}@${flip(link.dataset.d)}`;
+    link.href = `mailto:${address}`;
+    link.textContent = address;
+  }
+</script>
