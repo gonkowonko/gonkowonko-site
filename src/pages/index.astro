@@ -1,7 +1,11 @@
 ---
+// The home page: who I am, a photo, and each app in its own colours.
+import '@fontsource-variable/fraunces/full.css';
+import '@fontsource-variable/fraunces/full-italic.css';
+import { Image } from 'astro:assets';
 import Base from '../layouts/Base.astro';
 import Logo from '../components/Logo.astro';
-import ProjectCard from '../components/home/ProjectCard.astro';
+import photo from '../assets/home/gary-coll-dels-reis.jpg';
 import NightscoutVisual from '../components/home/NightscoutVisual.astro';
 import RewaxVisual from '../components/home/RewaxVisual.astro';
 import { author, projects } from '../config/projects';
@@ -22,51 +26,115 @@ const jsonld = {
   ],
 };
 const year = new Date().getFullYear();
+const serif = "font-['Fraunces_Variable',Georgia,serif]";
 ---
 
 <Base>
   <script slot="head" type="application/ld+json" set:html={JSON.stringify(jsonld)} />
 
-  <div class="mx-auto max-w-[1080px] px-4 sm:px-8">
-    <header class="flex items-center justify-between py-6 text-sm">
-      <a href={asset('/')} class="text-[22px]"><Logo /></a>
-      <nav class="flex gap-5 text-white/55">
-        <a href={author.github} rel="noopener" class="hover:text-white">GitHub</a>
-      </nav>
-    </header>
+  <div class="page">
+    <div class="mx-auto max-w-[1120px] px-5 sm:px-8">
+      <header class="flex items-center justify-between py-7">
+        <a href={asset('/')} class="text-[22px] lg:text-[30px]"><Logo /></a>
+        <nav class="flex gap-6 text-sm text-[#a39d91]">
+          <a href="#apps" class="hover:text-[#f1ece2]">Apps</a>
+          <a href="#about" class="hover:text-[#f1ece2]">About</a>
+        </nav>
+      </header>
 
-    <main>
-      <section class="pt-20 pb-20 sm:pt-28 sm:pb-24">
-        <h1 class="max-w-[16ch] text-4xl leading-[1.08] font-semibold tracking-[-0.03em] text-white text-balance sm:text-6xl">
-          Small apps for things I actually use.
-        </h1>
-        <p class="mt-6 max-w-[56ch] text-lg leading-relaxed text-white/55 text-pretty">
-          I’m {author.name}. I build apps to solve problems I run into myself, and I keep them simple.
-          I live with type 1 diabetes and spend a lot of time on the bike, so that’s where a lot of them start.
-        </p>
-      </section>
+      <main>
+        <!-- Hero: who, why, and a real photo -->
+        <section class="grid items-center gap-12 pt-14 pb-24 sm:pt-20 lg:grid-cols-[7fr_5fr] lg:gap-16">
+          <div>
+            <p class="text-lg text-[#a39d91]">Hi, I’m Gary.</p>
+            <h1 class={`${serif} mt-4 text-5xl leading-[1.02] font-medium tracking-[-0.02em] text-[#f1ece2] text-balance sm:text-7xl [font-variation-settings:'SOFT'_50,'opsz'_144]`}>
+              Small apps for things I <em class="text-[#ffb224] [font-variation-settings:'SOFT'_100,'WONK'_1]">actually</em> use.
+            </h1>
+            <p class="mt-8 max-w-[50ch] text-lg leading-relaxed text-[#c9c3b7] text-pretty">
+              I build apps to solve problems I run into myself, and I keep them simple. I live with type 1 diabetes and spend a lot of time on the bike, so that’s where a lot of them start.
+            </p>
+          </div>
 
-      <section aria-labelledby="projects-heading">
-        <h2 id="projects-heading" class="sr-only">Projects</h2>
+          <figure class="relative mx-auto w-full max-w-[400px] rotate-[1.5deg]">
+            <Image src={photo} alt="Gary with his bike under the Coll dels Reis summit sign, 682 metres, in Mallorca." widths={[400, 800]} sizes="(min-width: 1024px) 400px, 90vw" loading="eager" class="aspect-[3/4] w-full rounded-[28px] object-cover shadow-[0_40px_80px_-30px_#000]" />
+            <figcaption class={`${serif} mt-4 text-center text-[#a39d91] italic`}>Top of Sa Calobra, Mallorca.</figcaption>
+          </figure>
+        </section>
 
-        <div class="space-y-6">
-          <ProjectCard project={nightscout} tint="radial-gradient(90% 80% at 70% 100%, #0f2a3d 0%, transparent 70%), #0b1119">
-            <NightscoutVisual />
-          </ProjectCard>
-          <ProjectCard project={rewax} tint="radial-gradient(70% 70% at 50% 100%, #ffb2241f 0%, transparent 70%), #111210" reverse>
-            <RewaxVisual />
-          </ProjectCard>
+        <!-- The apps, each in its own colours -->
+        <section id="apps" class="scroll-mt-6">
+          <h2 class={`${serif} text-4xl font-medium tracking-tight text-[#f1ece2]`}>The apps</h2>
+
+          <article class="relative mt-10 grid overflow-hidden rounded-[32px] lg:grid-cols-[5fr_7fr]" style="background: radial-gradient(90% 80% at 75% 100%, #12375a 0%, transparent 70%), #0b1320">
+            <div class="relative z-10 flex flex-col justify-center p-8 sm:p-12">
+              <p class="text-sm text-[#8fb3d9]">For Mac and Windows · Released</p>
+              <h3 class={`${serif} mt-3 text-4xl leading-tight font-medium tracking-tight text-white`}>NightscoutBar &amp; NightscoutWidget</h3>
+              <blockquote class={`${serif} mt-6 border-l-2 border-[#39c5ff] pl-5 text-xl leading-snug text-[#dbe8f5] italic`}>
+                “I wanted my glucose always there at a glance, on my work laptop and on my own MacBook.”
+              </blockquote>
+              <p class="mt-6 leading-relaxed text-[#9fb2c8]">{nightscout.summary}</p>
+              <a href={nightscout.href} class="mt-8 self-start text-[#39c5ff] underline decoration-[#39c5ff]/40 underline-offset-[6px] hover:decoration-[#39c5ff]">More about the apps</a>
+            </div>
+            <div class="relative min-h-[320px] sm:min-h-[420px]"><NightscoutVisual /></div>
+          </article>
+
+          <article class="relative mt-8 grid overflow-hidden rounded-[32px] lg:grid-cols-[7fr_5fr]" style="background: radial-gradient(80% 80% at 25% 100%, #ffb22430 0%, transparent 70%), #1a160d">
+            <div class="relative min-h-[360px] overflow-hidden sm:min-h-[440px]"><RewaxVisual /></div>
+            <div class="relative z-10 flex flex-col justify-center p-8 sm:p-12 lg:col-start-2">
+              <p class="text-sm text-[#d6a24a]">For iPhone and Android · In beta testing</p>
+              <h3 class={`${serif} mt-3 text-4xl leading-tight font-medium tracking-tight text-[#f5ead6]`}>Rewax</h3>
+              <blockquote class={`${serif} mt-6 border-l-2 border-[#ffb224] pl-5 text-xl leading-snug text-[#efe2c8] italic`}>
+                “I switched to waxed chains and could never remember how far I’d ridden since the last wax.”
+              </blockquote>
+              <p class="mt-6 leading-relaxed text-[#bcae94]">{rewax.summary}</p>
+              <a href={rewax.href} class="mt-8 self-start text-[#ffb224] underline decoration-[#ffb224]/40 underline-offset-[6px] hover:decoration-[#ffb224]">More about Rewax</a>
+            </div>
+          </article>
+        </section>
+
+        <!-- About: the heading beside the text on wide screens, so the lines stay a readable length -->
+        <section id="about" class="mt-32 grid scroll-mt-6 gap-6 lg:grid-cols-[4fr_8fr] lg:gap-16">
+          <h2 class={`${serif} text-4xl font-medium tracking-tight text-[#f1ece2]`}>About</h2>
+          <div class="max-w-[62ch] space-y-4 text-lg leading-relaxed text-[#c9c3b7] lg:pt-2">
+            <p>Every app here started as something I wanted for myself. When one works well enough that I stop thinking about it, I tidy it up and share it.</p>
+            <p>They do one job each. No accounts, no ads, no tracking, and your data stays with you.</p>
+          </div>
+        </section>
+
+      </main>
+
+      <footer class="mt-24 flex flex-col gap-3 border-t border-[#f1ece2]/10 py-8 text-sm text-[#8a8478] sm:flex-row sm:justify-between">
+        <p>© {year} {author.name}</p>
+        <div class="flex gap-5">
+          <a href={nightscout.href} class="hover:text-[#f1ece2]">NightscoutBar</a>
+          <a href={rewax.href} class="hover:text-[#f1ece2]">Rewax</a>
+          <a href={author.github} rel="noopener" class="hover:text-[#f1ece2]">GitHub</a>
         </div>
-      </section>
-    </main>
-
-    <footer class="mt-24 flex flex-col gap-3 border-t border-white/[0.08] py-8 text-sm text-white/40 sm:flex-row sm:justify-between">
-      <p>© {year} {author.name}</p>
-      <a href={author.github} rel="noopener" class="hover:text-white">github.com/gonkowonko</a>
-    </footer>
+      </footer>
+    </div>
   </div>
 
   <script>
     import '../scripts/home';
   </script>
 </Base>
+
+<style>
+  /* A warmer black than the current page, and a faint grain so it reads as paper, not a screen. */
+  .page {
+    min-height: 100dvh;
+    background: #121110;
+    color: #f1ece2;
+    position: relative;
+    isolation: isolate;
+  }
+  .page::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.06;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+</style>
