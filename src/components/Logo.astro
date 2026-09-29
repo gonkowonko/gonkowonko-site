@@ -46,12 +46,12 @@ const arcs = slices.map(({ colour, share }) => {
   start += share * C;
   return arc;
 });
-// One wheel, used for both O's: tyre, rim, then the spokes and hub that turn.
+// One wheel, used for both O's: tyre, rim, then the spokes and hub.
 const rimMarkup = range
   ? arcs.map((a) => `<circle cx="50" cy="50" r="39" fill="none" stroke="${a.colour}" stroke-width="11" stroke-dasharray="${a.dash}" stroke-dashoffset="${a.offset}" transform="rotate(-90 50 50)" />`).join('')
   : `<circle cx="50" cy="50" r="39" fill="none" stroke="${blue}" stroke-width="11" />`;
 // Inline sizing: a wheel stands in for an O, at cap height, with the letters' tracking after it.
-const wheel = `<svg class="wheel" viewBox="0 0 100 100" style="width:.78em;height:.78em;margin-right:.14em;flex-shrink:0"><circle cx="50" cy="50" r="47" fill="none" stroke="${blue}" stroke-opacity=".45" stroke-width="3.6" />${rimMarkup}<g class="turn"><path d="${spokes}" stroke="${spokeColour}" stroke-width="1.5" stroke-linecap="round" /><circle cx="50" cy="50" r="6.5" fill="none" stroke="${spokeColour}" stroke-width="1.6" /><circle cx="50" cy="50" r="3.6" fill="${spokeColour}" /></g></svg>`;
+const wheel = `<svg class="wheel" viewBox="0 0 100 100" style="width:.78em;height:.78em;margin-right:.14em;flex-shrink:0"><circle cx="50" cy="50" r="47" fill="none" stroke="${blue}" stroke-opacity=".45" stroke-width="3.6" />${rimMarkup}<g><path d="${spokes}" stroke="${spokeColour}" stroke-width="1.5" stroke-linecap="round" /><circle cx="50" cy="50" r="6.5" fill="none" stroke="${spokeColour}" stroke-width="1.6" /><circle cx="50" cy="50" r="3.6" fill="${spokeColour}" /></g></svg>`;
 const label = `gonkowonko${semicolon ? ';' : ''}${under === '.com' ? '.com' : ''}`;
 ---
 
@@ -102,20 +102,37 @@ const label = `gonkowonko${semicolon ? ';' : ''}${under === '.com' ? '.com' : ''
     margin-right: -0.3em;
     opacity: 0.38;
   }
+  /* The tagline: never smaller than 11px, so it reads as a line, not fine
+     print. On a phone, 10px and tighter tracking, so it still fits under the
+     wordmark; tighter again on the narrowest phones, where the mark is smaller. */
   .under.tagline {
-    font-size: 0.3em;
-    letter-spacing: 0.32em;
-    margin-right: -0.32em;
-    margin-top: 0.4em;
+    font-size: max(0.3em, 11px);
+    letter-spacing: 0.24em;
+    margin-right: -0.24em;
+    margin-top: 0.55em;
     text-transform: uppercase;
-    opacity: 0.5;
+    opacity: 0.6;
   }
-  /* Rolling: only the spokes and hub turn, as they would; the rim's colours stay put. */
-  .spin :global(.turn) {
-    transform-origin: 50px 50px;
+  @media (max-width: 639px) {
+    .under.tagline {
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      margin-right: -0.2em;
+    }
+  }
+  @media (max-width: 359px) {
+    .under.tagline {
+      letter-spacing: 0.12em;
+      margin-right: -0.12em;
+    }
+  }
+  /* Rolling: the whole wheel turns, rim and all, so you see its colours go
+     round (at this size the spokes alone are too fine to see move). One full
+     turn, so the time-in-range ring comes to rest where it started. */
+  .spin :global(.wheel) {
     animation: roll 1.6s cubic-bezier(0.2, 0.7, 0.2, 1) 0.3s;
   }
-  .spin:hover :global(.turn) {
+  .spin:hover :global(.wheel) {
     animation: roll-again 1.6s cubic-bezier(0.2, 0.7, 0.2, 1);
   }
   @keyframes roll {
@@ -127,8 +144,8 @@ const label = `gonkowonko${semicolon ? ';' : ''}${under === '.com' ? '.com' : ''
     to { transform: rotate(0deg); }
   }
   @media (prefers-reduced-motion: reduce) {
-    .spin :global(.turn),
-    .spin:hover :global(.turn) {
+    .spin :global(.wheel),
+    .spin:hover :global(.wheel) {
       animation: none;
     }
   }

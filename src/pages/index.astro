@@ -34,9 +34,10 @@ const serif = "font-['Fraunces_Variable',Georgia,serif]";
 
   <div class="page">
     <div class="mx-auto max-w-[1120px] px-5 sm:px-8">
-      <header class="flex items-center justify-between py-7">
-        <a href={asset('/')} class="text-[22px] lg:text-[30px]"><Logo /></a>
-        <nav class="flex gap-6 text-sm text-[#a39d91]">
+      <!-- The links sit on the wordmark's baseline, not the middle of wordmark and tagline. -->
+      <header class="flex items-baseline justify-between gap-4 py-6 sm:py-7">
+        <a href={asset('/')} class="text-[18px] min-[360px]:text-[22px] sm:text-[24px] lg:text-[26px]"><Logo /></a>
+        <nav class="flex gap-4 text-sm text-[#a39d91] min-[360px]:gap-6">
           <a href="#apps" class="hover:text-[#f1ece2]">Apps</a>
           <a href="#about" class="hover:text-[#f1ece2]">About</a>
         </nav>
