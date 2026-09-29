@@ -1,14 +1,14 @@
 ---
-import MacDemo from '../MacDemo.astro';
-import WinDemo from '../WinDemo.astro';
-// The Nightscout card's picture: the same app mockups as the live demo on
-// /nightscout/, overlapping, painted once by scripts/home.ts and scaled to fit.
-const frame = 'absolute overflow-hidden rounded-xl shadow-[0_30px_60px_-20px_#000c] ring-1 ring-white/10';
+import { Image } from 'astro:assets';
+import bar from '../../assets/home/nightscoutbar.png';
+import widget from '../../assets/home/nightscoutwidget.png';
+// The Nightscout card's picture: the apps' own screenshots, from the docs in
+// their repos. NightscoutBar's menu bar and popover, cut off by the card's
+// right edge and foot, with NightscoutWidget over its lower left.
+const shot = 'absolute shadow-[0_30px_60px_-20px_#000c] ring-1 ring-white/10';
 ---
 
-<div data-fit class="absolute inset-6 sm:inset-10" inert aria-hidden="true">
-  <div data-fit-inner class="absolute left-0 top-0 h-[430px] w-[780px] origin-top-left">
-    <div class:list={[frame, 'left-0 top-0 h-[410px] w-[440px]']}><MacDemo compact /></div>
-    <div class:list={[frame, 'left-[380px] top-[170px] h-[260px] w-[400px]']}><WinDemo compact /></div>
-  </div>
+<div class="absolute inset-0 overflow-hidden" aria-hidden="true">
+  <Image src={bar} alt="" widths={[480, 900]} sizes="(min-width: 1024px) 480px, 88vw" class:list={[shot, 'top-8 left-[14%] w-[86%] max-w-none rounded-tl-xl']} />
+  <Image src={widget} alt="" widths={[260, 520]} sizes="(min-width: 1024px) 240px, 46vw" class:list={[shot, 'bottom-7 left-7 w-[46%] max-w-[260px] rounded-[5.2%/8.8%] sm:bottom-9 sm:left-10']} />
 </div>
