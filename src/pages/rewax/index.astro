@@ -19,49 +19,48 @@ import aHistory from '../../assets/rewax/android/history.png';
 import aLogWax from '../../assets/rewax/android/log-wax.png';
 import aWidget from '../../assets/rewax/android/home-widget.png';
 
-// The app, in three chapters: one screen each, with what it shows. The
-// screenshots come in matching pairs from the same demo data in each app; the
-// visitor's phone is shown (data-phone on <html>), and the switch changes it.
-// The bike list isn't here: it's the hero.
-const chapters = [
-  {
-    title: 'Where each chain stands.',
-    text: 'A bike’s page leads with how far it is under or over its limit, then when it was waxed and when it’s due next.',
-    specs: [
-      ['Forecast', 'From the last four weeks of riding, roughly when the next wax is due.'],
-      ['Limits', 'One for every bike, or its own for the bike that sees the worst of the weather. Miles or kilometres.'],
-      ['Chain link', 'How many more uses a reusable quick link has left.'],
-    ],
-    iphone: iBike,
-    android: aBike,
-    alt: 'A bike’s page: the Canyon Aeroad 50 miles over its limit, last waxed on 20 September, with its chain link’s uses and the Log chain wax button.',
-  },
+// The app: one screen leads, the bike's page, with what it shows; two smaller
+// ones support it. The screenshots come in matching pairs from the same demo
+// data in each app; the visitor's phone is shown (data-phone on <html>), and
+// the switch changes it. The bike list isn't here: it's the hero.
+const lead = {
+  title: 'Where each chain stands',
+  text: 'A bike’s page leads with how far it is under or over its limit, then when it was waxed and when it’s due next.',
+  specs: [
+    ['Forecast', 'From the last four weeks of riding, roughly when the next wax is due.'],
+    ['Limits', 'One for every bike, or its own for the bike that sees the worst of the weather. Miles or kilometres.'],
+    ['Chain link', 'How many more uses a reusable quick link has left.'],
+  ],
+  iphone: iBike,
+  android: aBike,
+  alt: 'A bike’s page: the Canyon Aeroad 50 miles over its limit, last waxed on 20 September, with its chain link’s uses and the Log chain wax button.',
+};
+const supporting = [
   {
     title: 'Waxed it? Log it.',
-    text: 'Tap Log chain wax and the count starts again from zero. Forgot on the day? Backdate it up to a year, and add a note about the wax.',
-    specs: [['From the reminder', 'When a chain goes over, the notification has a button to log the wax straight from it.']],
+    text: 'The count starts again from zero. Backdate it up to a year, add a note, or log it straight from the reminder.',
     iphone: iLogWax,
     android: aLogWax,
     alt: 'Logging a wax: the date and time it was waxed, and an optional note.',
   },
   {
-    title: 'How long each wax lasts.',
-    text: 'A bar for every wax against the bike’s limit, your average, shortest and longest, and the log of every wax below.',
-    specs: [['Chain links', 'Uses per chain link, charted the same way.']],
+    title: 'How long each wax lasts',
+    text: 'A bar for every wax against the limit, with your average, shortest and longest. Chain links get the same chart.',
     iphone: iHistory,
     android: aHistory,
-    alt: 'A bike’s history: a bar for each wax showing how far it lasted against the limit, the average, shortest and longest, and the wax log.',
+    alt: 'A bike’s history: a bar for each wax showing how far it lasted against the limit, and the average, shortest and longest.',
   },
 ];
 const steps = [
-  ['Wax', 'Tap Log chain wax once the chain’s back on. Its count starts again from zero.'],
-  ['Ride', 'Every ride on Strava with that bike chosen adds its miles, indoors or out, whatever recorded it. Rewax only reads; it never posts or changes anything.'],
-  ['Rewax', 'Past three quarters of your limit the chain turns amber. At the limit it turns red, and your phone lets you know.'],
+  ['Wax', 'Log it, and the count starts from zero.'],
+  ['Ride', 'Every Strava ride on that bike adds its miles.'],
+  ['Rewax', 'Amber at 75% of your limit. Red, and a reminder, at the limit.'],
 ];
-// The wax cycle's chain: 16 plates, the app's default limit (300 mi), and where
-// it rests without scripts. pinAt places the scale's marks, at pins 0, 12 (75%)
-// and 16, as a share of the chain's width (ChainBar's pins: 10 + 31k of 31n + 20).
-const cycle = { plates: 16, limit: 300, rest: 0.84 };
+// The wax cycle's chain: 10 plates, as the app draws a bike's chain, the app's
+// default limit (300 mi), and where it rests without scripts. pinAt places the
+// scale's marks, at 0, 75% and the limit, as a share of the chain's width
+// (ChainBar's pins sit at 10 + 31k of 31n + 20).
+const cycle = { plates: 10, limit: 300, rest: 0.84 };
 const pinAt = (k: number) => ((10 + k * 31) / (cycle.plates * 31 + 20)) * 100;
 const platforms = [
   {
@@ -169,7 +168,7 @@ const heroAlt = 'Rewax’s bike list: a Canyon Aeroad 50 miles over its limit, i
     <header class="flex items-center justify-between py-5 text-sm">
       <div class="wordmark text-[14px] sm:text-[16px]"><Wordmark /></div>
       <nav class="flex gap-4 text-rewax-dim sm:gap-5" aria-label="On this page">
-        <a href="#screens" class="hover:text-rewax-text">Screens</a>
+        <a href="#screens" class="hover:text-rewax-text">The app</a>
         <a href="#privacy" class="hover:text-rewax-text">Privacy</a>
         <a href="#faq" class="hover:text-rewax-text">FAQ</a>
       </nav>
@@ -179,50 +178,47 @@ const heroAlt = 'Rewax’s bike list: a Canyon Aeroad 50 miles over its limit, i
       <!-- Hero: the promise, where Rewax stands, and the app itself, big
            enough to read. The phone stands on the rule under the hero, cut off
            below the last bike, where the screen is empty anyway. -->
-      <section class="grid gap-y-12 border-b border-rewax-rule pt-8 sm:pt-14 md:grid-cols-[minmax(0,1fr)_260px] md:gap-x-12 lg:grid-cols-[minmax(0,1fr)_320px] lg:gap-x-16">
+      <section class="grid gap-y-10 border-b border-rewax-rule pt-8 sm:pt-12 md:grid-cols-[minmax(0,1fr)_300px] md:gap-x-12 lg:grid-cols-[minmax(0,1fr)_400px] lg:gap-x-20">
         <div class="md:self-center md:pb-14">
           <h1 class="max-w-[16ch] text-4xl leading-[1.05] font-semibold tracking-[-0.03em] text-balance sm:text-6xl md:text-5xl lg:text-6xl">Know when to rewax your chain.</h1>
           <p class="mt-5 max-w-[44ch] text-lg leading-relaxed text-rewax-body text-pretty">
-            Rewax reads your rides from Strava, counts the miles on each chain since its last wax, and tells you when it’s due again.
+            Waxing is easy. Remembering when isn’t. Rewax counts the miles on each chain from your Strava rides and tells you when it’s due.
           </p>
           <p class="mt-8 text-sm text-rewax-dim">In closed beta. Coming to the App Store and Google Play.</p>
         </div>
-        <div class="mx-auto aspect-[3/5] min-h-0 w-[78vw] max-w-[320px] overflow-y-clip md:w-full md:self-end">
-          <div class="iphone"><Phone src={iList} alt={heroAlt} platform="iphone" sizes="(min-width: 1024px) 320px, (min-width: 768px) 260px, 78vw" eager /></div>
-          <div class="android"><Phone src={aList} alt={heroAlt} platform="android" sizes="(min-width: 1024px) 320px, (min-width: 768px) 260px, 78vw" eager /></div>
+        <div class="mx-auto aspect-[400/650] min-h-0 w-[86vw] max-w-[360px] overflow-y-clip md:w-full md:max-w-none md:self-end">
+          <div class="iphone"><Phone src={iList} alt={heroAlt} platform="iphone" sizes="(min-width: 1024px) 400px, (min-width: 768px) 300px, 86vw" eager /></div>
+          <div class="android"><Phone src={aList} alt={heroAlt} platform="android" sizes="(min-width: 1024px) 400px, (min-width: 768px) 300px, 86vw" eager /></div>
         </div>
       </section>
 
       <!-- The wax cycle: one wax's life on a chain, drawn and animated as the
            app draws it. -->
-      <section id="how" class="scroll-mt-8 pt-20 sm:pt-28">
-        <div class="grid gap-4 md:grid-cols-2 md:items-end md:gap-12">
-          <h2 class="text-3xl leading-tight font-semibold tracking-tight text-balance sm:text-4xl">Every ride fills the chain.</h2>
-          <p class="max-w-[46ch] leading-relaxed text-rewax-body text-pretty">Rewax adds up your Strava rides since each chain was last waxed. Here’s one wax, from fresh to overdue, as the app shows it.</p>
-        </div>
+      <section id="how" class="scroll-mt-8 pt-24 sm:pt-36">
+        <h2 class="text-3xl leading-tight font-semibold tracking-tight text-balance sm:text-5xl">Every ride fills the chain.</h2>
 
         <!-- Read-only, so no panel: a bike page's headline, figure and chain,
              between hairlines. Without scripts it rests at 48 miles left. -->
-        <div class="mt-10 border-y border-rewax-rule py-8 sm:py-10" data-cycle data-limit={cycle.limit} data-state="amber">
+        <div class="mt-10 border-y border-rewax-rule py-8 sm:mt-14 sm:py-12" data-cycle data-limit={cycle.limit} data-state="amber">
           <div class="flex flex-wrap items-end justify-between gap-x-10 gap-y-6">
             <div>
               <p class={`${instrument} state-label`} data-label>Left before rewax</p>
-              <p class="mt-2 flex items-baseline gap-2.5">
-                <span class="figure text-[96px] leading-[0.85] sm:text-[120px]" data-figure>{cycle.limit - Math.round(cycle.rest * cycle.limit)}</span>
-                <span class="text-lg text-rewax-dim" data-unit>mi</span>
+              <p class="mt-2 flex items-baseline gap-2.5 sm:gap-4">
+                <span class="figure text-[112px] leading-[0.85] sm:text-[160px] lg:text-[184px]" data-figure>{cycle.limit - Math.round(cycle.rest * cycle.limit)}</span>
+                <span class="text-lg text-rewax-dim sm:text-2xl" data-unit>mi</span>
               </p>
               <p class="mt-3 text-sm text-rewax-dim tnum" data-ridden>{Math.round(cycle.rest * cycle.limit)} mi ridden on this wax, limit {cycle.limit}</p>
             </div>
             <button type="button" hidden data-log class="min-h-14 w-full rounded-[14px] bg-rewax-text px-8 text-base font-bold tracking-[0.1375em] text-rewax-background uppercase transition-[transform,opacity] duration-100 ease-out select-none hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-rewax-text active:scale-[0.98] sm:w-auto">Log chain wax</button>
           </div>
 
-          <div class="mt-8"><ChainBar plates={cycle.plates} fraction={cycle.rest} /></div>
+          <div class="mt-8 sm:mt-10"><ChainBar plates={cycle.plates} fraction={cycle.rest} /></div>
           <!-- The scale under the chain: waxed, due soon, the limit. -->
           <div class="relative mt-3 h-11 text-xs leading-snug" aria-hidden="true">
             {[
               { at: pinAt(0), name: 'Waxed', value: '0 mi', align: '' },
-              { at: pinAt(12), name: 'Due soon', value: '75%', align: '-translate-x-full text-right sm:-translate-x-1/2 sm:text-center' },
-              { at: pinAt(16), name: 'Limit', value: `${cycle.limit} mi`, align: '-translate-x-full text-right' },
+              { at: pinAt(cycle.plates * 0.75), name: 'Due soon', value: '75%', align: '-translate-x-full text-right sm:-translate-x-1/2 sm:text-center' },
+              { at: pinAt(cycle.plates), name: 'Limit', value: `${cycle.limit} mi`, align: '-translate-x-full text-right' },
             ].map((m) => (
               <div class:list={['absolute top-0 pt-1 whitespace-nowrap', m.align]} style={`left: ${m.at}%`}>
                 <p class={instrument}>{m.name}</p>
@@ -232,24 +228,22 @@ const heroAlt = 'Rewax’s bike list: a Canyon Aeroad 50 miles over its limit, i
           </div>
         </div>
 
-        <ol class="mt-10 grid gap-8 sm:grid-cols-3 sm:gap-10">
+        <ol class="mt-8 grid gap-5 sm:grid-cols-3 sm:gap-10">
           {steps.map(([t, d]) => (
             <li>
-              <h3 class="text-lg font-semibold tracking-tight">{t}</h3>
-              <p class="mt-1.5 leading-relaxed text-rewax-body">{d}</p>
+              <h3 class="font-semibold tracking-tight">{t}</h3>
+              <p class="mt-1 text-rewax-body">{d}</p>
             </li>
           ))}
         </ol>
       </section>
 
-      <!-- The app: one switch for the page's screenshots, then a chapter per
-           screen, big enough to read, alternating sides on wide screens. -->
-      <section id="screens" class="mt-28 scroll-mt-8 border-t border-rewax-rule pt-10 sm:pt-14">
-        <div class="flex flex-wrap items-end justify-between gap-6">
-          <div>
-            <h2 class="text-3xl leading-tight font-semibold tracking-tight sm:text-4xl">Inside the app.</h2>
-            <p class="mt-3 max-w-[46ch] leading-relaxed text-rewax-body">Real screens from both apps, with the same demo bikes.</p>
-          </div>
+      <!-- The app: one switch for the page's screenshots, then one screen that
+           leads, big, and two that support it, smaller, side by side. (Not cut
+           off like the hero's: the Log wax sheet runs to the foot of the screen.) -->
+      <section id="screens" class="mt-28 scroll-mt-8 border-t border-rewax-rule pt-8">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <p class="text-sm text-rewax-dim">Real screens from both apps, with the same demo bikes.</p>
           <div class="relative flex rounded-full border border-rewax-panel-border bg-rewax-panel p-1 text-sm" role="group" aria-label="Show screens from" data-switch>
             <span data-pill aria-hidden="true" class="absolute inset-y-1 left-1 rounded-full bg-rewax-text transition-all duration-300 ease-out"></span>
             {platforms.map((p) => (
@@ -260,35 +254,45 @@ const heroAlt = 'Rewax’s bike list: a Canyon Aeroad 50 miles over its limit, i
           </div>
         </div>
 
-        {chapters.map((c, i) => (
-          <article class:list={['mt-16 flex flex-col items-center gap-10 sm:mt-24 md:flex-row md:gap-12 lg:gap-20', i % 2 === 1 && 'md:flex-row-reverse']}>
-            <div class="w-[68vw] max-w-[280px] shrink-0 md:w-[260px] lg:w-[300px] lg:max-w-none">
-              <div class="iphone"><Phone src={c.iphone} alt={c.alt} platform="iphone" sizes="(min-width: 1024px) 300px, (min-width: 768px) 260px, 68vw" /></div>
-              <div class="android"><Phone src={c.android} alt={c.alt} platform="android" sizes="(min-width: 1024px) 300px, (min-width: 768px) 260px, 68vw" /></div>
-            </div>
-            <div class="w-full max-w-[34rem]">
-              <h3 class="text-2xl leading-tight font-semibold tracking-tight text-balance sm:text-3xl">{c.title}</h3>
-              <p class="mt-4 leading-relaxed text-rewax-body text-pretty">{c.text}</p>
-              <dl class="mt-6 border-b border-rewax-rule">
-                {c.specs.map(([t, d]) => (
-                  <div class="border-t border-rewax-rule py-3.5">
-                    <dt class="font-semibold">{t}</dt>
-                    <dd class="mt-0.5 text-sm leading-relaxed text-rewax-dim">{d}</dd>
-                  </div>
-                ))}
-              </dl>
-            </div>
-          </article>
-        ))}
+        <article class="mt-12 grid items-center gap-10 sm:mt-16 md:grid-cols-[300px_minmax(0,1fr)] md:gap-12 lg:grid-cols-[380px_minmax(0,1fr)] lg:gap-20">
+          <div class="mx-auto w-[78vw] max-w-[320px] md:w-full md:max-w-none">
+            <div class="iphone"><Phone src={lead.iphone} alt={lead.alt} platform="iphone" sizes="(min-width: 1024px) 380px, (min-width: 768px) 300px, 78vw" /></div>
+            <div class="android"><Phone src={lead.android} alt={lead.alt} platform="android" sizes="(min-width: 1024px) 380px, (min-width: 768px) 300px, 78vw" /></div>
+          </div>
+          <div class="max-w-[34rem]">
+            <h2 class="text-3xl leading-tight font-semibold tracking-tight text-balance sm:text-5xl">{lead.title}</h2>
+            <p class="mt-5 text-lg leading-relaxed text-rewax-body text-pretty">{lead.text}</p>
+            <dl class="mt-8 border-b border-rewax-rule">
+              {lead.specs.map(([t, d]) => (
+                <div class="border-t border-rewax-rule py-3.5">
+                  <dt class="font-semibold">{t}</dt>
+                  <dd class="mt-0.5 text-sm leading-relaxed text-rewax-dim">{d}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        </article>
+
+        <div class="mt-20 grid gap-16 sm:mt-28 md:grid-cols-2 md:gap-12 lg:gap-20">
+          {supporting.map((c) => (
+            <article class="flex flex-col">
+              <h3 class="text-2xl leading-tight font-semibold tracking-tight text-balance">{c.title}</h3>
+              <p class="mt-3 max-w-[40ch] leading-relaxed text-rewax-body text-pretty">{c.text}</p>
+              <div class="mt-auto border-b border-rewax-rule pt-8">
+                <div class="mx-auto w-[64vw] max-w-[260px]">
+                  <div class="iphone"><Phone src={c.iphone} alt={c.alt} platform="iphone" sizes="(min-width: 768px) 260px, 64vw" /></div>
+                  <div class="android"><Phone src={c.android} alt={c.alt} platform="android" sizes="(min-width: 768px) 260px, 64vw" /></div>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
       </section>
 
       <!-- On your phone: each phone's widget and what's its own, side by side
            and read-only (hairlines, no cards), then moving to a new phone. -->
       <section class="mt-28 border-t border-rewax-rule pt-10 sm:pt-14">
-        <div class="grid gap-4 md:grid-cols-2 md:items-end md:gap-12">
-          <h2 class="text-3xl leading-tight font-semibold tracking-tight text-balance sm:text-4xl">Your chains, without opening the app.</h2>
-          <p class="max-w-[46ch] leading-relaxed text-rewax-body text-pretty">Widgets put the bike that’s most due on your home screen, one particular bike, or all of them, and update as your rides come in.</p>
-        </div>
+        <h2 class="text-3xl leading-tight font-semibold tracking-tight text-balance sm:text-4xl">Your chains, on your home screen</h2>
 
         <div class="mt-12 grid gap-14 md:grid-cols-2 md:gap-0">
           {platforms.map((p, i) => (
@@ -351,7 +355,7 @@ const heroAlt = 'Rewax’s bike list: a Canyon Aeroad 50 miles over its limit, i
       <!-- Questions: few and short, so they're all open, question beside
            answer, read-only between hairlines. -->
       <section id="faq" class="mt-28 scroll-mt-8 border-t border-rewax-rule pt-10 sm:pt-14">
-        <h2 class="text-3xl leading-tight font-semibold tracking-tight sm:text-4xl">Questions.</h2>
+        <h2 class="text-3xl leading-tight font-semibold tracking-tight sm:text-4xl">Questions</h2>
         <dl class="mt-10 border-b border-rewax-rule">
           {faqs.map(([q, a]) => (
             <div class="grid gap-2 border-t border-rewax-rule py-6 md:grid-cols-2 md:gap-12">
@@ -412,8 +416,8 @@ const heroAlt = 'Rewax’s bike list: a Canyon Aeroad 50 miles over its limit, i
 <script>
   // The wax cycle: a wax ridden up to its limit and a little past, the chain
   // filling plate by plate as it walks neutral, amber, red, and Log chain wax
-  // emptying it again, as the app animates it. It starts when it comes into
-  // view; with reduced motion it jumps straight to each end.
+  // emptying it again, as the app animates it. It starts once the chain itself
+  // is in view; with reduced motion it jumps straight to each end.
   const cycle = document.querySelector<HTMLElement>('[data-cycle]');
   if (cycle) {
     const limit = Number(cycle.dataset.limit);
@@ -478,8 +482,8 @@ const heroAlt = 'Rewax’s bike list: a Canyon Aeroad 50 miles over its limit, i
         observer.disconnect();
         ride();
       },
-      { threshold: 0.6 },
-    ).observe(cycle);
+      { threshold: 1 },
+    ).observe(cycle.querySelector('svg')!);
   }
 </script>
 
