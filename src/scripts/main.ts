@@ -87,8 +87,7 @@ if (title) {
 if (!reduced) {
   const tl = gsap.timeline({ defaults: { ease: 'expo.out' } });
   tl.from('.hero-icon', { y: 40, scale: 0.6, opacity: 0, rotate: -12, duration: 1.4, ease: 'back.out(1.6)' })
-    .from('.hero-kicker', { y: 16, opacity: 0, duration: 0.8 }, '-=1')
-    .from('.word', { yPercent: 110, rotate: 4, duration: 1.1, stagger: 0.06 }, '-=0.8')
+    .from('.word', { yPercent: 110, rotate: 4, duration: 1.1, stagger: 0.06 }, '-=1')
     .from('.hero-sub', { y: 20, opacity: 0, filter: 'blur(8px)', duration: 1 }, '-=0.8')
     .from('.hero-cta', { y: 20, opacity: 0, duration: 0.9, stagger: 0.1 }, '-=0.7')
     .fromTo('.trace-line', { opacity: 0 }, { opacity: 1, duration: 1.5 }, 0.3)
