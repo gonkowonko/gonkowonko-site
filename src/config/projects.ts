@@ -9,7 +9,7 @@ export const projects = [
     id: 'nightscout',
     name: 'NightscoutBar & NightscoutWidget',
     href: asset('/nightscout/'),
-    cta: 'More about the apps',
+    cta: 'More about the Nightscout apps',
     icon: asset('/icons/nightscoutbar-256.png'),
     summary:
       'See your Nightscout glucose without picking up your phone. NightscoutBar puts your reading and trend arrow in the macOS menu bar; NightscoutWidget is a small always-on-top widget for Windows. Both add a chart, IOB and COB.',

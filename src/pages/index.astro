@@ -75,10 +75,7 @@ const serif = "font-['Fraunces_Variable',Georgia,serif]";
               </div>
               <div class="relative min-h-[240px] flex-1 sm:min-h-[320px]" role="img" aria-label="NightscoutBar showing a reading in the Mac menu bar and its chart, with the NightscoutWidget window in front."><NightscoutVisual /></div>
               <div class="border-t border-white/10 px-7 py-6 sm:px-10">
-                <p class="flex flex-wrap gap-x-6 gap-y-2">
-                  <a href={`${nightscout.href}#demo`} class="text-[#39c5ff] underline decoration-[#39c5ff]/40 underline-offset-[6px] hover:decoration-[#39c5ff]">Try the live demo</a>
-                  <a href={`${nightscout.href}#download`} class="text-[#dbe8f5] underline decoration-white/25 underline-offset-[6px] hover:decoration-white">Download</a>
-                </p>
+                <p><a href={nightscout.href} class="text-[#39c5ff] underline decoration-[#39c5ff]/40 underline-offset-[6px] hover:decoration-[#39c5ff]">{nightscout.cta}</a></p>
                 <p class="mt-2 text-sm text-[#8fb3d9]">Free and open source, for macOS 13 or later and Windows 10 or 11.</p>
               </div>
             </article>
@@ -92,7 +89,7 @@ const serif = "font-['Fraunces_Variable',Georgia,serif]";
               </div>
               <div class="relative min-h-[240px] flex-1 sm:min-h-[320px]" role="img" aria-label="Rewax on iPhone: a list of bikes, each with the miles left before its chain needs waxing."><RewaxVisual /></div>
               <div class="border-t border-rewax-rule px-7 py-6 sm:px-10">
-                <p><a href={rewax.href} class="text-rewax-text underline decoration-rewax-dim underline-offset-[6px] hover:decoration-rewax-text">See how it works</a></p>
+                <p><a href={rewax.href} class="text-rewax-text underline decoration-rewax-dim underline-offset-[6px] hover:decoration-rewax-text">{rewax.cta}</a></p>
                 <p class="mt-2 text-sm text-rewax-dim">The beta is closed for now. Coming to the App Store and Google Play.</p>
               </div>
             </article>
