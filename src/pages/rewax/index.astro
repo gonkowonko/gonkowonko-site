@@ -156,8 +156,8 @@ const heroAlt = 'Rewax’s bike list: a Canyon Aeroad 50 miles over its limit, i
   <div class="mx-auto max-w-[1080px] px-4 sm:px-8">
     <!-- The wordmark as the app draws it in its toolbar, at the app's size. -->
     <header class="flex items-center justify-between py-5 text-sm">
-      <div class="wordmark text-[14px] sm:text-[16px]"><Wordmark /></div>
-      <nav class="flex gap-4 text-rewax-dim sm:gap-5" aria-label="On this page">
+      <div class="wordmark text-[12px] min-[360px]:text-[14px] sm:text-[16px]"><Wordmark /></div>
+      <nav class="flex gap-2.5 text-[13px] text-rewax-dim min-[360px]:gap-4 min-[360px]:text-sm sm:gap-5" aria-label="On this page">
         <a href="#screens" class="hover:text-rewax-text">The app</a>
         <a href="#privacy" class="hover:text-rewax-text">Privacy</a>
         <a href="#faq" class="hover:text-rewax-text">FAQ</a>
@@ -231,7 +231,7 @@ const heroAlt = 'Rewax’s bike list: a Canyon Aeroad 50 miles over its limit, i
           <div class="relative flex rounded-full border border-rewax-panel-border bg-rewax-panel p-1 text-sm" role="group" aria-label="Show screens from" data-switch>
             <span data-pill aria-hidden="true" class="absolute inset-y-1 left-1 rounded-full bg-rewax-text transition-all duration-300 ease-out"></span>
             {platforms.map((p) => (
-              <button type="button" aria-pressed="false" data-platform={p.id} class="relative z-10 rounded-full px-5 py-2 font-medium text-rewax-body transition-colors aria-pressed:text-rewax-background">
+              <button type="button" aria-pressed="false" data-platform={p.id} class="relative z-10 rounded-full px-5 py-2 font-medium text-rewax-body transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rewax-text aria-pressed:text-rewax-background">
                 {p.name}
               </button>
             ))}
