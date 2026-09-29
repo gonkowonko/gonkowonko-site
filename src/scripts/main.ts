@@ -1,35 +1,13 @@
+// The Nightscout page's live demos: working copies of both apps, fed by the
+// made-up readings in lib/cgm.ts.
 import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import Lenis from 'lenis';
 import { CgmSimulator, arrow, fmt, fmtDelta, macColor, unitLabel, winColor, type CgmState, type Units } from '../lib/cgm';
 import { renderChart } from '../lib/chart';
 
-gsap.registerPlugin(ScrollTrigger);
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const $ = <T extends Element = HTMLElement>(s: string, r: ParentNode = document) => r.querySelector<T>(s);
 const $$ = <T extends Element = HTMLElement>(s: string, r: ParentNode = document) => [...r.querySelectorAll<T>(s)];
-
-/* ---------------- smooth scroll ---------------- */
-if (!reduced) {
-  const lenis = new Lenis({ lerp: 0.1 });
-  lenis.on('scroll', ScrollTrigger.update);
-  gsap.ticker.add((t) => lenis.raf(t * 1000));
-  gsap.ticker.lagSmoothing(0);
-  $$<HTMLAnchorElement>('a[href^="#"]').forEach((a) =>
-    a.addEventListener('click', (e) => {
-      const id = a.getAttribute('href')!;
-      const el = id === '#top' ? 0 : $(id);
-      if (el === null) return;
-      e.preventDefault();
-      lenis.scrollTo(el as HTMLElement | number, { offset: id === '#download' ? -140 : 0 });
-    }),
-  );
-}
-
-/* ---------------- OS-aware download buttons ---------------- */
-const os = document.documentElement.dataset.os;
-const primary = os === 'win' ? 'win' : 'mac';
-$$('[data-dl]').forEach((b) => b.classList.toggle('is-primary', b.dataset.dl === primary));
+const primary = document.documentElement.dataset.os === 'win' ? 'win' : 'mac';
 
 /* ---------------- scale fixed-size mockups to their boxes ---------------- */
 const scaleOf = new WeakMap<Element, number>();
@@ -50,116 +28,6 @@ const ro = new ResizeObserver((entries) => {
   }
 });
 $$('[data-scale-box]').forEach((b) => ro.observe(b));
-
-/* ---------------- hero intro ---------------- */
-const title = $('[data-split]');
-if (title) {
-  // wrap words for a staggered rise, keeping inner spans (gradient text) intact
-  const wrap = (node: Node): Node[] => {
-    if (node.nodeType === Node.TEXT_NODE) {
-      return node.textContent!.split(/(\s+)/).map((w) => {
-        if (!w.trim()) return document.createTextNode(w);
-        const o = document.createElement('span');
-        o.className = 'inline-block overflow-hidden pb-[0.12em] -mb-[0.12em] align-bottom';
-        const i = document.createElement('span');
-        i.className = 'word inline-block';
-        i.textContent = w;
-        o.append(i);
-        return o;
-      });
-    }
-    const el = node as HTMLElement;
-    const kids = [...el.childNodes].flatMap(wrap);
-    el.replaceChildren(...kids);
-    return [el];
-  };
-  [...title.childNodes].forEach((n) => {
-    const out = wrap(n);
-    if (out[0] !== n) n.replaceWith(...out);
-  });
-  // background-clip:text doesn't reach transformed children, so move the gradient onto each word
-  $$('.text-gradient', title).forEach((g) => {
-    g.classList.remove('text-gradient');
-    $$('.word', g).forEach((w) => w.classList.add('text-gradient'));
-  });
-}
-
-if (!reduced) {
-  const tl = gsap.timeline({ defaults: { ease: 'expo.out' } });
-  tl.from('.hero-icon', { y: 40, scale: 0.6, opacity: 0, rotate: -12, duration: 1.4, ease: 'back.out(1.6)' })
-    .from('.word', { yPercent: 110, rotate: 4, duration: 1.1, stagger: 0.06 }, '-=1')
-    .from('.hero-sub', { y: 20, opacity: 0, filter: 'blur(8px)', duration: 1 }, '-=0.8')
-    .from('.hero-cta', { y: 20, opacity: 0, duration: 0.9, stagger: 0.1 }, '-=0.7')
-    .fromTo('.trace-line', { opacity: 0 }, { opacity: 1, duration: 1.5 }, 0.3)
-    .from('.trace-dot', { scale: 0, opacity: 0, duration: 0.6, stagger: 0.025, ease: 'back.out(3)' }, 0.4);
-
-  // hero parallax on scroll
-  gsap.to('#top > .relative.z-10', {
-    yPercent: -25,
-    opacity: 0,
-    ease: 'none',
-    scrollTrigger: { trigger: '#top', start: 'top top', end: 'bottom top', scrub: true },
-  });
-
-  // icon tilt
-  const icon = $('[data-tilt]');
-  if (icon && matchMedia('(pointer:fine)').matches) {
-    gsap.to(icon, { y: -10, duration: 3, repeat: -1, yoyo: true, ease: 'sine.inOut' });
-    window.addEventListener('pointermove', (e) => {
-      const rx = (e.clientY / innerHeight - 0.5) * -18;
-      const ry = (e.clientX / innerWidth - 0.5) * 18;
-      gsap.to(icon, { rotateX: rx, rotateY: ry, transformPerspective: 600, duration: 0.8 });
-    });
-  }
-}
-
-/* ---------------- scroll reveals ---------------- */
-if (reduced) {
-  $$('[data-reveal]').forEach((el) => (el.style.opacity = '1'));
-  $$('.glow-card').forEach((el) => el.classList.add('in-view'));
-} else {
-  $$('[data-reveal]').forEach((el) => {
-    const side = el.dataset.reveal === 'side';
-    gsap.fromTo(
-      el,
-      { opacity: 0, y: side ? 0 : 40, x: side ? (el.dataset.from === 'right' ? 80 : -80) : 0, filter: 'blur(6px)' },
-      {
-        opacity: 1, y: 0, x: 0, filter: 'blur(0px)', duration: 1.1, ease: 'expo.out',
-        scrollTrigger: { trigger: el, start: 'top 88%' },
-      },
-    );
-  });
-  $$('[data-stagger]').forEach((group) => {
-    gsap.from(group.children, {
-      opacity: 0, y: 40, scale: 0.97, duration: 0.9, ease: 'expo.out', stagger: 0.08,
-      scrollTrigger: {
-        trigger: group, start: 'top 85%',
-        onEnter: () => $$('.glow-card', group).forEach((c) => c.classList.add('in-view')),
-      },
-    });
-  });
-
-  // demo frame tilts flat as it scrolls into view
-  gsap.fromTo('[data-stage-frame]', { rotateX: 22, scale: 0.9, y: 40 }, {
-    rotateX: 0, scale: 1, y: 0, ease: 'none',
-    scrollTrigger: { trigger: '[data-stage-frame]', start: 'top 95%', end: 'top 30%', scrub: 0.6 },
-  });
-
-  // setup timeline line
-  gsap.fromTo('[data-steps-line]', { scaleY: 0 }, {
-    scaleY: 1, ease: 'none',
-    scrollTrigger: { trigger: '[data-steps]', start: 'top 70%', end: 'bottom 60%', scrub: 0.5 },
-  });
-}
-
-// pointer glow on cards
-$$('.glow-card').forEach((c) =>
-  c.addEventListener('pointermove', (e) => {
-    const r = c.getBoundingClientRect();
-    c.style.setProperty('--mx', `${e.clientX - r.left}px`);
-    c.style.setProperty('--my', `${e.clientY - r.top}px`);
-  }),
-);
 
 /* ---------------- live demos ---------------- */
 const sim = new CgmSimulator();
@@ -251,11 +119,7 @@ $$('[data-hours-picker]').forEach((p) => {
 // units
 const setUnits = (u: Units) => {
   sim.setUnits(u);
-  $$('[data-unit]').forEach((b) => {
-    const on = b.dataset.unit === u;
-    b.classList.toggle('bg-white/15', on);
-    b.classList.toggle('text-fg/50', !on);
-  });
+  $$('[data-unit]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.unit === u)));
 };
 $$('[data-unit]').forEach((b) => b.addEventListener('click', () => setUnits(b.dataset.unit as Units)));
 setUnits('mmol');
@@ -273,7 +137,7 @@ $$('[data-mac-toggle]').forEach((btn) => {
   });
 });
 
-// windows widget drag (coordinates are in the unscaled 960×600 / 520×360 space)
+// windows widget drag (coordinates are in the unscaled desktop's space, 960×600 or 560×620)
 $$('[data-win-widget]').forEach((w) => {
   const inner = w.closest<HTMLElement>('[data-scale-inner]');
   let sx = 0, sy = 0, ox = 0, oy = 0, dragging = false;
@@ -310,11 +174,7 @@ const placePill = () => {
 };
 function showTab(key: string, animate = true) {
   const btn = tabs.find((t) => t.dataset.tab === key)!;
-  tabs.forEach((t) => {
-    t.classList.toggle('text-ink', t === btn);
-    t.classList.toggle('text-fg/60', t !== btn);
-    t.setAttribute('aria-selected', String(t === btn));
-  });
+  tabs.forEach((t) => t.setAttribute('aria-selected', String(t === btn)));
   placePill();
   $$('[data-panel]').forEach((p) => {
     const on = p.dataset.panel === key;
@@ -322,9 +182,7 @@ function showTab(key: string, animate = true) {
       gsap.set(p, { autoAlpha: on ? 1 : 0 });
       return;
     }
-    gsap.to(p, on
-      ? { autoAlpha: 1, scale: 1, filter: 'blur(0px)', duration: 0.7, ease: 'expo.out', delay: 0.1 }
-      : { autoAlpha: 0, scale: 1.04, filter: 'blur(10px)', duration: 0.4, ease: 'power2.in' });
+    gsap.to(p, { autoAlpha: on ? 1 : 0, duration: 0.3, ease: 'power1.out' });
   });
 }
 tabs.forEach((t) => t.addEventListener('click', () => showTab(t.dataset.tab!)));

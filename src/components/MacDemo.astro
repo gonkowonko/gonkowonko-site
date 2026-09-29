@@ -1,10 +1,8 @@
 ---
 // Faithful HTML recreation of NightscoutBar: menu-bar item + SwiftUI popover (380pt wide).
-interface Props { compact?: boolean }
-const { compact = false } = Astro.props;
 ---
 
-<div data-app="mac" class="relative h-full w-full overflow-hidden rounded-[inherit] font-[system-ui,-apple-system,'SF_Pro_Text',sans-serif]">
+<div data-app="mac" class="@container relative h-full w-full overflow-hidden rounded-[inherit] font-[system-ui,-apple-system,'SF_Pro_Text',sans-serif]">
   <!-- wallpaper -->
   <div class="absolute inset-0" style="background:radial-gradient(60% 80% at 20% 90%,#3b1d6e 0%,transparent 60%),radial-gradient(70% 70% at 90% 100%,#0f5a73 0%,transparent 60%),radial-gradient(50% 60% at 70% 20%,#1e3a8a 0%,transparent 70%),linear-gradient(160deg,#0b1026,#10183a 50%,#0a2233)"></div>
 
@@ -12,20 +10,20 @@ const { compact = false } = Astro.props;
   <div class="relative z-10 flex h-7 items-center justify-between bg-black/25 px-4 text-[13px] text-white/90 backdrop-blur-xl">
     <div class="flex items-center gap-5">
       <span class="size-3 rounded-full bg-white/80" aria-hidden="true"></span>
-      {!compact && <>
-        <span class="font-semibold">Finder</span><span>File</span><span>Edit</span><span>View</span><span>Go</span><span>Window</span><span>Help</span>
-      </>}
+      <span class="font-semibold">Finder</span><span>File</span><span>Edit</span><span>View</span>
+      {/* The phone-sized desktop (560pt) runs out of room for the rest. */}
+      <span class="@max-[640px]:hidden">Go</span><span class="@max-[640px]:hidden">Window</span><span class="@max-[640px]:hidden">Help</span>
     </div>
     <div class="flex items-center gap-3.5">
       <button type="button" data-mac-toggle class="tnum -mx-1 rounded-[5px] bg-white/20 px-2 py-0.5 font-medium" aria-label="Toggle NightscoutBar popover"><span data-menubar>5.6→</span></button>
       <svg class="size-4 opacity-90" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 9a15 15 0 0 1 20 0M5.5 12.5a10 10 0 0 1 13 0M9 16a5 5 0 0 1 6 0"/><circle cx="12" cy="19.5" r="1" fill="currentColor"/></svg>
       <svg class="h-3 w-6 opacity-90" viewBox="0 0 26 12" fill="none"><rect x=".5" y=".5" width="22" height="11" rx="3" stroke="currentColor" opacity=".5"/><rect x="2" y="2" width="16" height="8" rx="1.6" fill="currentColor"/><path d="M24 4v4" stroke="currentColor" stroke-linecap="round" opacity=".5"/></svg>
-      {!compact && <span class="tnum" data-clock>Tue 10:42</span>}
+      <span class="tnum whitespace-nowrap" data-clock>Tue 10:42</span>
     </div>
   </div>
 
   <!-- popover -->
-  <div data-mac-popover class="absolute z-20 w-[380px] origin-top rounded-xl border border-white/10 bg-[#1f2026]/85 p-4 text-white shadow-[0_24px_60px_-12px_rgba(0,0,0,.7)] backdrop-blur-2xl" style={compact ? 'right:50%;transform:translateX(50%);top:40px' : 'right:92px;top:36px'}>
+  <div data-mac-popover class="absolute z-20 w-[380px] origin-top rounded-xl border border-white/10 bg-[#1f2026]/85 p-4 text-white shadow-[0_24px_60px_-12px_rgba(0,0,0,.7)] backdrop-blur-2xl" style="right:92px;top:36px">
     <div class="flex items-center gap-2">
       <span data-bg class="tnum text-[44px] leading-none font-bold [font-family:ui-rounded,system-ui]">5.6</span>
       <span data-arrow class="text-[30px] leading-none font-semibold">→</span>

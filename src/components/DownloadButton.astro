@@ -1,22 +1,38 @@
 ---
 import { apps, type AppKey } from '../config/downloads';
 import OsIcon from './OsIcon.astro';
-interface Props { app: AppKey; size?: 'md' | 'lg' }
-const { app, size = 'lg' } = Astro.props;
+// A download link, with what it downloads and what it needs underneath. The
+// visitor's own platform (data-os on <html>, set in Base) is filled in; on a
+// phone, or anything else, both stay outlined.
+interface Props { app: AppKey }
+const { app } = Astro.props;
 const a = apps[app];
 ---
 <a
   href={a.download}
   data-dl={app}
-  class:list={[
-    'btn-glow group inline-flex items-center gap-3 font-semibold transition-transform duration-300 hover:-translate-y-0.5 active:translate-y-0',
-    size === 'lg' ? 'px-6 py-3.5 text-base' : 'px-4 py-2.5 text-sm',
-  ]}
+  class="dl flex min-h-14 items-center gap-3.5 rounded-[14px] border border-ns-rule px-4 py-2.5 transition-[background-color,border-color,opacity] hover:border-dim focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fg"
 >
-  <OsIcon os={app} class={size === 'lg' ? 'size-5' : 'size-4'} />
-  <span class="flex flex-col leading-tight text-left">
-    <span>Download for {a.platform}</span>
-    {size === 'lg' && <span class="text-xs font-medium opacity-60">{a.file} · {a.requirements}</span>}
+  <OsIcon os={app} class="size-5 shrink-0" />
+  <span class="flex flex-col leading-snug">
+    <span class="font-semibold">Download for {a.platform}</span>
+    <span class="dl-meta text-xs text-dim">{a.name} · {a.file} · {a.requirements}</span>
   </span>
-  <svg class="size-4 transition-transform group-hover:translate-y-0.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M8 2v9m0 0L4.5 7.5M8 11l3.5-3.5M3 14h10" stroke-linecap="round" stroke-linejoin="round"/></svg>
 </a>
+
+<style>
+  :global([data-os='mac']) .dl[data-dl='mac'],
+  :global([data-os='win']) .dl[data-dl='win'] {
+    background: var(--color-fg);
+    border-color: var(--color-fg);
+    color: var(--color-ink);
+  }
+  :global([data-os='mac']) .dl[data-dl='mac']:hover,
+  :global([data-os='win']) .dl[data-dl='win']:hover {
+    opacity: 0.9;
+  }
+  :global([data-os='mac']) .dl[data-dl='mac'] .dl-meta,
+  :global([data-os='win']) .dl[data-dl='win'] .dl-meta {
+    color: #05080fa6;
+  }
+</style>

@@ -21,6 +21,10 @@
   --color-accent: #39c5ff;
   --color-cob: #c792ea;
   --color-gold: #ffd54a;
+  /* The Nightscout page's hairlines and paragraphs, between the widget's
+     panel and its text. */
+  --color-ns-rule: #262a35;
+  --color-ns-body: #b3b9c5;
 
   /* Rewax: the app's dark palette, by the names it has in the app (Theme in
      Shared/SharedUI.swift in the Rewax repo). */
@@ -38,28 +42,13 @@
   --color-rewax-body: #b9b7af;
 }
 
-@property --angle {
-  syntax: '<angle>';
-  initial-value: 0deg;
-  inherits: false;
-}
-
 html {
-  /* Clip, not hide: side reveals start 80px off-screen and glows spill past
-     the edges, and on mobile hidden on body alone still widens the layout
+  /* Clip, not hide: on mobile hidden on body alone still widens the layout
      viewport. Clip also keeps position: sticky working. */
   overflow-x: clip;
   color-scheme: dark;
   -webkit-font-smoothing: antialiased;
 }
-html.lenis,
-html.lenis body {
-  height: auto;
-}
-.lenis.lenis-smooth {
-  scroll-behavior: auto !important;
-}
-
 body {
   font-family: var(--font-sans);
   overflow-x: clip;
@@ -77,15 +66,11 @@ body {
   background: #ffffff33;
 }
 
-[data-theme='nightscout'] {
-  background: var(--color-ink);
-  color: var(--color-fg);
-}
+/* NightscoutWidget's darkest panel colour, flat, so the apps' own UI is the colour on the page. */
+[data-theme='nightscout'],
 [data-theme='nightscout'] body {
-  background:
-    radial-gradient(1200px 700px at 15% -10%, #12306080 0%, transparent 60%),
-    radial-gradient(900px 600px at 95% 10%, #0a3a4a80 0%, transparent 60%),
-    linear-gradient(180deg, #070c1a 0%, #05080f 40%, #061018 100%);
+  background: var(--color-panel-2);
+  color: var(--color-fg);
 }
 [data-theme='nightscout'] ::selection {
   background: #30d15855;
@@ -105,87 +90,6 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* ---------- glass + glow primitives ---------- */
-.glass {
-  background: linear-gradient(180deg, #ffffff0d, #ffffff05);
-  border: 1px solid #ffffff14;
-  backdrop-filter: blur(16px) saturate(140%);
-}
-
-.glow-card {
-  position: relative;
-  isolation: isolate;
-  --mx: 50%;
-  --my: 50%;
-}
-.glow-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: radial-gradient(420px circle at var(--mx) var(--my), #39c5ff1f, transparent 45%);
-  opacity: 0;
-  transition: opacity 0.3s;
-  z-index: -1;
-}
-.glow-card:hover::before {
-  opacity: 1;
-}
-
-/* Animated gradient-border download button */
-.btn-glow {
-  position: relative;
-  isolation: isolate;
-  border-radius: 999px;
-}
-.btn-glow::before {
-  content: '';
-  position: absolute;
-  inset: -1.5px;
-  border-radius: inherit;
-  background: conic-gradient(from var(--angle), #30d158, #39c5ff, #c792ea, #ff9f0a, #30d158);
-  animation: angle-spin 4s linear infinite;
-  z-index: -2;
-}
-.btn-glow::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: #0b1222;
-  z-index: -1;
-  transition: background 0.3s;
-}
-.btn-glow:hover::after {
-  background: #0f1a30;
-}
-.btn-glow.is-primary::after {
-  background: linear-gradient(180deg, #f2f4f8, #d9deea);
-}
-.btn-glow.is-primary {
-  color: #05080f;
-  box-shadow: 0 10px 40px -10px #39c5ff80;
-}
-@keyframes angle-spin {
-  to {
-    --angle: 360deg;
-  }
-}
-
-.text-gradient {
-  background: linear-gradient(100deg, #f2f4f8 10%, #9fe8ff 45%, #7ef0a3 70%, #f2f4f8 95%);
-  background-size: 200% auto;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  animation: shimmer 8s linear infinite;
-}
-@keyframes shimmer {
-  to {
-    background-position: -200% center;
-  }
-}
-
 .pulse {
   transform-box: fill-box;
   transform-origin: center;
@@ -202,28 +106,6 @@ body {
   }
 }
 
-.twinkle {
-  animation: twinkle 3s ease-in-out infinite alternate;
-}
-@keyframes twinkle {
-  from {
-    opacity: 0.15;
-  }
-  to {
-    opacity: 0.9;
-  }
-}
-
-/* Hero trace loops by sliding one tile width */
-.trace-track {
-  animation: trace-scroll 40s linear infinite;
-}
-@keyframes trace-scroll {
-  to {
-    transform: translateX(-50%);
-  }
-}
-
 /* Rolling number */
 .roll {
   display: inline-grid;
@@ -234,15 +116,6 @@ body {
   grid-area: 1 / 1;
 }
 
-/* JS adds .js to <html>; only then hide reveal targets so no-JS still shows content */
-.js [data-reveal] {
-  opacity: 0;
-}
-
-details summary::-webkit-details-marker {
-  display: none;
-}
-
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -250,8 +123,5 @@ details summary::-webkit-details-marker {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
-  }
-  .js [data-reveal] {
-    opacity: 1;
   }
 }

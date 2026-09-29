@@ -1,20 +1,67 @@
 ---
+import { Image } from 'astro:assets';
 import Base from '../../layouts/Base.astro';
-import Nav from '../../components/Nav.astro';
-import Hero from '../../components/Hero.astro';
-import DemoStage from '../../components/DemoStage.astro';
-import Features from '../../components/Features.astro';
-import AppSection from '../../components/AppSection.astro';
-import Setup from '../../components/Setup.astro';
-import Faq from '../../components/Faq.astro';
-import Footer from '../../components/Footer.astro';
+import MacDemo from '../../components/MacDemo.astro';
+import WinDemo from '../../components/WinDemo.astro';
+import DownloadButton from '../../components/DownloadButton.astro';
 import { apps } from '../../config/downloads';
 import { faqs } from '../../config/faq';
+import { author } from '../../config/projects';
 import { asset } from '../../lib/asset';
+
+// The apps' own screenshots, from the docs in their repos (the home page's card uses them too).
+import barShot from '../../assets/home/nightscoutbar.png';
+import widgetShot from '../../assets/home/nightscoutwidget.png';
+
+// What both apps show: the parts of the demo above them, named.
+const shared = [
+  ['Reading and trend', 'Your latest reading and an arrow for which way it’s heading, with the change since the last reading and how long ago it came in.'],
+  ['Your range, your units', 'Coloured against the target range you set, in mmol/L or mg/dL. Refreshes every 30 seconds to 5 minutes, or when you ask.'],
+  ['IOB and COB', 'Insulin and carbs on board, from your Nightscout device status, as Trio, Loop and AAPS upload it.'],
+];
+const mac = {
+  specs: [
+    ['Chart', '3, 6, 12 or 24 hours, with your target range shaded and a line at each threshold.'],
+    ['Launch at login', 'One switch in its settings.'],
+    ['Needs', `${apps.mac.requirements}, on Apple Silicon or Intel. Signed and notarised by Apple.`],
+  ],
+  alt: 'NightscoutBar: 7.5 and an up arrow in the Mac menu bar, and below it the pop-up with the reading, +0.6 mmol/L, IOB 1.35 U, COB 12 g, and a 6-hour chart.',
+};
+const win = {
+  specs: [
+    ['Resize it', 'Drag the corner. The graph appears once it’s tall enough.'],
+    ['Tray and menu', 'A system tray icon and a right-click menu. Only one copy runs at a time.'],
+    ['Start with Windows', 'Put a shortcut to it in your Startup folder.'],
+    ['Needs', `${apps.win.requirements}. One portable .exe with .NET built in, so there’s nothing else to install.`],
+  ],
+  alt: 'NightscoutWidget: 7.5 and a flat arrow, +0.0, 1 min ago, IOB 1.26 and COB 10, over a 3-hour graph with the target range shaded.',
+};
+const steps = [
+  ['Download and open it', 'On a Mac, open the .dmg and drag NightscoutBar into Applications. On Windows, run NightscoutWidget.exe. There’s no installer and no .NET download.'],
+  ['Enter your Nightscout URL', 'Paste your site’s address into Settings, for example https://yourname.herokuapp.com.'],
+  ['Add a token if your site needs one', 'In Nightscout, go to Admin Tools, add a subject with the “readable” role and copy its token. Public sites can skip this step.'],
+];
+// Privacy, as the privacy page says it (/nightscout/privacy/).
+const privacy = {
+  facts: [
+    ['Account', 'None'],
+    ['Tracking', 'None'],
+    ['Talks to', 'Your Nightscout'],
+  ],
+  kept: [
+    'Your Nightscout URL and settings, on your computer',
+    'Your token in the macOS Keychain, or encrypted with Windows Data Protection so only your Windows account can read it',
+    'Your readings: never sent to us or anyone else',
+  ],
+  tips: [
+    'Use a read-only (readable) token, never your API secret',
+    'If your site allows public reading, anyone who knows its address can see your readings',
+  ],
+};
 
 const home = new URL(asset('/nightscout/'), Astro.site).href;
 const site = new URL(asset('/'), Astro.site).href;
-const author = { '@type': 'Person', name: 'Gary Dalley', url: 'https://github.com/gonkowonko' };
+const person = { '@type': 'Person', name: author.name, url: author.github };
 const app = (a: (typeof apps)[keyof typeof apps], os: string, desc: string, features: string[]) => ({
   '@type': 'SoftwareApplication',
   name: a.name,
@@ -31,12 +78,12 @@ const app = (a: (typeof apps)[keyof typeof apps], os: string, desc: string, feat
   image: new URL(a.icon, Astro.site).href,
   url: home,
   featureList: features,
-  author,
+  author: person,
 });
 const jsonld = {
   '@context': 'https://schema.org',
   '@graph': [
-    { '@type': 'WebPage', name: 'NightscoutBar & NightscoutWidget', url: home, inLanguage: 'en-GB', isPartOf: { '@type': 'WebSite', name: 'gonkowonko', url: site }, author },
+    { '@type': 'WebPage', name: 'NightscoutBar & NightscoutWidget', url: home, inLanguage: 'en-GB', isPartOf: { '@type': 'WebSite', name: 'gonkowonko', url: site }, author: person },
     app(apps.mac, 'macOS 13 or later', 'A native macOS menu bar app that shows your latest Nightscout glucose reading and trend arrow, with a chart, IOB and COB one click away.', [
       'Glucose and trend arrow in the macOS menu bar', '3, 6, 12 and 24 hour chart', 'IOB and COB from Trio, Loop and AAPS',
       'Stale data warning', 'mmol/L and mg/dL', 'Launch at login', 'Signed and notarised by Apple']),
@@ -46,6 +93,11 @@ const jsonld = {
     { '@type': 'FAQPage', mainEntity: faqs.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })) },
   ],
 };
+
+// A readout's label, as Rewax's page has it: small semibold capitals, tracked, dim.
+const instrument = 'text-[11px] font-semibold tracking-[0.145em] text-dim uppercase';
+const link = 'text-fg underline decoration-dim underline-offset-4 hover:decoration-fg';
+const shot = 'shadow-[0_30px_60px_-24px_#000] ring-1 ring-white/10';
 ---
 
 <Base
@@ -55,47 +107,253 @@ const jsonld = {
   siteName="NightscoutBar & NightscoutWidget"
   favicon="/nightscout/favicon.png"
   touchIcon="/icons/nightscoutbar-256.png"
-  themeColor="#05080f"
+  themeColor="#101218"
   image="/nightscout/og.png"
   imageAlt="NightscoutBar and NightscoutWidget: Nightscout glucose on your Mac and Windows desktop"
 >
   <script slot="head" type="application/ld+json" set:html={JSON.stringify(jsonld)} />
-  <Nav />
-  <main>
-    <Hero />
-    <DemoStage />
-    <Features />
-    <AppSection
-      app="mac"
-      id="mac"
-      eyebrow="NightscoutBar · macOS"
-      title="Your reading in the menu bar."
-      blurb="A small native SwiftUI app that puts your latest reading and trend next to the clock. Click it to open the full chart."
-      points={[
-        'Reading and trend arrow in the menu bar, with ⚠︎ when data is old',
-        'Pop-up chart for 3, 6, 12 or 24 hours with Swift Charts',
-        'IOB and COB from Trio, Loop and AAPS',
-        'Launch at login with one switch',
-      ]}
-    />
-    <AppSection
-      app="win"
-      id="windows"
-      eyebrow="NightscoutWidget · Windows"
-      title="A widget that stays on top."
-      blurb="A frameless, see-through widget that sits above your other windows. Drag it anywhere, resize it, and fade it to the opacity you want."
-      points={[
-        'One portable exe, with nothing else to install',
-        'Resizable, with a graph that appears when it’s tall enough',
-        'System tray icon and right-click menu',
-        'Only one copy runs at a time',
-      ]}
-      reverse
-    />
-    <Setup />
-    <Faq />
-  </main>
-  <Footer />
+
+  <div class="mx-auto max-w-[1080px] px-4 sm:px-8">
+    <header class="flex items-center justify-between gap-4 py-5 text-sm">
+      <a href="#top" class="flex items-center gap-2.5 font-semibold tracking-tight" aria-label="NightscoutBar & NightscoutWidget, back to top">
+        <span class="flex -space-x-1.5" aria-hidden="true">
+          <img src={asset('/icons/nightscoutbar-256.png')} alt="" width="28" height="28" class="size-7" />
+          <img src={asset('/icons/nightscoutwidget.png')} alt="" width="28" height="28" class="size-7" />
+        </span>
+        <span class="hidden sm:inline">NightscoutBar &amp; NightscoutWidget</span>
+      </a>
+      <nav class="flex gap-3.5 text-[13px] text-dim min-[380px]:text-sm sm:gap-5" aria-label="On this page">
+        <a href="#demo" class="hover:text-fg">Demo</a>
+        <a href="#mac" class="hidden hover:text-fg md:inline">Mac</a>
+        <a href="#windows" class="hidden hover:text-fg md:inline">Windows</a>
+        <a href="#privacy" class="hover:text-fg">Privacy</a>
+        <a href="#faq" class="hover:text-fg">FAQ</a>
+        <a href="#download" class="text-fg hover:underline hover:underline-offset-4">Download</a>
+      </nav>
+    </header>
+
+    <main>
+      <!-- Hero: which app is which, the downloads, and the two apps as they are. -->
+      <section id="top" class="grid items-center gap-y-10 border-b border-ns-rule pt-6 pb-12 sm:pt-12 sm:pb-16 md:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] md:gap-x-12 lg:gap-x-16">
+        <div>
+          <h1 class="max-w-[15ch] text-4xl leading-[1.05] font-semibold tracking-[-0.03em] text-balance sm:text-6xl md:text-5xl lg:text-6xl">Your Nightscout glucose, on your desktop.</h1>
+          <p class="mt-5 max-w-[46ch] text-lg leading-relaxed text-ns-body text-pretty">
+            Two small, free apps that read your own Nightscout site. <b class="font-semibold text-fg">NightscoutBar</b> puts your reading and trend arrow in the Mac menu bar. <b class="font-semibold text-fg">NightscoutWidget</b> is a small window on Windows that stays on top of everything else.
+          </p>
+          <div class="mt-8 grid max-w-[27rem] gap-3">
+            <DownloadButton app="mac" />
+            <DownloadButton app="win" />
+          </div>
+          <p class="mt-5 max-w-[46ch] text-sm leading-relaxed text-dim">
+            Free and open source. Works with any CGM that uploads to Nightscout. <a href="#demo" class={link}>Try the demo</a>
+          </p>
+        </div>
+
+        <!-- NightscoutBar's menu bar and chart, with NightscoutWidget in front of its lower left. -->
+        <div class="relative aspect-[100/78] w-full" role="img" aria-label="NightscoutBar showing 7.5 and an up arrow in the Mac menu bar with its chart open below, and the NightscoutWidget window in front.">
+          <Image src={barShot} alt="" widths={[520, 1040]} sizes="(min-width: 1080px) 470px, (min-width: 768px) 46vw, 88vw" loading="eager" class:list={[shot, 'absolute top-0 right-0 w-[88%] rounded-xl']} />
+          <Image src={widgetShot} alt="" widths={[300, 600]} sizes="(min-width: 1080px) 270px, (min-width: 768px) 26vw, 50vw" loading="eager" class:list={[shot, 'absolute bottom-0 left-0 w-1/2 rounded-[5.2%/8.8%]']} />
+        </div>
+      </section>
+
+      <!-- The demo: working copies of both apps, on made-up readings. -->
+      <section id="demo" class="scroll-mt-8 pt-20 sm:pt-28" data-nosnippet>
+        <div class="flex flex-wrap items-end justify-between gap-x-10 gap-y-6">
+          <div>
+            <h2 class="text-3xl leading-tight font-semibold tracking-tight text-balance sm:text-5xl">Try them here.</h2>
+            <p class="mt-4 max-w-[48ch] leading-relaxed text-ns-body text-pretty">
+              Working copies of both apps. Click the reading in the menu bar, change the chart’s range, or drag the widget around.
+            </p>
+          </div>
+          <div class="flex flex-wrap gap-3 text-sm">
+            <div class="relative flex rounded-full border border-ns-rule bg-panel p-1" role="tablist" aria-label="Show the app for">
+              <span data-tab-pill aria-hidden="true" class="absolute inset-y-1 left-1 rounded-full bg-fg transition-all duration-300 ease-out"></span>
+              <button type="button" role="tab" aria-selected="false" data-tab="mac" class="relative z-10 rounded-full px-4 py-2 font-medium text-ns-body transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fg aria-selected:text-ink">Mac</button>
+              <button type="button" role="tab" aria-selected="false" data-tab="win" class="relative z-10 rounded-full px-4 py-2 font-medium text-ns-body transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fg aria-selected:text-ink">Windows</button>
+            </div>
+            <div class="flex rounded-full border border-ns-rule bg-panel p-1" role="group" aria-label="Units">
+              <button type="button" aria-pressed="false" data-unit="mmol" class="rounded-full px-3 py-2 font-medium text-dim transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fg aria-pressed:bg-pill aria-pressed:text-fg">mmol/L</button>
+              <button type="button" aria-pressed="false" data-unit="mgdl" class="rounded-full px-3 py-2 font-medium text-dim transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fg aria-pressed:bg-pill aria-pressed:text-fg">mg/dL</button>
+            </div>
+          </div>
+        </div>
+
+        <p id="demo-data" class="mt-8 border-t border-ns-rule pt-4 text-sm text-ns-body">
+          <b class="font-semibold text-fg">Demo data only.</b> These readings are made up and change every few seconds. Nothing here is connected to anyone’s Nightscout site.
+        </p>
+        <div class="mt-4 overflow-hidden rounded-[14px] ring-1 ring-ns-rule" aria-describedby="demo-data">
+          <div data-scale-box data-desktop="960x600" data-mobile="560x620" class="relative aspect-[8/5] w-full overflow-hidden">
+            <div data-scale-inner class="absolute top-0 left-0 h-[600px] w-[960px] origin-top-left">
+              <div data-panel="mac" class="absolute inset-0"><MacDemo /></div>
+              <div data-panel="win" class="invisible absolute inset-0 opacity-0"><WinDemo /></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- What the demo shows in both apps, named, between hairlines. -->
+        <dl class="mt-10 grid gap-x-8 border-b border-ns-rule sm:grid-cols-2 lg:grid-cols-4">
+          {shared.map(([t, d]) => (
+            <div class="border-t border-ns-rule py-5">
+              <dt class={instrument}>{t}</dt>
+              <dd class="mt-2 text-sm leading-relaxed text-ns-body text-pretty">{d}</dd>
+            </div>
+          ))}
+          <div class="border-t border-ns-rule py-5">
+            <dt class={instrument}>Old data</dt>
+            <dd class="mt-2 text-sm leading-relaxed text-ns-body text-pretty">
+              If no reading has arrived for 12 minutes, the value goes grey and a warning appears, so you don’t trust an old number:
+              <span class="mt-2 inline-block rounded-[5px] bg-white/10 px-2 py-0.5 font-medium text-fg/50 tnum" aria-label="for example, 7.5 with an up arrow, greyed, and a warning sign">7.5↑ <span class="text-high">⚠︎</span></span>
+            </dd>
+          </div>
+        </dl>
+      </section>
+
+      <!-- NightscoutBar: the screenshot leads, big; what's its own beside it. -->
+      <section id="mac" class="scroll-mt-8 pt-24 sm:pt-32">
+        <article class="grid items-center gap-10 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] md:gap-12 lg:gap-16">
+          <Image src={barShot} alt={mac.alt} widths={[560, 1120]} sizes="(min-width: 1080px) 520px, (min-width: 768px) 50vw, 92vw" class:list={[shot, 'w-full rounded-xl']} />
+          <div>
+            <p class={instrument}>For Mac</p>
+            <h2 class="mt-3 text-3xl leading-tight font-semibold tracking-tight text-balance sm:text-4xl">NightscoutBar puts your reading in the menu bar.</h2>
+            <p class="mt-5 max-w-[44ch] text-lg leading-relaxed text-ns-body text-pretty">Your latest reading and trend arrow sit next to the clock. Click them for the full chart, with IOB and COB above it.</p>
+            <dl class="mt-8 border-b border-ns-rule">
+              {mac.specs.map(([t, d]) => (
+                <div class="border-t border-ns-rule py-3.5">
+                  <dt class="font-semibold">{t}</dt>
+                  <dd class="mt-0.5 text-sm leading-relaxed text-dim">{d}</dd>
+                </div>
+              ))}
+            </dl>
+            <div class="mt-8 flex flex-wrap items-center gap-x-6 gap-y-4">
+              <DownloadButton app="mac" />
+              <a href={apps.mac.repo} target="_blank" rel="noopener" class={`text-sm ${link}`}>Source on GitHub</a>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <!-- NightscoutWidget: the same, the other way round on wide screens. -->
+      <section id="windows" class="scroll-mt-8 pt-24 sm:pt-32">
+        <article class="grid items-center gap-10 md:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] md:gap-12 lg:gap-16">
+          <div class="md:order-2">
+            <Image src={widgetShot} alt={win.alt} widths={[480, 670]} sizes="(min-width: 1080px) 520px, (min-width: 768px) 50vw, 92vw" class:list={[shot, 'mx-auto w-full max-w-[520px] rounded-[5.2%/8.8%]']} />
+          </div>
+          <div>
+            <p class={instrument}>For Windows</p>
+            <h2 class="mt-3 text-3xl leading-tight font-semibold tracking-tight text-balance sm:text-4xl">NightscoutWidget stays on top.</h2>
+            <p class="mt-5 max-w-[44ch] text-lg leading-relaxed text-ns-body text-pretty">A frameless, see-through window that sits above your other windows. Drag it anywhere and fade it to the opacity you want.</p>
+            <dl class="mt-8 border-b border-ns-rule">
+              {win.specs.map(([t, d]) => (
+                <div class="border-t border-ns-rule py-3.5">
+                  <dt class="font-semibold">{t}</dt>
+                  <dd class="mt-0.5 text-sm leading-relaxed text-dim">{d}</dd>
+                </div>
+              ))}
+            </dl>
+            <div class="mt-8 flex flex-wrap items-center gap-x-6 gap-y-4">
+              <DownloadButton app="win" />
+              <a href={apps.win.repo} target="_blank" rel="noopener" class={`text-sm ${link}`}>Source on GitHub</a>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <!-- Setup: three steps, numbered, between hairlines. -->
+      <section id="setup" class="mt-24 scroll-mt-8 sm:mt-32">
+        <h2 class="text-3xl leading-tight font-semibold tracking-tight text-balance sm:text-4xl">Set up in about a minute</h2>
+        <ol class="mt-10 grid border-b border-ns-rule md:grid-cols-3 md:gap-x-10">
+          {steps.map(([t, d], i) => (
+            <li class="border-t border-ns-rule py-6">
+              <p class="font-mono text-sm text-dim">{i + 1}</p>
+              <h3 class="mt-2 text-lg font-semibold tracking-tight">{t}</h3>
+              <p class="mt-2 text-sm leading-relaxed text-ns-body text-pretty">{d}</p>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      <!-- Privacy and safety: the short version as readouts, the details in two lists,
+           then the medical caveat. The privacy page has the rest. -->
+      <section id="privacy" class="mt-24 scroll-mt-8 sm:mt-32">
+        <div class="grid gap-4 md:grid-cols-2 md:items-end md:gap-12">
+          <h2 class="text-3xl leading-tight font-semibold tracking-tight text-balance sm:text-4xl">Your readings go nowhere else.</h2>
+          <p class="max-w-[46ch] leading-relaxed text-ns-body text-pretty">The apps connect only to the Nightscout site you enter. There’s no account, no analytics, no crash reporting and no server in between.</p>
+        </div>
+
+        <dl class="mt-10 grid grid-cols-3 border-y border-ns-rule">
+          {privacy.facts.map(([t, d], i) => (
+            <div class:list={['py-5 sm:py-7', i > 0 && 'border-l border-ns-rule pl-4 sm:pl-6']}>
+              <dt class={instrument}>{t}</dt>
+              <dd class="mt-2 text-lg leading-tight font-semibold tracking-tight sm:text-3xl">{d}</dd>
+            </div>
+          ))}
+        </dl>
+
+        <div class="mt-12 grid gap-10 md:grid-cols-2 md:gap-12">
+          {[['What stays with you', privacy.kept], ['Good to know', privacy.tips]].map(([t, items]) => (
+            <div>
+              <h3 class={instrument}>{t}</h3>
+              <ul class="mt-3 border-b border-ns-rule text-sm">
+                {(items as string[]).map((item) => <li class="border-t border-ns-rule py-2.5 text-ns-body">{item}</li>)}
+              </ul>
+            </div>
+          ))}
+        </div>
+        <p class="mt-6 text-sm text-ns-body">
+          The <a href={asset('/nightscout/privacy/')} class={link}>privacy page</a> has the details, including how to remove everything.
+        </p>
+
+        <div class="mt-12 border-y border-high/30 py-5 sm:flex sm:gap-8">
+          <p class="shrink-0 font-semibold text-high">Not a medical device</p>
+          <p class="mt-1 max-w-[70ch] text-sm leading-relaxed text-ns-body sm:mt-0">
+            NightscoutBar and NightscoutWidget show data from your own Nightscout site for convenience only. Don’t make treatment decisions from them. Always check your CGM app or meter.
+          </p>
+        </div>
+      </section>
+
+      <!-- Questions: all open, question beside answer, between hairlines. -->
+      <section id="faq" class="mt-24 scroll-mt-8 sm:mt-32">
+        <h2 class="text-3xl leading-tight font-semibold tracking-tight sm:text-4xl">Questions</h2>
+        <dl class="mt-10 border-b border-ns-rule">
+          {faqs.map(([q, a]) => (
+            <div class="grid gap-2 border-t border-ns-rule py-6 md:grid-cols-2 md:gap-12">
+              <dt class="text-lg font-semibold tracking-tight">{q}</dt>
+              <dd class="max-w-[60ch] leading-relaxed text-ns-body text-pretty">{a}</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+
+      <!-- The downloads again, at the end of the page. -->
+      <section id="download" class="mt-24 scroll-mt-8 sm:mt-32">
+        <h2 class="text-3xl leading-tight font-semibold tracking-tight text-balance sm:text-4xl">Free for Mac and Windows.</h2>
+        <div class="mt-8 grid gap-3 sm:grid-cols-2 sm:gap-4">
+          <DownloadButton app="mac" />
+          <DownloadButton app="win" />
+        </div>
+      </section>
+    </main>
+
+    <footer class="mt-24 pb-10 text-sm">
+      <div class="flex flex-col gap-8 border-t border-ns-rule pt-8 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <p class="font-semibold">NightscoutBar &amp; NightscoutWidget</p>
+          <p class="mt-1 text-dim">Free and open source, under the MIT licence.</p>
+        </div>
+        <ul class="flex flex-col gap-2.5 text-ns-body sm:items-end [&_a]:underline-offset-4 [&_a:hover]:text-fg [&_a:hover]:underline">
+          <li><a href={asset('/nightscout/privacy/')}>Privacy</a></li>
+          <li><a href={apps.mac.repo} target="_blank" rel="noopener">NightscoutBar on GitHub</a></li>
+          <li><a href={apps.win.repo} target="_blank" rel="noopener">NightscoutWidget on GitHub</a></li>
+          <li><a href="https://nightscout.github.io/" target="_blank" rel="noopener">Nightscout</a></li>
+        </ul>
+      </div>
+      <div class="mt-10 flex flex-col gap-2 border-t border-ns-rule pt-6 text-dim sm:flex-row sm:justify-between sm:gap-8">
+        <p>Not affiliated with the Nightscout Foundation. Not a medical device.</p>
+        <p class="shrink-0">Made by {author.name} · <a href={asset('/')} class="underline-offset-4 hover:text-fg hover:underline">gonkowonko.com</a></p>
+      </div>
+    </footer>
+  </div>
+
   <script>
     import '../../scripts/main';
   </script>
