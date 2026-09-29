@@ -1,6 +1,7 @@
 ---
 import { Image } from 'astro:assets';
 import Base from '../../layouts/Base.astro';
+import Logo from '../../components/Logo.astro';
 import Wordmark from '../../components/rewax/Wordmark.astro';
 import Phone from '../../components/rewax/Phone.astro';
 import { asset } from '../../lib/asset';
@@ -106,7 +107,7 @@ const label = 'font-mono text-[11px] tracking-wider text-[#8e8c84] uppercase';
 
   <div class="mx-auto max-w-[1080px] px-4 sm:px-8">
     <header class="flex items-center justify-between py-6 text-sm">
-      <a href={asset('/')} class="text-[#8e8c84] hover:text-[#eceae3]">← gonkowonko</a>
+      <a href={asset('/')} class="text-[15px] opacity-75 transition-opacity hover:opacity-100 sm:text-[17px]" aria-label="gonkowonko home"><Logo under={false} /></a>
       <nav class="flex gap-5 text-[#8e8c84]">
         <a href="#screens" class="hover:text-[#eceae3]">Screens</a>
         <a href="#faq" class="hover:text-[#eceae3]">FAQ</a>
