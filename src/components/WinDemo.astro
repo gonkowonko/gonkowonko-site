@@ -4,11 +4,11 @@ import { asset } from '../lib/asset';
 ---
 
 <div data-app="win" class="relative h-full w-full overflow-hidden rounded-[inherit] font-['Segoe_UI',system-ui,sans-serif]">
-  <!-- wallpaper (Windows 11 bloom-ish) -->
-  <div class="absolute inset-0" style="background:radial-gradient(45% 60% at 50% 60%,#2f6bff 0%,transparent 70%),radial-gradient(30% 45% at 40% 55%,#8fb8ff 0%,transparent 70%),radial-gradient(35% 50% at 62% 50%,#1848c8 0%,transparent 70%),linear-gradient(180deg,#081435,#0b1f55 60%,#0a1a45)"></div>
+  <!-- wallpaper (Windows 11 bloom-ish), dim, so the widget is what you look at -->
+  <div class="absolute inset-0" style="background:radial-gradient(45% 60% at 40% 65%,#1c3f96 0%,transparent 70%),radial-gradient(25% 35% at 35% 60%,#3d5f9e 0%,transparent 70%),linear-gradient(180deg,#070d22,#0a1638 60%,#08132f)"></div>
 
   <!-- floating widget -->
-  <div data-win-widget class="absolute z-10 cursor-grab touch-none select-none active:cursor-grabbing" style="right:56px;top:48px">
+  <div data-win-widget class="absolute z-10 cursor-grab touch-none select-none active:cursor-grabbing" style="right:40px;top:40px">
     <div class="relative w-[340px] h-[210px] p-2.5">
       <div class="absolute inset-[12px_12px_6px] rounded-[20px] bg-black/45 blur-[16px]"></div>
       <div class="relative flex h-full flex-col rounded-[18px] border border-white/[0.04] px-3.5 py-2.5 text-[#F2F4F8]" style="background:linear-gradient(180deg,#1B1E27 0%,#14161C 55%,#101218 100%)">

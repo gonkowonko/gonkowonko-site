@@ -16,7 +16,8 @@ const a = apps[app];
   <OsIcon os={app} class="size-5 shrink-0" />
   <span class="flex flex-col leading-snug">
     <span class="font-semibold">Download for {a.platform}</span>
-    <span class="dl-meta text-xs text-dim">{a.name} · {a.file} · {a.requirements}</span>
+    <span class="dl-meta text-[13px] text-dim">{a.name} {a.file}</span>
+    <span class="dl-meta text-[13px] text-dim">Needs {a.requirements}</span>
   </span>
 </a>
 

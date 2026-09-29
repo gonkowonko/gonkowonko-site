@@ -23,16 +23,16 @@ const mac = {
   specs: [
     ['Chart', '3, 6, 12 or 24 hours, with your target range shaded and a line at each threshold.'],
     ['Launch at login', 'One switch in its settings.'],
-    ['Needs', `${apps.mac.requirements}, on Apple Silicon or Intel. Signed and notarised by Apple.`],
+    ['Apple Silicon or Intel', 'One universal app for both.'],
   ],
   alt: 'NightscoutBar: 7.5 and an up arrow in the Mac menu bar, and below it the pop-up with the reading, +0.6 mmol/L, IOB 1.35 U, COB 12 g, and a 6-hour chart.',
 };
 const win = {
   specs: [
-    ['Resize it', 'Drag the corner. The graph appears once it’s tall enough.'],
+    ['Graph', 'Appears once the widget is tall enough for it.'],
     ['Tray and menu', 'A system tray icon and a right-click menu. Only one copy runs at a time.'],
     ['Start with Windows', 'Put a shortcut to it in your Startup folder.'],
-    ['Needs', `${apps.win.requirements}. One portable .exe with .NET built in, so there’s nothing else to install.`],
+    ['One file', 'A portable .exe with .NET built in, so there’s nothing else to install.'],
   ],
   alt: 'NightscoutWidget: 7.5 and a flat arrow, +0.0, 1 min ago, IOB 1.26 and COB 10, over a 3-hour graph with the target range shaded.',
 };
@@ -134,13 +134,13 @@ const shot = 'shadow-[0_30px_60px_-24px_#000] ring-1 ring-white/10';
 
     <main>
       <!-- Hero: which app is which, the downloads, and the two apps as they are. -->
-      <section id="top" class="grid items-center gap-y-10 border-b border-ns-rule pt-6 pb-12 sm:pt-12 sm:pb-16 md:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] md:gap-x-12 lg:gap-x-16">
+      <section id="top" class="grid items-center gap-y-12 border-b border-ns-rule pt-6 pb-12 sm:pt-12 sm:pb-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-x-16">
         <div>
-          <h1 class="max-w-[15ch] text-4xl leading-[1.05] font-semibold tracking-[-0.03em] text-balance sm:text-6xl md:text-5xl lg:text-6xl">Your Nightscout glucose, on your desktop.</h1>
-          <p class="mt-5 max-w-[46ch] text-lg leading-relaxed text-ns-body text-pretty">
+          <h1 class="max-w-[16ch] sm:max-w-none lg:max-w-[16ch] text-4xl leading-[1.05] font-semibold tracking-[-0.03em] text-balance min-[400px]:text-[2.75rem] sm:text-6xl">Your Nightscout glucose, on your desktop.</h1>
+          <p class="mt-5 max-w-[48ch] text-lg leading-relaxed text-ns-body text-pretty">
             Two small, free apps that read your own Nightscout site. <b class="font-semibold text-fg">NightscoutBar</b> puts your reading and trend arrow in the Mac menu bar. <b class="font-semibold text-fg">NightscoutWidget</b> is a small window on Windows that stays on top of everything else.
           </p>
-          <div class="mt-8 grid max-w-[27rem] gap-3">
+          <div class="mt-8 grid max-w-[27rem] gap-3 md:max-w-none md:grid-cols-2 lg:max-w-[27rem] lg:grid-cols-1">
             <DownloadButton app="mac" />
             <DownloadButton app="win" />
           </div>
@@ -150,9 +150,9 @@ const shot = 'shadow-[0_30px_60px_-24px_#000] ring-1 ring-white/10';
         </div>
 
         <!-- NightscoutBar's menu bar and chart, with NightscoutWidget in front of its lower left. -->
-        <div class="relative aspect-[100/78] w-full" role="img" aria-label="NightscoutBar showing 7.5 and an up arrow in the Mac menu bar with its chart open below, and the NightscoutWidget window in front.">
-          <Image src={barShot} alt="" widths={[520, 1040]} sizes="(min-width: 1080px) 470px, (min-width: 768px) 46vw, 88vw" loading="eager" class:list={[shot, 'absolute top-0 right-0 w-[88%] rounded-xl']} />
-          <Image src={widgetShot} alt="" widths={[300, 600]} sizes="(min-width: 1080px) 270px, (min-width: 768px) 26vw, 50vw" loading="eager" class:list={[shot, 'absolute bottom-0 left-0 w-1/2 rounded-[5.2%/8.8%]']} />
+        <div class="relative mx-auto aspect-[100/78] w-full max-w-[560px] lg:max-w-none" role="img" aria-label="NightscoutBar showing 7.5 and an up arrow in the Mac menu bar with its chart open below, and the NightscoutWidget window in front.">
+          <Image src={barShot} alt="" widths={[520, 1040]} sizes="(min-width: 1080px) 470px, (min-width: 1024px) 46vw, (min-width: 640px) 495px, 88vw" loading="eager" class:list={[shot, 'absolute top-0 right-0 w-[88%] rounded-xl']} />
+          <Image src={widgetShot} alt="" widths={[300, 600]} sizes="(min-width: 1080px) 270px, (min-width: 1024px) 26vw, (min-width: 640px) 280px, 50vw" loading="eager" class:list={[shot, 'absolute bottom-0 left-0 w-1/2 rounded-[5.2%/8.8%]']} />
         </div>
       </section>
 
@@ -181,9 +181,12 @@ const shot = 'shadow-[0_30px_60px_-24px_#000] ring-1 ring-white/10';
         <p id="demo-data" class="mt-8 border-t border-ns-rule pt-4 text-sm text-ns-body">
           <b class="font-semibold text-fg">Demo data only.</b> These readings are made up and change every few seconds. Nothing here is connected to anyone’s Nightscout site.
         </p>
-        <div class="mt-4 overflow-hidden rounded-[14px] ring-1 ring-ns-rule" aria-describedby="demo-data">
-          <div data-scale-box data-desktop="960x600" data-mobile="560x620" class="relative aspect-[8/5] w-full overflow-hidden">
-            <div data-scale-inner class="absolute top-0 left-0 h-[600px] w-[960px] origin-top-left">
+        <!-- A small desktop, cropped close round the app so it fills the frame; the
+             notes on what it shows sit beside it on wide screens. -->
+        <div class="mt-4 grid gap-8 lg:grid-cols-[minmax(0,1fr)_260px] lg:gap-12">
+        <div class="self-start overflow-hidden rounded-[14px] ring-1 ring-ns-rule" aria-describedby="demo-data">
+          <div data-scale-box data-desktop="680x440" data-mobile="440x420" class="relative aspect-[680/440] w-full overflow-hidden">
+            <div data-scale-inner class="absolute top-0 left-0 h-[440px] w-[680px] origin-top-left">
               <div data-panel="mac" class="absolute inset-0"><MacDemo /></div>
               <div data-panel="win" class="invisible absolute inset-0 opacity-0"><WinDemo /></div>
             </div>
@@ -191,7 +194,7 @@ const shot = 'shadow-[0_30px_60px_-24px_#000] ring-1 ring-white/10';
         </div>
 
         <!-- What the demo shows in both apps, named, between hairlines. -->
-        <dl class="mt-10 grid gap-x-8 border-b border-ns-rule sm:grid-cols-2 lg:grid-cols-4">
+        <dl class="grid gap-x-8 self-start border-b border-ns-rule sm:grid-cols-2 lg:grid-cols-1">
           {shared.map(([t, d]) => (
             <div class="border-t border-ns-rule py-5">
               <dt class={instrument}>{t}</dt>
@@ -206,16 +209,17 @@ const shot = 'shadow-[0_30px_60px_-24px_#000] ring-1 ring-white/10';
             </dd>
           </div>
         </dl>
+        </div>
       </section>
 
       <!-- NightscoutBar: the screenshot leads, big; what's its own beside it. -->
       <section id="mac" class="scroll-mt-8 pt-24 sm:pt-32">
-        <article class="grid items-center gap-10 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] md:gap-12 lg:gap-16">
-          <Image src={barShot} alt={mac.alt} widths={[560, 1120]} sizes="(min-width: 1080px) 520px, (min-width: 768px) 50vw, 92vw" class:list={[shot, 'w-full rounded-xl']} />
+        <article class="grid items-center gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-16">
+          <Image src={barShot} alt={mac.alt} widths={[560, 1120]} sizes="(min-width: 1080px) 520px, (min-width: 1024px) 50vw, (min-width: 640px) 600px, 92vw" class:list={[shot, 'mx-auto w-full max-w-[600px] rounded-xl lg:max-w-none']} />
           <div>
             <p class={instrument}>For Mac</p>
-            <h2 class="mt-3 text-3xl leading-tight font-semibold tracking-tight text-balance sm:text-4xl">NightscoutBar puts your reading in the menu bar.</h2>
-            <p class="mt-5 max-w-[44ch] text-lg leading-relaxed text-ns-body text-pretty">Your latest reading and trend arrow sit next to the clock. Click them for the full chart, with IOB and COB above it.</p>
+            <h2 class="mt-3 text-3xl leading-tight font-semibold tracking-tight text-balance sm:text-4xl">A glance at the menu bar, a click for the chart.</h2>
+            <p class="mt-5 max-w-[44ch] text-lg leading-relaxed text-ns-body text-pretty">The reading stays in the menu bar whichever app you’re in. Click it and the chart drops down underneath.</p>
             <dl class="mt-8 border-b border-ns-rule">
               {mac.specs.map(([t, d]) => (
                 <div class="border-t border-ns-rule py-3.5">
@@ -234,14 +238,14 @@ const shot = 'shadow-[0_30px_60px_-24px_#000] ring-1 ring-white/10';
 
       <!-- NightscoutWidget: the same, the other way round on wide screens. -->
       <section id="windows" class="scroll-mt-8 pt-24 sm:pt-32">
-        <article class="grid items-center gap-10 md:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] md:gap-12 lg:gap-16">
-          <div class="md:order-2">
-            <Image src={widgetShot} alt={win.alt} widths={[480, 670]} sizes="(min-width: 1080px) 520px, (min-width: 768px) 50vw, 92vw" class:list={[shot, 'mx-auto w-full max-w-[520px] rounded-[5.2%/8.8%]']} />
+        <article class="grid items-center gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:gap-16">
+          <div class="lg:order-2">
+            <Image src={widgetShot} alt={win.alt} widths={[480, 670]} sizes="(min-width: 640px) 520px, 92vw" class:list={[shot, 'mx-auto w-full max-w-[520px] rounded-[5.2%/8.8%]']} />
           </div>
           <div>
             <p class={instrument}>For Windows</p>
-            <h2 class="mt-3 text-3xl leading-tight font-semibold tracking-tight text-balance sm:text-4xl">NightscoutWidget stays on top.</h2>
-            <p class="mt-5 max-w-[44ch] text-lg leading-relaxed text-ns-body text-pretty">A frameless, see-through window that sits above your other windows. Drag it anywhere and fade it to the opacity you want.</p>
+            <h2 class="mt-3 text-3xl leading-tight font-semibold tracking-tight text-balance sm:text-4xl">Put it wherever you’re working.</h2>
+            <p class="mt-5 max-w-[44ch] text-lg leading-relaxed text-ns-body text-pretty">A frameless, see-through window. Drag it anywhere, resize it from its corner, and fade it to the opacity you want.</p>
             <dl class="mt-8 border-b border-ns-rule">
               {win.specs.map(([t, d]) => (
                 <div class="border-t border-ns-rule py-3.5">
