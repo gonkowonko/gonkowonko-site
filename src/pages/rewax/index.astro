@@ -51,11 +51,6 @@ const supporting = [
     alt: 'A bike’s history: a bar for each wax showing how far it lasted against the limit, and the average, shortest and longest.',
   },
 ];
-const steps = [
-  ['Wax', 'Log it, and the count starts from zero.'],
-  ['Ride', 'Every Strava ride on that bike adds its miles.'],
-  ['Rewax', 'Amber at 75% of your limit. Red, and a reminder, at the limit.'],
-];
 // The wax cycle's chain: 10 plates, as the app draws a bike's chain, the app's
 // default limit (300 mi), and where it rests without scripts. pinAt places the
 // scale's marks, at 0, 75% and the limit, as a share of the chain's width
@@ -80,12 +75,6 @@ const platforms = [
     points: ['Widgets that resize, from one bike to all of them', 'Overdue alerts with a Log wax button on them', 'Material 3, as Android draws it'],
   },
 ];
-// Moving phones: what actually carries the data across (the privacy policy
-// and the apps' Backup & restore screens say the same).
-const moving = [
-  ['Phone backups', 'iCloud Backup and Backup by Google include Rewax like any other app. On Android, connect Strava again afterwards.'],
-  ['Backup file', 'Save everything to a file from Settings → Backup & restore, then restore it on the new phone, iPhone or Android. It shows what will change before anything’s replaced.'],
-];
 // Privacy, as the privacy policy says it (/rewax/privacy-policy.html): what's
 // read from Strava, and what never is.
 const privacy = {
@@ -105,11 +94,12 @@ const privacy = {
     'Sending your data to anyone else',
   ],
 };
-// Questions the sections above don't already answer. Data and moving phones
-// have sections of their own now.
+// Questions the sections above don't already answer. Data has a section of
+// its own.
 const faqs = [
   ['Which rides count?', 'Any activity on Strava with that bike chosen for it, indoors or out, from a Garmin, a Wahoo, Zwift or anything else. A ride with no bike set doesn’t count; set one on Strava and it’s counted on the next sync.'],
   ['What limit should I set?', 'Rewax starts at 300 miles (483 km) for every bike. Change it for all of them, or give one bike its own: a lower one for the bike that rides in the wet, say. Miles or kilometres.'],
+  ['What happens when I get a new phone?', 'Your wax log comes with you. iCloud Backup and Backup by Google include Rewax like any other app; on Android, connect Strava again afterwards. Or save a backup file from Settings → Backup & restore and restore it on the new phone, iPhone or Android. It shows what will change before anything’s replaced.'],
   ['Do I need a paid Strava subscription?', 'No, a free Strava account is all Rewax needs.'],
   ['Can I try it without Strava?', 'Yes. Choose Explore with demo data on the first screen and Rewax fills up with sample bikes, so you can try everything before connecting your own.'],
   ['When can I get it?', 'Rewax is being tested by a small group of riders at the moment. It’s coming to the App Store and Google Play once testing is done.'],
@@ -178,13 +168,14 @@ const heroAlt = 'Rewax’s bike list: a Canyon Aeroad 50 miles over its limit, i
       <!-- Hero: the promise, where Rewax stands, and the app itself, big
            enough to read. The phone stands on the rule under the hero, cut off
            below the last bike, where the screen is empty anyway. -->
-      <section class="grid gap-y-10 border-b border-rewax-rule pt-8 sm:pt-12 md:grid-cols-[minmax(0,1fr)_300px] md:gap-x-12 lg:grid-cols-[minmax(0,1fr)_400px] lg:gap-x-20">
+      <section class="grid gap-y-8 border-b border-rewax-rule pt-6 sm:gap-y-10 sm:pt-12 md:grid-cols-[minmax(0,1fr)_300px] md:gap-x-12 lg:grid-cols-[minmax(0,1fr)_400px] lg:gap-x-20">
         <div class="md:self-center md:pb-14">
           <h1 class="max-w-[16ch] text-4xl leading-[1.05] font-semibold tracking-[-0.03em] text-balance sm:text-6xl md:text-5xl lg:text-6xl">Know when to rewax your chain.</h1>
           <p class="mt-5 max-w-[44ch] text-lg leading-relaxed text-rewax-body text-pretty">
             Waxing is easy. Remembering when isn’t. Rewax counts the miles on each chain from your Strava rides and tells you when it’s due.
           </p>
-          <p class="mt-8 text-sm text-rewax-dim">In closed beta. Coming to the App Store and Google Play.</p>
+          <p class="mt-6 text-sm text-rewax-dim sm:mt-8">In closed beta. Coming to the App Store and Google Play.</p>
+          <a href="#try" class="mt-2 inline-block text-sm text-rewax-text underline decoration-rewax-dim underline-offset-4 hover:decoration-rewax-text">Try it now: log a wax on the chain below</a>
         </div>
         <div class="mx-auto aspect-[400/650] min-h-0 w-[86vw] max-w-[360px] overflow-y-clip md:w-full md:max-w-none md:self-end">
           <div class="iphone"><Phone src={iList} alt={heroAlt} platform="iphone" sizes="(min-width: 1024px) 400px, (min-width: 768px) 300px, 86vw" eager /></div>
@@ -199,7 +190,7 @@ const heroAlt = 'Rewax’s bike list: a Canyon Aeroad 50 miles over its limit, i
 
         <!-- Read-only, so no panel: a bike page's headline, figure and chain,
              between hairlines. Without scripts it rests at 48 miles left. -->
-        <div class="mt-10 border-y border-rewax-rule py-8 sm:mt-14 sm:py-12" data-cycle data-limit={cycle.limit} data-state="amber">
+        <div id="try" class="mt-10 scroll-mt-8 border-y border-rewax-rule py-8 sm:mt-14 sm:py-12" data-cycle data-limit={cycle.limit} data-state="amber">
           <div class="flex flex-wrap items-end justify-between gap-x-10 gap-y-6">
             <div>
               <p class={`${instrument} state-label`} data-label>Left before rewax</p>
@@ -213,12 +204,12 @@ const heroAlt = 'Rewax’s bike list: a Canyon Aeroad 50 miles over its limit, i
           </div>
 
           <div class="mt-8 sm:mt-10"><ChainBar plates={cycle.plates} fraction={cycle.rest} /></div>
-          <!-- The scale under the chain: waxed, due soon, the limit. -->
+          <!-- The scale under the chain is the whole story: wax, due soon, rewax. -->
           <div class="relative mt-3 h-11 text-xs leading-snug" aria-hidden="true">
             {[
-              { at: pinAt(0), name: 'Waxed', value: '0 mi', align: '' },
+              { at: pinAt(0), name: 'Wax', value: '0 mi', align: '' },
               { at: pinAt(cycle.plates * 0.75), name: 'Due soon', value: '75%', align: '-translate-x-full text-right sm:-translate-x-1/2 sm:text-center' },
-              { at: pinAt(cycle.plates), name: 'Limit', value: `${cycle.limit} mi`, align: '-translate-x-full text-right' },
+              { at: pinAt(cycle.plates), name: 'Rewax', value: `${cycle.limit} mi`, align: '-translate-x-full text-right' },
             ].map((m) => (
               <div class:list={['absolute top-0 pt-1 whitespace-nowrap', m.align]} style={`left: ${m.at}%`}>
                 <p class={instrument}>{m.name}</p>
@@ -226,22 +217,15 @@ const heroAlt = 'Rewax’s bike list: a Canyon Aeroad 50 miles over its limit, i
               </div>
             ))}
           </div>
+          <p class="mt-6 text-rewax-body">Every Strava ride on that bike adds its miles.</p>
         </div>
 
-        <ol class="mt-8 grid gap-5 sm:grid-cols-3 sm:gap-10">
-          {steps.map(([t, d]) => (
-            <li>
-              <h3 class="font-semibold tracking-tight">{t}</h3>
-              <p class="mt-1 text-rewax-body">{d}</p>
-            </li>
-          ))}
-        </ol>
       </section>
 
       <!-- The app: one switch for the page's screenshots, then one screen that
            leads, big, and two that support it, smaller, side by side. (Not cut
            off like the hero's: the Log wax sheet runs to the foot of the screen.) -->
-      <section id="screens" class="mt-28 scroll-mt-8 border-t border-rewax-rule pt-8">
+      <section id="screens" class="scroll-mt-8 pt-8">
         <div class="flex flex-wrap items-center justify-between gap-4">
           <p class="text-sm text-rewax-dim">Real screens from both apps, with the same demo bikes.</p>
           <div class="relative flex rounded-full border border-rewax-panel-border bg-rewax-panel p-1 text-sm" role="group" aria-label="Show screens from" data-switch>
@@ -290,8 +274,8 @@ const heroAlt = 'Rewax’s bike list: a Canyon Aeroad 50 miles over its limit, i
       </section>
 
       <!-- On your phone: each phone's widget and what's its own, side by side
-           and read-only (hairlines, no cards), then moving to a new phone. -->
-      <section class="mt-28 border-t border-rewax-rule pt-10 sm:pt-14">
+           and read-only (hairlines, no cards). -->
+      <section class="mt-24 sm:mt-32">
         <h2 class="text-3xl leading-tight font-semibold tracking-tight text-balance sm:text-4xl">Your chains, on your home screen</h2>
 
         <div class="mt-12 grid gap-14 md:grid-cols-2 md:gap-0">
@@ -306,33 +290,21 @@ const heroAlt = 'Rewax’s bike list: a Canyon Aeroad 50 miles over its limit, i
             </div>
           ))}
         </div>
-
-        <div class="mt-20 grid gap-6 md:grid-cols-2 md:gap-12">
-          <h3 class="text-2xl leading-tight font-semibold tracking-tight text-balance sm:text-3xl">New phone? Your wax log comes with you.</h3>
-          <dl class="border-b border-rewax-rule">
-            {moving.map(([t, d]) => (
-              <div class="border-t border-rewax-rule py-3.5">
-                <dt class="font-semibold">{t}</dt>
-                <dd class="mt-0.5 text-sm leading-relaxed text-rewax-dim">{d}</dd>
-              </div>
-            ))}
-          </dl>
-        </div>
       </section>
 
       <!-- Privacy: the short version as the app's readouts, then exactly what
            Rewax reads from Strava and what it never does. -->
-      <section id="privacy" class="mt-28 scroll-mt-8 border-t border-rewax-rule pt-10 sm:pt-14">
+      <section id="privacy" class="mt-24 scroll-mt-8 sm:mt-32">
         <div class="grid gap-4 md:grid-cols-2 md:items-end md:gap-12">
           <h2 class="text-3xl leading-tight font-semibold tracking-tight text-balance sm:text-4xl">Your data stays on your phone.</h2>
           <p class="max-w-[46ch] leading-relaxed text-rewax-body text-pretty">Rewax has no account, no server of its own, no ads and no analytics. Your bikes, wax log and chain links are kept on your phone.</p>
         </div>
 
-        <dl class="mt-10 grid grid-cols-3 border-y border-rewax-rule">
+        <dl class="mt-10 grid grid-cols-3 border-y border-rewax-rule sm:mt-12">
           {privacy.facts.map(([t, d], i) => (
-            <div class:list={['py-5', i > 0 && 'border-l border-rewax-rule pl-4 sm:pl-6']}>
+            <div class:list={['py-5 sm:py-7', i > 0 && 'border-l border-rewax-rule pl-4 sm:pl-6']}>
               <dt class={instrument}>{t}</dt>
-              <dd class="mt-1.5 text-lg font-semibold tracking-tight sm:text-2xl">{d}</dd>
+              <dd class="mt-2 text-lg font-semibold tracking-tight whitespace-nowrap sm:text-3xl lg:text-4xl">{d}</dd>
             </div>
           ))}
         </dl>
@@ -340,14 +312,14 @@ const heroAlt = 'Rewax’s bike list: a Canyon Aeroad 50 miles over its limit, i
         <div class="mt-12 grid gap-10 md:grid-cols-2 md:gap-12">
           {[['What it reads from Strava', privacy.reads], ['What it never does', privacy.never]].map(([t, items]) => (
             <div>
-              <h3 class="text-lg font-semibold tracking-tight">{t}</h3>
-              <ul class="mt-3 border-b border-rewax-rule">
-                {(items as string[]).map((item) => <li class="border-t border-rewax-rule py-3 text-rewax-body">{item}</li>)}
+              <h3 class={instrument}>{t}</h3>
+              <ul class="mt-3 border-b border-rewax-rule text-sm">
+                {(items as string[]).map((item) => <li class="border-t border-rewax-rule py-2.5 text-rewax-body">{item}</li>)}
               </ul>
             </div>
           ))}
         </div>
-        <p class="mt-8 text-rewax-body">
+        <p class="mt-6 text-sm text-rewax-body">
           The <a href={asset('/rewax/privacy-policy.html')} class="text-rewax-text underline decoration-rewax-dim underline-offset-4 hover:decoration-rewax-text">privacy policy</a> has the details.
         </p>
       </section>
