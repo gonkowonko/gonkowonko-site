@@ -21,6 +21,20 @@
   --color-accent: #39c5ff;
   --color-cob: #c792ea;
   --color-gold: #ffd54a;
+
+  /* Rewax: the app's dark palette, by the names it has in the app (Theme in
+     Shared/SharedUI.swift in the Rewax repo). */
+  --color-rewax-background: #111210;
+  --color-rewax-panel: #1b1c19;
+  --color-rewax-panel-border: #34352f;
+  --color-rewax-rule: #2c2d29;
+  --color-rewax-track: #3a3b36;
+  --color-rewax-text: #eceae3;
+  --color-rewax-dim: #8e8c84;
+  --color-rewax-amber: #ffb224;
+  --color-rewax-red: #ff5b3a;
+  /* The web page's paragraphs, between text and dim: the app has no long text. */
+  --color-rewax-body: #b9b7af;
 }
 
 @property --angle {

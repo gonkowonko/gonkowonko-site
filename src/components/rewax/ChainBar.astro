@@ -1,0 +1,87 @@
+---
+// The app's ChainBar (Shared/SharedUI.swift in the Rewax repo), drawn as SVG:
+// a side-on roller chain whose plates fill from the left as a wax is ridden.
+// Outer and inner plates alternate, neighbours share a pin, and pins sit 3.1
+// plate radii apart, the proportions of a real chain. It's drawn the way the
+// app draws it: inner plates first, then each outer plate over a halo in the
+// background colour, then a rivet on every pin.
+//
+// Each plate's fill is its own element (data-plate), so a script can fill or
+// empty the chain plate by plate. The colour is --chain-fill on the <svg>.
+interface Props {
+  /** How far through its limit the wax is: 0 to 1, or past 1 when overdue. */
+  fraction?: number;
+  plates?: number;
+  class?: string;
+}
+const { fraction = 0, plates = 10, class: className } = Astro.props;
+
+const r = 10;
+const step = 3.1 * r;
+const width = plates * step + 2 * r;
+const cy = r;
+const pin = (k: number) => r + k * step;
+
+/** A waisted "dog-bone" plate from pin i to pin i + 1. */
+function plate(i: number, radius: number, waist: number) {
+  const [x1, x2] = [pin(i), pin(i + 1)];
+  const mid = (x1 + x2) / 2;
+  const f = (n: number) => +n.toFixed(2);
+  const body = `M${f(x1)} ${f(cy - radius)}Q${f(mid)} ${f(cy - 2 * waist + radius)} ${f(x2)} ${f(cy - radius)}V${f(cy + radius)}Q${f(mid)} ${f(cy + 2 * waist - radius)} ${f(x1)} ${f(cy + radius)}Z`;
+  const end = (x: number) => `M${f(x - radius)} ${cy}a${radius} ${radius} 0 1 1 ${2 * radius} 0a${radius} ${radius} 0 1 1 ${-2 * radius} 0Z`;
+  return body + end(x1) + end(x2);
+}
+
+// Whole plates at rest, as in the app.
+const level = Math.min(Math.max(fraction, 0), 1) * plates;
+const filled = (i: number) => (level - i >= 1 ? 1 : 0);
+const state = fraction >= 1 ? 'red' : fraction >= 0.75 ? 'amber' : 'text';
+const inner = Array.from({ length: Math.floor(plates / 2) }, (_, j) => 2 * j + 1).filter((i) => i < plates);
+const outer = Array.from({ length: Math.ceil(plates / 2) }, (_, j) => 2 * j);
+---
+
+<svg class:list={['chain-bar', className]} viewBox={`0 0 ${width} ${2 * r}`} style={`--chain-fill: var(--color-rewax-${state})`} aria-hidden="true">
+  {inner.map((i) => (
+    <g>
+      <path class="track inner" d={plate(i, r * 0.9, r * 0.64)} />
+      <path class="fill inner" d={plate(i, r * 0.9, r * 0.64)} opacity={filled(i)} data-plate={i} />
+    </g>
+  ))}
+  {outer.map((i) => (
+    <g>
+      <path class="halo" d={plate(i, r, r * 0.64)} />
+      <path class="track" d={plate(i, r * 0.93, r * 0.52)} />
+      <path class="fill" d={plate(i, r * 0.93, r * 0.52)} opacity={filled(i)} data-plate={i} />
+    </g>
+  ))}
+  {Array.from({ length: plates + 1 }, (_, k) => (
+    <circle class="rivet" cx={pin(k)} cy={cy} r={r * 0.34} />
+  ))}
+</svg>
+
+<style>
+  .chain-bar {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  .halo,
+  .rivet {
+    fill: var(--color-rewax-background);
+  }
+  .rivet {
+    fill-opacity: 0.85;
+  }
+  .track {
+    fill: var(--color-rewax-track);
+  }
+  .track.inner {
+    fill-opacity: 0.7;
+  }
+  .fill {
+    fill: var(--chain-fill);
+  }
+  .fill.inner {
+    fill-opacity: 0.55;
+  }
+</style>
