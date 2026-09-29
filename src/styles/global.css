@@ -25,6 +25,7 @@
   /* Rewax: the app's dark palette, by the names it has in the app (Theme in
      Shared/SharedUI.swift in the Rewax repo). */
   --color-rewax-background: #111210;
+  --color-rewax-sheet: #161714;
   --color-rewax-panel: #1b1c19;
   --color-rewax-panel-border: #34352f;
   --color-rewax-rule: #2c2d29;

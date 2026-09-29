@@ -1,13 +1,10 @@
 ---
 import Phone from '../rewax/Phone.astro';
 import iList from '../../assets/rewax/iphone/bikes.png';
-import aBike from '../../assets/rewax/android/bike.png';
-// The Rewax card's picture: the app on both phones, rising out of the bottom
-// of the card, the iPhone's bike list in front of the Android bike page.
-const sizes = '(min-width: 1024px) 230px, 42vw';
+// The Rewax card's picture, as the Rewax page's hero has it: the bike list,
+// straight on, rising out of the foot of the card and cut off by it.
 ---
 
-<div class="absolute inset-x-0 top-12 -bottom-24 flex justify-center gap-0" aria-hidden="true">
-  <Phone src={iList} alt="" platform="iphone" {sizes} class="relative z-10 h-fit w-[42%] max-w-[230px] -rotate-[4deg] -mr-4" />
-  <Phone src={aBike} alt="" platform="android" {sizes} class="h-fit w-[42%] max-w-[230px] translate-y-[8%] rotate-[4deg] brightness-[.7]" />
+<div class="absolute inset-x-0 top-12 bottom-0 flex justify-center overflow-hidden" aria-hidden="true">
+  <Phone src={iList} alt="" platform="iphone" sizes="(min-width: 1024px) 320px, 70vw" class="h-fit w-[70%] max-w-[320px]" />
 </div>

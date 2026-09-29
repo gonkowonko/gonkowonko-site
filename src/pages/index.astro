@@ -78,16 +78,17 @@ const serif = "font-['Fraunces_Variable',Georgia,serif]";
             <div class="relative min-h-[320px] sm:min-h-[420px]"><NightscoutVisual /></div>
           </article>
 
-          <article class="relative mt-8 grid overflow-hidden rounded-[32px] lg:grid-cols-[7fr_5fr]" style="background: radial-gradient(80% 80% at 25% 100%, #ffb22430 0%, transparent 70%), #1a160d">
+          <!-- Rewax in the app's own graphite and colours, as its page has them. -->
+          <article class="relative mt-8 grid overflow-hidden rounded-[32px] border border-rewax-rule bg-rewax-sheet lg:grid-cols-[7fr_5fr]">
             <div class="relative min-h-[360px] overflow-hidden sm:min-h-[440px]"><RewaxVisual /></div>
             <div class="relative z-10 flex flex-col justify-center p-8 sm:p-12 lg:col-start-2">
-              <p class="text-sm text-[#d6a24a]">For iPhone and Android · In beta testing</p>
-              <h3 class={`${serif} mt-3 text-4xl leading-tight font-medium tracking-tight text-[#f5ead6]`}>Rewax</h3>
-              <blockquote class={`${serif} mt-6 border-l-2 border-[#ffb224] pl-5 text-xl leading-snug text-[#efe2c8] italic`}>
+              <p class="text-sm text-rewax-dim">For iPhone and Android · In closed beta</p>
+              <h3 class={`${serif} mt-3 text-4xl leading-tight font-medium tracking-tight text-rewax-text`}>Rewax</h3>
+              <blockquote class={`${serif} mt-6 border-l-2 border-rewax-amber pl-5 text-xl leading-snug text-rewax-text italic`}>
                 “I switched to waxed chains and could never remember how far I’d ridden since the last wax.”
               </blockquote>
-              <p class="mt-6 leading-relaxed text-[#bcae94]">{rewax.summary}</p>
-              <a href={rewax.href} class="mt-8 self-start text-[#ffb224] underline decoration-[#ffb224]/40 underline-offset-[6px] hover:decoration-[#ffb224]">More about Rewax</a>
+              <p class="mt-6 leading-relaxed text-rewax-body">{rewax.summary}</p>
+              <a href={rewax.href} class="mt-8 self-start text-rewax-text underline decoration-rewax-dim underline-offset-[6px] hover:decoration-rewax-text">More about Rewax</a>
             </div>
           </article>
         </section>
