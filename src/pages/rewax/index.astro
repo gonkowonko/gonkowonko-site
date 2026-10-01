@@ -153,7 +153,7 @@ const heroAlt = 'Rewax’s bike list: a Canyon Aeroad 50 miles over its limit, i
     document.documentElement.dataset.phone = /Android/.test(navigator.userAgent) ? 'android' : 'iphone';
   </script>
 
-  <div class="mx-auto max-w-[1080px] px-4 sm:px-8">
+  <div class="rewax-type mx-auto max-w-[1080px] px-4 sm:px-8">
     <!-- The wordmark as the app draws it in its toolbar, at the app's size. -->
     <header class="flex items-center justify-between py-5 text-sm">
       <div class="wordmark text-[12px] min-[360px]:text-[14px] sm:text-[16px]"><Wordmark /></div>
@@ -470,6 +470,37 @@ const heroAlt = 'Rewax’s bike list: a Canyon Aeroad 50 miles over its limit, i
      line the chain up with the page's edge, not the word. */
   .wordmark {
     padding-left: 2.9em;
+  }
+
+  /* Rewax's own type: Switzer, a plain grotesk close to the apps' system
+     fonts (SF Pro, Roboto). From Fontshare (ITF Free Font License),
+     self-hosted. */
+  @font-face {
+    font-family: 'Switzer';
+    src: url('../../assets/rewax/fonts/switzer-400.woff2') format('woff2');
+    font-weight: 400;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'Switzer';
+    src: url('../../assets/rewax/fonts/switzer-500.woff2') format('woff2');
+    font-weight: 500;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'Switzer';
+    src: url('../../assets/rewax/fonts/switzer-600.woff2') format('woff2');
+    font-weight: 600;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'Switzer';
+    src: url('../../assets/rewax/fonts/switzer-700.woff2') format('woff2');
+    font-weight: 700;
+    font-display: swap;
+  }
+  .rewax-type {
+    font-family: 'Switzer', 'Inter Variable', sans-serif;
   }
 
   /* A bike's headline figure, as the Android app sets it: Roboto Flex at its
