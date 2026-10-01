@@ -1,10 +1,8 @@
 @import 'tailwindcss';
 @import '@fontsource-variable/inter';
-@import '@fontsource-variable/jetbrains-mono';
 
 @theme {
   --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono Variable', ui-monospace, monospace;
 
   --color-ink: #05080f;
   --color-navy: #0d1630;

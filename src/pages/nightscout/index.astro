@@ -113,7 +113,7 @@ const shot = 'shadow-[0_30px_60px_-24px_#000] ring-1 ring-white/10';
 >
   <script slot="head" type="application/ld+json" set:html={JSON.stringify(jsonld)} />
 
-  <div class="mx-auto max-w-[1080px] px-4 sm:px-8">
+  <div class="ns-type mx-auto max-w-[1080px] px-4 sm:px-8">
     <header class="flex items-center justify-between gap-4 py-5 text-sm">
       <a href="#top" class="flex items-center gap-2.5 font-semibold tracking-tight" aria-label="NightscoutBar & NightscoutWidget, back to top">
         <span class="flex -space-x-1.5" aria-hidden="true">
@@ -136,7 +136,7 @@ const shot = 'shadow-[0_30px_60px_-24px_#000] ring-1 ring-white/10';
       <!-- Hero: which app is which, the downloads, and the two apps as they are. -->
       <section id="top" class="grid items-center gap-y-12 border-b border-ns-rule pt-6 pb-12 sm:pt-12 sm:pb-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-x-16">
         <div>
-          <h1 class="max-w-[16ch] sm:max-w-none lg:max-w-[16ch] text-4xl leading-[1.05] font-semibold tracking-[-0.03em] text-balance min-[400px]:text-[2.75rem] sm:text-6xl">Your Nightscout glucose, on your desktop.</h1>
+          <h1 class="max-w-[16ch] sm:max-w-none lg:max-w-[16ch] text-4xl leading-[1.05] font-semibold tracking-[-0.01em] text-balance min-[400px]:text-[2.75rem] sm:text-6xl">Your Nightscout glucose, on your desktop.</h1>
           <p class="mt-5 max-w-[48ch] text-lg leading-relaxed text-ns-body text-pretty">
             Two small, free apps that read your own Nightscout site. <b class="font-semibold text-fg">NightscoutBar</b> puts your reading and trend arrow in the Mac menu bar. <b class="font-semibold text-fg">NightscoutWidget</b> is a small window on Windows that stays on top of everything else.
           </p>
@@ -160,7 +160,7 @@ const shot = 'shadow-[0_30px_60px_-24px_#000] ring-1 ring-white/10';
       <section id="demo" class="scroll-mt-8 pt-20 sm:pt-28" data-nosnippet>
         <div class="flex flex-wrap items-end justify-between gap-x-10 gap-y-6">
           <div>
-            <h2 class="text-3xl leading-tight font-semibold tracking-tight text-balance sm:text-5xl">Try them here.</h2>
+            <h2 class="text-3xl leading-tight font-semibold tracking-[-0.01em] text-balance sm:text-5xl">Try them here.</h2>
             <p class="mt-4 max-w-[48ch] leading-relaxed text-ns-body text-pretty">
               Working copies of both apps. Click the reading in the menu bar, change the chart’s range, or drag the widget around.
             </p>
@@ -218,7 +218,7 @@ const shot = 'shadow-[0_30px_60px_-24px_#000] ring-1 ring-white/10';
           <Image src={barShot} alt={mac.alt} widths={[560, 1120]} sizes="(min-width: 1080px) 520px, (min-width: 1024px) 50vw, (min-width: 640px) 600px, 92vw" class:list={[shot, 'mx-auto w-full max-w-[600px] rounded-xl lg:max-w-none']} />
           <div>
             <p class={instrument}>For Mac</p>
-            <h2 class="mt-3 text-3xl leading-tight font-semibold tracking-tight text-balance sm:text-4xl">A glance at the menu bar, a click for the chart.</h2>
+            <h2 class="mt-3 text-3xl leading-tight font-semibold tracking-[-0.01em] text-balance sm:text-4xl">A glance at the menu bar, a click for the chart.</h2>
             <p class="mt-5 max-w-[44ch] text-lg leading-relaxed text-ns-body text-pretty">The reading stays in the menu bar whichever app you’re in. Click it and the chart drops down underneath.</p>
             <dl class="mt-8 border-b border-ns-rule">
               {mac.specs.map(([t, d]) => (
@@ -244,7 +244,7 @@ const shot = 'shadow-[0_30px_60px_-24px_#000] ring-1 ring-white/10';
           </div>
           <div>
             <p class={instrument}>For Windows</p>
-            <h2 class="mt-3 text-3xl leading-tight font-semibold tracking-tight text-balance sm:text-4xl">Put it wherever you’re working.</h2>
+            <h2 class="mt-3 text-3xl leading-tight font-semibold tracking-[-0.01em] text-balance sm:text-4xl">Put it wherever you’re working.</h2>
             <p class="mt-5 max-w-[44ch] text-lg leading-relaxed text-ns-body text-pretty">A frameless, see-through window. Drag it anywhere, resize it from its corner, and fade it to the opacity you want.</p>
             <dl class="mt-8 border-b border-ns-rule">
               {win.specs.map(([t, d]) => (
@@ -264,11 +264,11 @@ const shot = 'shadow-[0_30px_60px_-24px_#000] ring-1 ring-white/10';
 
       <!-- Setup: three steps, numbered, between hairlines. -->
       <section id="setup" class="mt-24 scroll-mt-8 sm:mt-32">
-        <h2 class="text-3xl leading-tight font-semibold tracking-tight text-balance sm:text-4xl">Set up in about a minute</h2>
+        <h2 class="text-3xl leading-tight font-semibold tracking-[-0.01em] text-balance sm:text-4xl">Set up in about a minute</h2>
         <ol class="mt-10 grid border-b border-ns-rule md:grid-cols-3 md:gap-x-10">
           {steps.map(([t, d], i) => (
             <li class="border-t border-ns-rule py-6">
-              <p class="font-mono text-sm text-dim">{i + 1}</p>
+              <p class="tnum text-sm text-dim">{i + 1}</p>
               <h3 class="mt-2 text-lg font-semibold tracking-tight">{t}</h3>
               <p class="mt-2 text-sm leading-relaxed text-ns-body text-pretty">{d}</p>
             </li>
@@ -280,7 +280,7 @@ const shot = 'shadow-[0_30px_60px_-24px_#000] ring-1 ring-white/10';
            then the medical caveat. The privacy page has the rest. -->
       <section id="privacy" class="mt-24 scroll-mt-8 sm:mt-32">
         <div class="grid gap-4 md:grid-cols-2 md:items-end md:gap-12">
-          <h2 class="text-3xl leading-tight font-semibold tracking-tight text-balance sm:text-4xl">Your readings go nowhere else.</h2>
+          <h2 class="text-3xl leading-tight font-semibold tracking-[-0.01em] text-balance sm:text-4xl">Your readings go nowhere else.</h2>
           <p class="max-w-[46ch] leading-relaxed text-ns-body text-pretty">The apps connect only to the Nightscout site you enter. There’s no account, no analytics, no crash reporting and no server in between.</p>
         </div>
 
@@ -288,7 +288,7 @@ const shot = 'shadow-[0_30px_60px_-24px_#000] ring-1 ring-white/10';
           {privacy.facts.map(([t, d], i) => (
             <div class:list={['py-5 sm:py-7', i > 0 && 'border-l border-ns-rule pl-4 sm:pl-6']}>
               <dt class={instrument}>{t}</dt>
-              <dd class="mt-2 text-lg leading-tight font-semibold tracking-tight sm:text-3xl">{d}</dd>
+              <dd class="mt-2 text-lg leading-tight font-semibold tracking-[-0.01em] sm:text-3xl">{d}</dd>
             </div>
           ))}
         </dl>
@@ -317,7 +317,7 @@ const shot = 'shadow-[0_30px_60px_-24px_#000] ring-1 ring-white/10';
 
       <!-- Questions: all open, question beside answer, between hairlines. -->
       <section id="faq" class="mt-24 scroll-mt-8 sm:mt-32">
-        <h2 class="text-3xl leading-tight font-semibold tracking-tight sm:text-4xl">Questions</h2>
+        <h2 class="text-3xl leading-tight font-semibold tracking-[-0.01em] sm:text-4xl">Questions</h2>
         <dl class="mt-10 border-b border-ns-rule">
           {faqs.map(([q, a]) => (
             <div class="grid gap-2 border-t border-ns-rule py-6 md:grid-cols-2 md:gap-12">
@@ -330,7 +330,7 @@ const shot = 'shadow-[0_30px_60px_-24px_#000] ring-1 ring-white/10';
 
       <!-- The downloads again, at the end of the page. -->
       <section id="download" class="mt-24 scroll-mt-8 sm:mt-32">
-        <h2 class="text-3xl leading-tight font-semibold tracking-tight text-balance sm:text-4xl">Free for Mac and Windows.</h2>
+        <h2 class="text-3xl leading-tight font-semibold tracking-[-0.01em] text-balance sm:text-4xl">Free for Mac and Windows.</h2>
         <div class="mt-8 grid gap-3 sm:grid-cols-2 sm:gap-4">
           <DownloadButton app="mac" />
           <DownloadButton app="win" />
@@ -362,3 +362,21 @@ const shot = 'shadow-[0_30px_60px_-24px_#000] ring-1 ring-white/10';
     import '../../scripts/main';
   </script>
 </Base>
+
+<style>
+  /* Inter with its optical sizes: the headlines take its Display cut, as the
+     Mac draws SF Pro Display at large sizes; text sizes look as before. Its
+     own name, as fontsource gives every cut of Inter the same one. Latin
+     only; anything else falls back to the Inter the rest of the site loads. */
+  @font-face {
+    font-family: 'Inter Optical';
+    src: url('../../../node_modules/@fontsource-variable/inter/files/inter-latin-opsz-normal.woff2') format('woff2-variations');
+    font-weight: 100 900;
+    font-display: swap;
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  }
+  .ns-type {
+    font-family: 'Inter Optical', 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+    font-optical-sizing: auto;
+  }
+</style>
