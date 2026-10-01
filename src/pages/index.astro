@@ -51,7 +51,7 @@ const serif = "font-['Fraunces_Variable',Georgia,serif]";
             <h1 class={`${serif} mt-4 text-5xl leading-[1.02] font-medium tracking-[-0.02em] text-[#f1ece2] text-balance sm:text-7xl [font-variation-settings:'SOFT'_50,'opsz'_144]`}>
               Small apps for things I <em class="text-[#ffb224] [font-variation-settings:'SOFT'_100,'WONK'_1]">actually</em> use.
             </h1>
-            <p class="mt-8 max-w-[50ch] text-lg leading-relaxed text-[#c9c3b7] text-pretty">
+            <p class="mt-8 max-w-[40ch] text-lg leading-relaxed text-[#c9c3b7] text-pretty">
               I build apps to solve problems I run into myself, and I keep them simple. I live with type 1 diabetes and spend a lot of time on the bike, so that’s where a lot of them start.
             </p>
           </div>
@@ -100,7 +100,7 @@ const serif = "font-['Fraunces_Variable',Georgia,serif]";
         <!-- About: the heading beside the text on wide screens, so the lines stay a readable length -->
         <section id="about" class="mt-24 grid sm:mt-32 scroll-mt-6 gap-6 lg:grid-cols-[4fr_8fr] lg:gap-16">
           <h2 class={`${serif} text-4xl font-medium tracking-tight text-[#f1ece2]`}>About</h2>
-          <div class="max-w-[62ch] space-y-4 text-lg leading-relaxed text-[#c9c3b7] lg:pt-2">
+          <div class="max-w-[50ch] space-y-4 text-lg leading-relaxed text-[#c9c3b7] lg:pt-2">
             <p>Every app here started as something I wanted for myself. When one works well enough that I stop thinking about it, I tidy it up and share it.</p>
             <p>They do one job each. No accounts, no ads, no tracking, and your data stays with you.</p>
           </div>
@@ -122,11 +122,38 @@ const serif = "font-['Fraunces_Variable',Georgia,serif]";
 </Base>
 
 <style>
+  /* The home page's own type: Satoshi, whose round O matches the wordmark's
+     wheels, for the wordmark and the text; Fraunces for the headline. From
+     Fontshare (ITF Free Font License), self-hosted. */
+  @font-face {
+    font-family: 'Satoshi';
+    src: url('../assets/home/fonts/satoshi-500.woff2') format('woff2');
+    font-weight: 500;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'Satoshi';
+    src: url('../assets/home/fonts/satoshi-700.woff2') format('woff2');
+    font-weight: 700;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'Satoshi';
+    src: url('../assets/home/fonts/satoshi-900.woff2') format('woff2');
+    font-weight: 900;
+    font-display: swap;
+  }
+
   /* A warmer black than the current page, and a faint grain so it reads as paper, not a screen. */
   .page {
     min-height: 100dvh;
     background: #121110;
     color: #f1ece2;
+    /* The wordmark sets var(--font-sans), so this reaches it too. */
+    --font-sans: 'Satoshi', 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+    font-family: var(--font-sans);
+    /* Satoshi's regular is lighter than Inter's; its medium reads as Inter did. */
+    font-weight: 500;
     position: relative;
     isolation: isolate;
   }
