@@ -38,7 +38,7 @@ const lead = {
 const supporting = [
   {
     title: 'Waxed it? Log it.',
-    text: 'The count starts again from zero. Backdate it up to a year, add a note, or log it straight from the reminder.',
+    text: 'The count starts again from zero. Backdate it up to 60 days, add a note, or log it straight from the reminder.',
     iphone: iLogWax,
     android: aLogWax,
     alt: 'Logging a wax: the date and time it was waxed, and an optional note.',
@@ -85,8 +85,9 @@ const privacy = {
   ],
   reads: [
     'Your name, to show which account is connected',
-    'Your bikes: name, total distance, and whether they’re retired',
-    'Your rides: name, date, distance and bike, private ones included, so every ride counts',
+    'Your Strava account and bike IDs, to match rides to bikes',
+    'Your bikes: name, total distance, and whether each is your primary or retired',
+    'Your rides from the last 60 days: name, date, distance, bike, and the Garmin that recorded it, if any. Runs and walks are skipped, and private rides are read only if you allow them',
   ],
   never: [
     'Reading routes, locations, heart rate, power or photos',
@@ -99,7 +100,8 @@ const privacy = {
 const faqs = [
   ['Which rides count?', 'Any activity on Strava with that bike chosen for it, indoors or out, from a Garmin, a Wahoo, Zwift or anything else. A ride with no bike set doesn’t count; set one on Strava and it’s counted on the next sync.'],
   ['What limit should I set?', 'Rewax starts at 300 miles (483 km) for every bike. Change it for all of them, or give one bike its own: a lower one for the bike that rides in the wet, say. Miles or kilometres.'],
-  ['What happens when I get a new phone?', 'Your wax log comes with you. iCloud Backup and Backup by Google include Rewax like any other app; on Android, connect Strava again afterwards. Or save a backup file from Settings → Backup & restore and restore it on the new phone, iPhone or Android. It shows what will change before anything’s replaced.'],
+  ['What happens when I get a new phone?', 'Your wax log comes with you. iCloud Backup and Backup by Google include Rewax like any other app; on Android, connect Strava again afterwards. Or save a backup file from Settings → Backup & restore and restore it on the new phone, iPhone or Android. It shows what will change before anything’s replaced, then reloads your rides from Strava.'],
+  ['How far back can I log a wax?', 'Up to 60 days, as long as it’s after the bike’s last wax. If the chain was waxed longer ago than that, start counting from its next wax.'],
   ['Do I need a paid Strava subscription?', 'No, a free Strava account is all Rewax needs.'],
   ['Can I try it without Strava?', 'Yes. Choose Explore with demo data on the first screen and Rewax fills up with sample bikes, so you can try everything before connecting your own.'],
   ['When can I get it?', 'Rewax is being tested by a small group of riders at the moment. It’s coming to the App Store and Google Play once testing is done.'],
