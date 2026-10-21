@@ -5,7 +5,7 @@ import Email from '../../components/Email.astro';
 
 // Linked from both apps' About pages, App Store Connect and Google Play, so the address
 // (/rewax/privacy-policy.html) must not change.
-const updated = '10 October 2026';
+const updated = '21 October 2026';
 ---
 
 <Base
@@ -48,7 +48,7 @@ const updated = '10 October 2026';
         <li><b>Your profile:</b> your name, shown in Settings as the account you're connected as, and your Strava account ID.</li>
         <li><b>Your bikes:</b> each bike's name, ID, total distance, and whether it's your primary bike or retired.</li>
         <li>
-          <b>Your rides from the last 60 days:</b> each ride's name, date, distance and the bike it was ridden on, and the model of Garmin that recorded it, if it was a Garmin, so Rewax can credit it. Runs, walks and other activities are skipped. Rides you've made private on Strava are read only if you allow it on Strava's sign-in page, and you can change your mind later from Rewax's Settings.
+          <b>Your rides from the last 60 days:</b> each ride's name, date, distance and the bike it was ridden on, and what recorded it (a Garmin, a Wahoo, Zwift, Strava's own app and so on), as Strava gives it, so Rewax can show it beside the ride after a sync and credit Garmin as its guidelines ask. Runs, walks and other activities are skipped. Rides you've made private on Strava are read only if you allow it on Strava's sign-in page, and you can change your mind later from Rewax's Settings.
         </li>
       </ul>
       <p>
@@ -74,6 +74,7 @@ const updated = '10 October 2026';
       <h2>How long it's kept</h2>
       <ul>
         <li><b>Rides</b> from the last 60 days are read again on every sync. Riding older than that is kept only as a total distance for each wax, not as rides.</li>
+        <li><b>What a sync changed:</b> to show which rides are new or have changed, Rewax keeps a copy of your rides as they were before the sync, until you've looked at it, and for seven days at most.</li>
         <li><b>If Rewax can't sync for seven days</b>, because you've been offline, or you've removed its access on Strava, or Strava has stopped accepting its sign-in, it deletes the names, distances and rides it read from Strava. They're read again if it syncs or you reconnect.</li>
         <li><b>Your Strava account and bike IDs</b> stay until you disconnect, so your wax log stays matched to your bikes.</li>
         <li><b>What you enter</b> stays until you delete it, disconnect, or delete the app.</li>
