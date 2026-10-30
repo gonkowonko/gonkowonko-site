@@ -471,9 +471,12 @@ function fillElevationGaps(){
   const known = pts.map((p, i) => isFinite(p.ele) ? i : -1).filter(i => i >= 0);
   eleOk = known.length > 0;
   if (!eleOk) return;
+  // Walk the known points alongside, so each gap uses the known points either side of it
+  let k = 0;
   for (let i = 0; i < pts.length; i++){
     if (isFinite(pts[i].ele)) continue;
-    const nextK = known.find(k => k > i), prevK = [...known].reverse().find(k => k < i);
+    while (k < known.length && known[k] < i) k++;
+    const nextK = known[k], prevK = known[k - 1];
     if (prevK === undefined) pts[i].ele = pts[nextK].ele;
     else if (nextK === undefined) pts[i].ele = pts[prevK].ele;
     else {
@@ -484,10 +487,11 @@ function fillElevationGaps(){
 }
 
 async function fetchElevation(){
-  const step = Math.max(1, Math.ceil(pts.length / 300));
+  const route = pts, step = Math.max(1, Math.ceil(pts.length / 300));
   const path = pts.filter((_, i) => i % step === 0 || i === pts.length - 1).map(ll);
   try {
     const { results } = await elevService.getElevationAlongPath({ path, samples: 512 });
+    if (pts !== route) return;   // another route was opened while this one waited
     const n = results.length;
     for (const p of pts){
       const f = p.d / total * (n - 1), i = Math.min(n - 1, Math.floor(f)), t = f - i;
@@ -497,6 +501,7 @@ async function fetchElevation(){
     eleOk = true;
     toast('This GPX had no elevation, so the profile uses Google’s elevation data.');
   } catch {
+    if (pts !== route) return;
     eleOk = false;
     toast('This GPX has no elevation data, and the Elevation API isn’t enabled for your key, so there’s no profile.', 7000);
   }
@@ -515,7 +520,10 @@ function computeStats(){
   let steep = 0;
   const stride = Math.max(1, Math.floor(pts.length / 4000));
   for (let i = 0; i < pts.length; i += stride) steep = Math.max(steep, gradeAt(i, 100));
-  stats = { up, down, steep, max: Math.max(...pts.map(p => p.ele)), min: Math.min(...pts.map(p => p.ele)) };
+  // A loop, not Math.max(...): spreading a long track overflows WebKit's argument limit
+  let max = -Infinity, min = Infinity;
+  for (const p of pts){ if (p.ele > max) max = p.ele; if (p.ele < min) min = p.ele; }
+  stats = { up, down, steep, max, min };
 }
 
 function showStats(){
@@ -657,7 +665,10 @@ async function loadText(text, fileName){
   fillElevationGaps();
   findTurns();
   drawRoute();
-  if (!eleOk) await fetchElevation();
+  if (!eleOk){
+    await fetchElevation();
+    if (pts !== r.pts) return;   // superseded by a later route, which finishes its own loading
+  }
   computeStats();
   showStats();
   showRoads();   // draws the chart and readout too
@@ -729,11 +740,11 @@ function nearest(latLng, near = -1){
 // When stepping, a point with no imagery still moves the position on, so the next step carries on from it.
 async function showStreetView(i, lookAt = null, stepping = false, d = null){
   if (i < 0 || !svService) return;
-  const seq = ++stepSeq, p = d === null ? pts[i] : pointAt(d);
+  const seq = ++stepSeq, p = d === null ? pts[i] : pointAt(d), radius = stepping ? 40 : 60;
   if (d === null) d = p.d;
   try {
     const { data } = await svService.getPanorama({
-      location: ll(p), radius: stepping ? 40 : 60,
+      location: ll(p), radius,
       source: google.maps.StreetViewSource.OUTDOOR,
       preference: google.maps.StreetViewPreference.NEAREST
     });
@@ -743,18 +754,24 @@ async function showStreetView(i, lookAt = null, stepping = false, d = null){
     const heading = google.maps.geometry.spherical.computeHeading(from, new google.maps.LatLng(ll(to)));
     stepTarget = { i, d };
     ensurePano();
+    // Staying on the same panorama doesn't fire position_changed, so take up the new place here
+    const samePano = pano.getPano() === data.location.pano;
     pano.setPano(data.location.pano);
     pano.setPov({ heading, pitch: 0 });
     pano.setVisible(true);
+    if (samePano) onPanoMove();
   } catch {
     if (seq !== stepSeq) return;
-    if (stepping){
+    // With Street View open, a point with no imagery still moves the position on. With it closed
+    // there's nothing to show the position or to clear it, so it isn't kept.
+    const keep = stepping && pano?.getVisible();
+    if (keep){
       svIdx = i; svD = d;
       viewerMarker.setPosition(ll(p));
       viewerMarker.setVisible(true);
       drawOverlay(); setReadout(); updateStepBar();
     }
-    toast('No Street View within 60 m of that point' + (stepping ? '. Keep stepping to move past it.' : '. Try dragging the Pegman onto a road nearby.'));
+    toast(`No Street View within ${radius} m of that point` + (keep ? '. Keep stepping to move past it.' : '. Try dragging the Pegman onto a road nearby.'));
   }
 }
 
@@ -929,6 +946,7 @@ async function loadRoads(){
         ? 'OpenStreetMap’s road server is busy. Try again in a minute.'
         : `OpenStreetMap’s road server returned an error (${res.status}).`);
       const { edges = [], matched_points = [] } = await res.json();
+      if (pts !== forPts) return;
       part.forEach((_, k) => {
         const m = matched_points[k], e = m && m.type !== 'unmatched' ? edges[m.edge_index] : null;
         samples.push(e ? { cat: classify(e), name: (e.names || []).slice(0, 2).join(' ') } : { cat: 'unknown', name: '' });
@@ -1128,9 +1146,7 @@ function drawOverlay(){
 function chartIndex(e){
   if (!geom) return -1;
   const r = over.getBoundingClientRect();
-  const d = clamp((e.clientX - r.left - geom.L) / geom.w, 0, 1) * total;
-  const i = indexAt(d);
-  return i > 0 && d - pts[i - 1].d < pts[i].d - d ? i - 1 : i;
+  return nearestIndexAt(clamp((e.clientX - r.left - geom.L) / geom.w, 0, 1) * total);
 }
 over.addEventListener('pointermove', e => { const i = chartIndex(e); if (i >= 0) setHover(i); });
 over.addEventListener('pointerdown', e => { const i = chartIndex(e); if (i >= 0) setHover(i); });
@@ -1190,7 +1206,13 @@ if (BUILT_IN_KEY){
   loadMaps(BUILT_IN_KEY);
 } else {
   const urlKey = new URLSearchParams(location.search).get('key');
-  if (urlKey) store.set(KEY_STORE, urlKey);
+  if (urlKey){
+    store.set(KEY_STORE, urlKey);
+    // Take it out of the address, so a reload after changing the key doesn't bring this one back
+    const url = new URL(location.href);
+    url.searchParams.delete('key');
+    history.replaceState(null, '', url);
+  }
   const savedKey = store.get(KEY_STORE);
   if (savedKey) loadMaps(savedKey === NO_KEY ? '' : savedKey);
   else showKey();
