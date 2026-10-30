@@ -1,0 +1,998 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<script src="config.js"></script>
+<title>GPX Route Viewer</title>
+<style>
+:root{
+  --bg:#f4f3ef; --panel:#ffffff; --panel-2:#f9f8f5; --text:#1d1d1b; --muted:#6d6b65; --line:#e2e0da;
+  --accent:#e2461f; --grid:#ebe9e4; --btn:#f0efea; --btn-hover:#e6e4de; --flat:#9fbf8f;
+  --shadow:0 8px 30px rgba(0,0,0,.14);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#121211; --panel:#1c1c1a; --panel-2:#222220; --text:#ecebe6; --muted:#9b9992; --line:#32312e;
+    --accent:#ff6a3d; --grid:#2a2927; --btn:#2a2927; --btn-hover:#353431; --flat:#6f8f63;
+    --shadow:0 8px 30px rgba(0,0,0,.55);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121211; --panel:#1c1c1a; --panel-2:#222220; --text:#ecebe6; --muted:#9b9992; --line:#32312e;
+  --accent:#ff6a3d; --grid:#2a2927; --btn:#2a2927; --btn-hover:#353431; --flat:#6f8f63;
+  --shadow:0 8px 30px rgba(0,0,0,.55);
+}
+*{box-sizing:border-box}
+[hidden]{display:none !important}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--text);font:14px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;display:flex;flex-direction:column;overflow:hidden}
+button{appearance:none;border:1px solid var(--line);background:var(--btn);color:var(--text);border-radius:8px;padding:6px 12px;font:inherit;cursor:pointer;white-space:nowrap}
+button:hover{background:var(--btn-hover)}
+.btn-primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn-primary:hover{background:var(--accent);filter:brightness(1.07)}
+.link{border:0;background:none;color:var(--muted);text-decoration:underline;padding:6px 0}
+.link:hover{background:none;color:var(--text)}
+
+/* Top bar: route name and the headline numbers */
+header{display:flex;align-items:center;gap:14px 20px;padding:10px 16px;background:var(--panel);border-bottom:1px solid var(--line);flex-wrap:wrap}
+.title{display:flex;flex-direction:column;min-width:0;flex:1 1 220px}
+.title h1{font-size:17px;margin:0;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.title small{color:var(--muted);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.stats{display:flex;gap:6px 22px;flex-wrap:wrap}
+.stat{display:flex;flex-direction:column;line-height:1.15}
+.stat b{font-size:18px;font-weight:700;font-variant-numeric:tabular-nums}
+.stat span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.actions{display:flex;gap:8px;align-items:center}
+
+/* Map, and Street View beside it once opened */
+main{flex:1;position:relative;min-height:0;display:flex}
+#map{flex:1 1 0;position:relative;min-width:0;background:var(--grid)}
+#panoWrap{flex:1 1 0;position:relative;min-width:0;display:none;border-left:1px solid var(--line);background:#000}
+main.split #panoWrap{display:block}
+#pano{position:absolute;inset:0}
+.stepbar{position:absolute;left:50%;bottom:34px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:6px;z-index:2;pointer-events:none;max-width:calc(100% - 20px)}
+.steprow,.imagery{pointer-events:auto;background:rgba(22,22,20,.84);color:#fff;border-radius:12px;box-shadow:0 4px 18px rgba(0,0,0,.35);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.steprow{display:flex;align-items:center;gap:2px;padding:4px}
+.steprow button{background:none;border:0;color:#fff;padding:7px 10px;border-radius:8px;font-size:13px}
+.steprow button:hover{background:rgba(255,255,255,.14)}
+.steplabel{display:flex;flex-direction:column;align-items:center;padding:0 10px;line-height:1.2;min-width:120px;text-align:center}
+.steplabel b{font-size:13px;white-space:nowrap}
+.steplabel span{font-size:11px;opacity:.75;white-space:nowrap}
+.imagery{font-size:12px;padding:4px 10px;border-radius:999px}
+.imagery.old{background:rgba(178,106,0,.92)}
+#drop{position:absolute;inset:0;display:grid;place-items:center;z-index:5;padding:16px;pointer-events:none}
+#drop .card{pointer-events:auto;background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:26px 28px;max-width:420px;text-align:center}
+#drop h2{margin:0 0 6px;font-size:18px}
+#drop p{margin:0 0 16px;color:var(--muted)}
+body.dragging main::after{content:"Drop to load";position:absolute;inset:10px;border:3px dashed var(--accent);border-radius:14px;background:rgba(226,70,31,.08);display:grid;place-items:center;font-size:20px;font-weight:700;color:var(--accent);z-index:6}
+
+/* Bottom panel: toolbar, road types and elevation profile */
+#bottom{flex:none;background:var(--panel);border-top:1px solid var(--line);display:flex;flex-direction:column}
+.toolbar{display:flex;align-items:center;gap:8px 16px;padding:8px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap;font-size:13px}
+.readout{display:flex;gap:4px 16px;font-variant-numeric:tabular-nums;color:var(--muted);flex:1 1 340px;min-width:0;flex-wrap:wrap}
+.readout span{white-space:nowrap}
+.readout b{color:var(--text);font-weight:650}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{border:0;border-radius:0;padding:4px 10px}
+.seg button[aria-pressed="true"]{background:var(--accent);color:#fff}
+label.check{display:inline-flex;gap:6px;align-items:center;cursor:pointer;color:var(--muted);white-space:nowrap}
+label.check input{accent-color:var(--accent);margin:0}
+.legend{display:inline-flex;gap:2px;align-items:center;color:var(--muted);font-size:11px}
+.legend i,.chip i{display:inline-block;width:18px;height:8px;border-radius:2px}
+.roadrow{display:flex;align-items:center;gap:6px 16px;padding:7px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap;font-size:12px;color:var(--muted)}
+.chip{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.chip b{color:var(--text);font-weight:650}
+.roadrow a{color:var(--muted);margin-left:auto}
+.roadrow button{padding:2px 10px;font-size:12px}
+#profile{height:200px;position:relative}
+#profile canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
+#chartOver{cursor:crosshair}
+#tip{position:absolute;top:10px;pointer-events:none;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 9px;box-shadow:var(--shadow);font-size:12px;white-space:nowrap;display:none;font-variant-numeric:tabular-nums;z-index:2}
+.empty{position:absolute;inset:0;display:grid;place-items:center;color:var(--muted);text-align:center;padding:0 16px}
+
+/* API key dialog */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:grid;place-items:center;z-index:20;padding:16px}
+.modal form{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:22px 24px;max-width:460px;width:100%}
+.modal h2{margin:0 0 6px;font-size:18px}
+.modal p{margin:0 0 12px;color:var(--muted)}
+.modal input{width:100%;padding:9px 11px;border-radius:8px;border:1px solid var(--line);background:var(--panel-2);color:var(--text);font:13px ui-monospace,SFMono-Regular,Menlo,monospace}
+.modal .err{color:#d33;margin:8px 0 0;min-height:1em}
+.modal .row{display:flex;justify-content:space-between;align-items:center;margin-top:14px;gap:12px}
+.modal details{margin-top:14px;color:var(--muted);font-size:13px}
+.modal details ol{padding-left:18px;margin:8px 0 0}
+.modal a{color:var(--accent)}
+
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--text);color:var(--panel);padding:9px 14px;border-radius:10px;box-shadow:var(--shadow);font-size:13px;z-index:30;max-width:calc(100% - 32px);opacity:0;pointer-events:none;transition:opacity .2s}
+#toast.show{opacity:1}
+
+@media (max-width:760px){
+  main{flex-direction:column}
+  #panoWrap{border-left:0;border-top:1px solid var(--line)}
+}
+@media (max-width:640px){
+  #profile{height:150px}
+  .stat b{font-size:15px}
+  .stats{gap:6px 14px}
+  .legend{display:none}
+  .steprow button{padding:7px 7px}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="title">
+    <h1 id="routeName">GPX Route Viewer</h1>
+    <small id="fileName">No route loaded</small>
+  </div>
+  <div class="stats" id="stats" hidden>
+    <div class="stat"><b id="sDist">–</b><span>Distance</span></div>
+    <div class="stat"><b id="sUp">–</b><span>Elevation gain</span></div>
+    <div class="stat"><b id="sDown">–</b><span>Elevation loss</span></div>
+    <div class="stat"><b id="sMax">–</b><span>Highest</span></div>
+    <div class="stat"><b id="sGrade">–</b><span>Steepest</span></div>
+  </div>
+  <div class="actions">
+    <button class="btn-primary" id="openBtn">Open GPX…</button>
+    <button id="keyBtn" title="Google Maps API key">API key</button>
+  </div>
+  <input type="file" id="fileInput" accept=".gpx,application/gpx+xml,application/xml,text/xml" hidden>
+</header>
+
+<main>
+  <div id="map"></div>
+  <div id="panoWrap">
+    <div id="pano"></div>
+    <div class="stepbar">
+      <div class="steprow">
+        <button data-step="turn-prev" title="Previous turn (←)">⟨ Turn</button>
+        <button data-step="dist-prev" title="Back along the route (↓)">‹ <span class="stepLen">0.1 mi</span></button>
+        <div class="steplabel"><b id="stepMain">–</b><span id="stepSub"></span></div>
+        <button data-step="dist-next" title="Forward along the route (↑)"><span class="stepLen">0.1 mi</span> ›</button>
+        <button data-step="turn-next" title="Next turn (→)">Turn ⟩</button>
+      </div>
+      <div class="imagery" id="imagery" hidden></div>
+    </div>
+  </div>
+  <div id="drop">
+    <div class="card">
+      <h2>Load a route</h2>
+      <p>Drop a GPX file anywhere on this page, or choose one. Hover the route or the elevation graph to see where you are, and click either one to open Street View there. In Street View, → and ← jump between turns, and ↑ and ↓ step along the route.</p>
+      <button class="btn-primary" id="chooseBtn">Choose GPX file</button>
+    </div>
+  </div>
+</main>
+
+<section id="bottom">
+  <div class="toolbar">
+    <div class="readout" id="readout"><span>Hover the graph or the route</span></div>
+    <span class="legend" title="Gradient">
+      <i style="background:var(--flat)"></i><i style="background:#f2c94c"></i><i style="background:#f2994a"></i><i style="background:#eb5757"></i><i style="background:#9b1c31"></i>
+      &nbsp;0 · 3 · 6 · 9 · 12%+
+    </span>
+    <label class="check"><input type="checkbox" id="gradeToggle" checked> Colour by gradient</label>
+    <label class="check"><input type="checkbox" id="roadsToggle"> Road types</label>
+    <label class="check"><input type="checkbox" id="markersToggle" checked> Distance markers</label>
+    <div class="seg" role="group" aria-label="Units">
+      <button data-units="mi">mi / ft</button><button data-units="km">km / m</button>
+    </div>
+  </div>
+  <div class="roadrow" id="roadRow" hidden></div>
+  <div id="profile">
+    <canvas id="chartBase"></canvas>
+    <canvas id="chartOver"></canvas>
+    <div id="tip"></div>
+    <div class="empty" id="emptyProfile">The elevation profile appears here once a route is loaded.</div>
+  </div>
+</section>
+
+<div class="modal" id="keyModal" hidden>
+  <form id="keyForm">
+    <h2>Google Maps API key</h2>
+    <p>This page uses Google Maps itself (with Satellite and Street View), so it needs your Maps JavaScript API key. The key is stored only in this browser.</p>
+    <input id="keyInput" placeholder="AIza…" autocomplete="off" spellcheck="false">
+    <p class="err" id="keyErr"></p>
+    <div class="row">
+      <button type="button" class="link" id="noKeyBtn">Try without a key</button>
+      <button class="btn-primary" type="submit">Load map</button>
+    </div>
+    <details>
+      <summary>How to get a key</summary>
+      <ol>
+        <li>Open <a href="https://console.cloud.google.com/google/maps-apis/start" target="_blank" rel="noopener">Google Cloud's Maps Platform</a> and create a project (it asks for billing, but personal use stays inside the free monthly allowance).</li>
+        <li>Enable the <b>Maps JavaScript API</b>. Also enable the <b>Elevation API</b> if you want profiles for GPX files that have no elevation data in them.</li>
+        <li>Under Keys &amp; Credentials, create an API key and limit it to those APIs.</li>
+      </ol>
+    </details>
+  </form>
+</div>
+<div id="toast"></div>
+
+<script>
+const $ = s => document.querySelector(s);
+const store = {
+  get(k){ try { return localStorage.getItem(k) } catch { return null } },
+  set(k, v){ try { localStorage.setItem(k, v) } catch {} }
+};
+const KEY_STORE = 'gpxv.key', UNIT_STORE = 'gpxv.units', ROADS_STORE = 'gpxv.roads', NO_KEY = '-';
+// The website copy gets its key from the site (config.js); elsewhere each person brings their own
+const BUILT_IN_KEY = window.GMAPS_KEY || '';
+const ROUTE = '#e2461f', VIEWER = '#7048e8';
+const U = {
+  mi: { d: 1609.344, dl: 'mi', e: 3.28084, el: 'ft', step: 160.9344, stepLabel: '0.1 mi' },
+  km: { d: 1000, dl: 'km', e: 1, el: 'm', step: 100, stepLabel: '100 m' }
+};
+// Gradient buckets, as in the legend
+const GRADES = [[3, 'var(--flat)'], [6, '#f2c94c'], [9, '#f2994a'], [12, '#eb5757'], [Infinity, '#9b1c31']];
+// Road types, from OpenStreetMap
+const ROAD_CATS = [
+  { id: 'main', label: 'Main road', color: '#e03131' },
+  { id: 'b', label: 'B-road', color: '#f08c00' },
+  { id: 'minor', label: 'Minor road', color: '#e6b800' },
+  { id: 'lane', label: 'Lane / residential', color: '#2f9e44' },
+  { id: 'path', label: 'Cycle / foot path', color: '#1c7ed6' },
+  { id: 'unpaved', label: 'Unpaved', color: '#8d6e63' },
+  { id: 'unknown', label: 'Not mapped', color: '#adb5bd' }
+];
+const CAT = Object.fromEntries(ROAD_CATS.map(c => [c.id, c]));
+// OpenStreetMap's Valhalla server snaps the route to roads and says what each one is
+const VALHALLA = 'https://valhalla1.openstreetmap.de/trace_attributes';
+const ROAD_SAMPLE = 20;   // metres between road-type samples
+const APPROACH = 25;      // stop this far before a turn, looking at it
+
+let units = store.get(UNIT_STORE) === 'km' ? 'km' : 'mi';
+let map, pano, svService, elevService, hoverMarker, viewerMarker, routeLine;
+let routeOverlays = [], distOverlays = [], roadOverlays = [];
+let pts = [], total = 0, eleOk = false, stats = null, turns = [];
+let roads = { state: 'off', samples: [], forPts: null };
+// svIdx is the route point Street View is at, svD its exact distance along the route
+let hoverIdx = -1, svIdx = -1, svD = null, stepTarget = null, stepSeq = 0;
+let geom = null, pending = null;
+
+// ---------- helpers
+const toRad = x => x * Math.PI / 180;
+function haversine(a, b){
+  const R = 6371008.8, dLat = toRad(b.lat - a.lat), dLng = toRad(b.lng - a.lng);
+  const h = Math.sin(dLat/2)**2 + Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLng/2)**2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+function bearing(a, b){ // degrees clockwise from north
+  return (Math.atan2((b.lng - a.lng) * Math.cos(toRad(a.lat)), b.lat - a.lat) * 180 / Math.PI + 360) % 360;
+}
+const fd = (m, dp = 1) => (m / U[units].d).toFixed(dp) + ' ' + U[units].dl;
+const fe = m => Math.round(m * U[units].e).toLocaleString() + ' ' + U[units].el;
+const ll = p => ({ lat: p.lat, lng: p.lng });
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+function niceStep(range, count){
+  const raw = range / Math.max(1, count), mag = 10 ** Math.floor(Math.log10(raw)), n = raw / mag;
+  return (n < 1.5 ? 1 : n < 3 ? 2 : n < 7 ? 5 : 10) * mag;
+}
+function indexAt(d){ // first point at or after distance d
+  let lo = 0, hi = pts.length - 1;
+  while (lo < hi){ const mid = (lo + hi) >> 1; if (pts[mid].d < d) lo = mid + 1; else hi = mid; }
+  return lo;
+}
+function nearestIndexAt(d){
+  const i = indexAt(d);
+  return i > 0 && d - pts[i - 1].d < pts[i].d - d ? i - 1 : i;
+}
+function pointAt(d){ // interpolated position at distance d
+  d = clamp(d, 0, total);
+  const i = indexAt(d), a = pts[Math.max(0, i - 1)], b = pts[i];
+  const t = b.d > a.d ? (d - a.d) / (b.d - a.d) : 0;
+  return { lat: a.lat + (b.lat - a.lat) * t, lng: a.lng + (b.lng - a.lng) * t, ele: a.ele + (b.ele - a.ele) * t, d };
+}
+function gradeAt(i, half = 50){ // % over roughly ±half metres
+  const a = Math.max(0, indexAt(pts[i].d - half) - 1), b = Math.min(pts.length - 1, indexAt(pts[i].d + half));
+  const run = pts[b].d - pts[a].d;
+  return run > 5 ? (pts[b].ele - pts[a].ele) / run * 100 : 0;
+}
+function gradeColour(g){
+  for (const [lim, c] of GRADES) if (g < lim) return c.startsWith('var') ? cssVar('--flat') : c;
+}
+const cssVar = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+let toastTimer;
+function toast(msg, ms = 4500){
+  const t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), ms);
+}
+
+// ---------- Google Maps
+function loadMaps(key){
+  window.gm_authFailure = () => {
+    if (key && key === BUILT_IN_KEY) toast('The map isn’t available right now. Try again later.', 8000);
+    else if (key) showKey('Google rejected that key. Check the Maps JavaScript API is enabled for it, and that it isn’t restricted to other websites.');
+  };
+  const p = new URLSearchParams({ v: 'weekly', libraries: 'geometry', callback: 'initMap', loading: 'async' });
+  if (key) p.set('key', key);
+  const s = document.createElement('script');
+  s.src = 'https://maps.googleapis.com/maps/api/js?' + p;
+  s.async = true;
+  s.onerror = () => toast('Couldn’t reach Google Maps. Check your connection.');
+  document.head.append(s);
+}
+
+window.initMap = () => {
+  map = new google.maps.Map($('#map'), {
+    center: { lat: 54.5, lng: -3 }, zoom: 6,
+    mapTypeControl: true, streetViewControl: true, fullscreenControl: true,
+    clickableIcons: false, gestureHandling: 'greedy'
+  });
+  // Street View opens in its own pane beside the map, so the Pegman lands there too
+  pano = new google.maps.StreetViewPanorama($('#pano'), {
+    visible: false, enableCloseButton: true, keyboardShortcuts: false,
+    fullscreenControl: false, motionTracking: false, motionTrackingControl: false
+  });
+  map.setStreetView(pano);
+  pano.addListener('visible_changed', onPanoVisible);
+  pano.addListener('position_changed', onPanoMove);
+  pano.addListener('pov_changed', () => {
+    const icon = viewerMarker.getIcon();
+    viewerMarker.setIcon({ ...icon, rotation: pano.getPov().heading });
+  });
+  pano.addListener('pano_changed', updateImagery);
+
+  svService = new google.maps.StreetViewService();
+  elevService = new google.maps.ElevationService();
+  hoverMarker = new google.maps.Marker({
+    map, visible: false, clickable: false, zIndex: 1000,
+    icon: { path: google.maps.SymbolPath.CIRCLE, scale: 7, fillColor: '#fff', fillOpacity: 1, strokeColor: ROUTE, strokeWeight: 3 }
+  });
+  viewerMarker = new google.maps.Marker({
+    map, visible: false, clickable: false, zIndex: 1001,
+    icon: { path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW, scale: 6, rotation: 0, fillColor: VIEWER, fillOpacity: 1, strokeColor: '#fff', strokeWeight: 2 }
+  });
+  if (pending){ const p = pending; pending = null; loadText(p.text, p.name); }
+};
+
+function showKey(err = ''){
+  $('#keyErr').textContent = err;
+  const k = store.get(KEY_STORE);
+  $('#keyInput').value = k && k !== NO_KEY ? k : '';
+  $('#keyModal').hidden = false;
+  $('#keyInput').focus();
+}
+$('#keyForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const k = $('#keyInput').value.trim();
+  if (!k){ $('#keyErr').textContent = 'Paste a key first, or try without one.'; return; }
+  useKey(k);
+});
+$('#noKeyBtn').addEventListener('click', () => useKey(NO_KEY));
+$('#keyBtn').addEventListener('click', () => showKey());
+function useKey(k){
+  store.set(KEY_STORE, k);
+  // The Maps script loads once per page, so a changed key needs a reload
+  if (window.google?.maps){
+    // In the Mac app the page is a loaded string, so the app reloads it
+    if (window.webkit?.messageHandlers?.reload) return window.webkit.messageHandlers.reload.postMessage(1);
+    return location.reload();
+  }
+  $('#keyModal').hidden = true;
+  loadMaps(k === NO_KEY ? '' : k);
+}
+
+// ---------- GPX
+function parseGpx(text){
+  const doc = new DOMParser().parseFromString(text, 'application/xml');
+  if (doc.querySelector('parsererror')) throw new Error('That file isn’t valid GPX (the XML didn’t parse).');
+  const byTag = (root, t) => [...root.getElementsByTagNameNS('*', t)];
+  let nodes = byTag(doc, 'trkpt');
+  if (!nodes.length) nodes = byTag(doc, 'rtept');
+  if (!nodes.length) throw new Error('No track or route points in that file.');
+  const named = byTag(doc, 'trk')[0] || byTag(doc, 'rte')[0] || byTag(doc, 'metadata')[0];
+  const nameEl = named && [...named.children].find(c => c.localName === 'name');
+  const out = [];
+  for (const n of nodes){
+    const lat = parseFloat(n.getAttribute('lat')), lng = parseFloat(n.getAttribute('lon'));
+    if (!isFinite(lat) || !isFinite(lng)) continue;
+    const e = byTag(n, 'ele')[0];
+    const p = { lat, lng, ele: e ? parseFloat(e.textContent) : NaN, d: 0 };
+    if (out.length){
+      const step = haversine(out[out.length - 1], p);
+      if (step < 0.01) continue; // drop duplicate points
+      p.d = out[out.length - 1].d + step;
+    }
+    out.push(p);
+  }
+  if (out.length < 2) throw new Error('That route has fewer than two points.');
+  return { pts: out, name: nameEl?.textContent.trim() };
+}
+
+function fillElevationGaps(){
+  const known = pts.map((p, i) => isFinite(p.ele) ? i : -1).filter(i => i >= 0);
+  eleOk = known.length > 0;
+  if (!eleOk) return;
+  for (let i = 0; i < pts.length; i++){
+    if (isFinite(pts[i].ele)) continue;
+    const nextK = known.find(k => k > i), prevK = [...known].reverse().find(k => k < i);
+    if (prevK === undefined) pts[i].ele = pts[nextK].ele;
+    else if (nextK === undefined) pts[i].ele = pts[prevK].ele;
+    else {
+      const a = pts[prevK], b = pts[nextK], t = (pts[i].d - a.d) / (b.d - a.d || 1);
+      pts[i].ele = a.ele + (b.ele - a.ele) * t;
+    }
+  }
+}
+
+async function fetchElevation(){
+  const step = Math.max(1, Math.ceil(pts.length / 300));
+  const path = pts.filter((_, i) => i % step === 0 || i === pts.length - 1).map(ll);
+  try {
+    const { results } = await elevService.getElevationAlongPath({ path, samples: 512 });
+    const n = results.length;
+    for (const p of pts){
+      const f = p.d / total * (n - 1), i = Math.min(n - 1, Math.floor(f)), t = f - i;
+      const a = results[i].elevation, b = results[Math.min(i + 1, n - 1)].elevation;
+      p.ele = a + (b - a) * t;
+    }
+    eleOk = true;
+    toast('This GPX had no elevation, so the profile uses Google’s elevation data.');
+  } catch {
+    eleOk = false;
+    toast('This GPX has no elevation data, and the Elevation API isn’t enabled for your key, so there’s no profile.', 7000);
+  }
+}
+
+function computeStats(){
+  if (!eleOk){ stats = { up: NaN, down: NaN, max: NaN, min: NaN, steep: NaN }; return; }
+  // Smooth over ±2 points so GPS jitter doesn't inflate the climbing
+  const sm = pts.map((_, i) => {
+    let s = 0, c = 0;
+    for (let j = Math.max(0, i - 2); j <= Math.min(pts.length - 1, i + 2); j++){ s += pts[j].ele; c++; }
+    return s / c;
+  });
+  let up = 0, down = 0;
+  for (let i = 1; i < sm.length; i++){ const dz = sm[i] - sm[i - 1]; if (dz > 0) up += dz; else down -= dz; }
+  let steep = 0;
+  const stride = Math.max(1, Math.floor(pts.length / 4000));
+  for (let i = 0; i < pts.length; i += stride) steep = Math.max(steep, gradeAt(i, 100));
+  stats = { up, down, steep, max: Math.max(...pts.map(p => p.ele)), min: Math.min(...pts.map(p => p.ele)) };
+}
+
+function showStats(){
+  $('#stats').hidden = !pts.length;
+  if (!pts.length) return;
+  $('#sDist').textContent = fd(total);
+  $('#sUp').textContent = isFinite(stats.up) ? fe(stats.up) : '–';
+  $('#sDown').textContent = isFinite(stats.down) ? fe(stats.down) : '–';
+  $('#sMax').textContent = isFinite(stats.max) ? fe(stats.max) : '–';
+  $('#sGrade').textContent = isFinite(stats.steep) ? stats.steep.toFixed(1) + '%' : '–';
+}
+
+// Turns: where the heading over the 30 m before a point differs from the 30 m after by 45°+.
+// Nearby hits (a roundabout, a staggered junction) merge into one, at the sharpest point.
+function findTurns(){
+  turns = [];
+  const W = 30, STEP = 10, MIN = 45;
+  let cluster = null, lastHit = -Infinity;
+  for (let d = W; d <= total - W; d += STEP){
+    const p = pointAt(d), b1 = bearing(pointAt(d - W), p), b2 = bearing(p, pointAt(d + W));
+    const change = ((b2 - b1 + 540) % 360) - 180;
+    if (Math.abs(change) < MIN) continue;
+    if (cluster && d - lastHit <= 40){
+      if (Math.abs(change) > Math.abs(cluster.change)) Object.assign(cluster, { d, change });
+    } else {
+      if (cluster) turns.push(cluster);
+      cluster = { d, change };
+    }
+    lastHit = d;
+  }
+  if (cluster) turns.push(cluster);
+  for (const t of turns) t.dir = Math.abs(t.change) >= 150 ? 'U-turn' : t.change > 0 ? 'right' : 'left';
+}
+
+async function loadText(text, fileName){
+  let r;
+  try { r = parseGpx(text); } catch (e){ toast(e.message); return; }
+  if (!map){ pending = { text, name: fileName }; if ($('#keyModal').hidden) showKey(); return; }
+  pano.setVisible(false);
+  pts = r.pts; total = pts[pts.length - 1].d; hoverIdx = -1; svIdx = -1;
+  roads = { state: 'off', samples: [], forPts: null };
+  $('#routeName').textContent = r.name || (fileName || 'Route').replace(/\.gpx$/i, '');
+  $('#fileName').textContent = fileName || '';
+  $('#drop').hidden = true;
+  fillElevationGaps();
+  findTurns();
+  drawRoute();
+  if (!eleOk) await fetchElevation();
+  computeStats();
+  showStats();
+  showRoads();   // draws the chart and readout too
+}
+
+async function loadFile(file){
+  if (!file) return;
+  loadText(await file.text(), file.name);
+}
+
+// ---------- map overlays
+function drawRoute(){
+  routeOverlays.forEach(o => o.setMap(null));
+  routeOverlays = [];
+  const path = pts.map(ll);
+  const casing = new google.maps.Polyline({ map, path, strokeColor: '#ffffff', strokeOpacity: .9, strokeWeight: 8, clickable: false, zIndex: 1 });
+  routeLine = new google.maps.Polyline({ map, path, strokeColor: ROUTE, strokeOpacity: 1, strokeWeight: 4, clickable: false, zIndex: 2 });
+  // Wide, nearly invisible line so the route is easy to hover
+  const hit = new google.maps.Polyline({ map, path, strokeColor: '#000', strokeOpacity: 0.01, strokeWeight: 28, zIndex: 3 });
+  hit.addListener('mousemove', e => setHover(nearest(e.latLng, hoverIdx), 'map'));
+  hit.addListener('mouseout', () => setHover(-1));
+  hit.addListener('click', e => showStreetView(nearest(e.latLng, hoverIdx)));
+  const end = (p, fill, title) => new google.maps.Marker({
+    map, position: ll(p), title, zIndex: 900,
+    icon: { path: google.maps.SymbolPath.CIRCLE, scale: 8, fillColor: fill, fillOpacity: 1, strokeColor: '#fff', strokeWeight: 3 }
+  });
+  routeOverlays.push(casing, routeLine, hit, end(pts[pts.length - 1], '#d0342c', 'Finish'), end(pts[0], '#2f9e44', 'Start'));
+  drawDistanceMarkers();
+  const b = new google.maps.LatLngBounds();
+  path.forEach(p => b.extend(p));
+  map.fitBounds(b, 40);
+}
+
+function drawDistanceMarkers(){
+  distOverlays.forEach(o => o.setMap(null));
+  distOverlays = [];
+  if (!pts.length || !$('#markersToggle').checked) return;
+  const unitLen = U[units].d, totalU = total / unitLen;
+  const every = [1, 2, 5, 10, 20, 25, 50, 100].find(s => totalU / s <= 40) || 200;
+  for (let v = every; v < totalU; v += every){
+    const i = indexAt(v * unitLen);
+    distOverlays.push(new google.maps.Marker({
+      map, position: ll(pts[i]), clickable: false, zIndex: 800,
+      icon: { path: google.maps.SymbolPath.CIRCLE, scale: 10, fillColor: '#fff', fillOpacity: 1, strokeColor: ROUTE, strokeWeight: 2 },
+      label: { text: String(v), color: '#222', fontSize: v >= 100 ? '9px' : '10px', fontWeight: '700' }
+    }));
+  }
+}
+
+// Nearest route point; on out-and-back routes, prefers the pass near `near`
+function nearest(latLng, near = -1){
+  const la = latLng.lat(), lo = latLng.lng(), k = Math.cos(toRad(la)) ** 2;
+  const dist = p => (p.lat - la) ** 2 + (p.lng - lo) ** 2 * k;
+  let best = 0, bd = Infinity;
+  for (let i = 0; i < pts.length; i++){ const dd = dist(pts[i]); if (dd < bd){ bd = dd; best = i; } }
+  if (near >= 0){
+    let cb = -1, cd = Infinity;
+    for (let i = Math.max(0, near - 300); i <= Math.min(pts.length - 1, near + 300); i++){
+      const dd = dist(pts[i]);
+      if (dd < cd){ cd = dd; cb = i; }
+    }
+    if (cb >= 0 && cd <= bd * 4 + 1e-12) return cb;
+  }
+  return best;
+}
+
+// ---------- Street View
+// Opens Street View at route point i, facing along the route, or towards `lookAt` if given.
+// When stepping, a point with no imagery still moves the position on, so the next step carries on from it.
+async function showStreetView(i, lookAt = null, stepping = false, d = null){
+  if (i < 0 || !svService) return;
+  const seq = ++stepSeq, p = d === null ? pts[i] : pointAt(d);
+  if (d === null) d = p.d;
+  try {
+    const { data } = await svService.getPanorama({
+      location: ll(p), radius: stepping ? 40 : 60,
+      source: google.maps.StreetViewSource.OUTDOOR,
+      preference: google.maps.StreetViewPreference.NEAREST
+    });
+    if (seq !== stepSeq) return;
+    const from = data.location.latLng;
+    const to = lookAt || pointAt(p.d + 30);
+    const heading = google.maps.geometry.spherical.computeHeading(from, new google.maps.LatLng(ll(to)));
+    stepTarget = { i, d };
+    pano.setPano(data.location.pano);
+    pano.setPov({ heading, pitch: 0 });
+    pano.setVisible(true);
+  } catch {
+    if (seq !== stepSeq) return;
+    if (stepping){
+      svIdx = i; svD = d;
+      viewerMarker.setPosition(ll(p));
+      viewerMarker.setVisible(true);
+      drawOverlay(); setReadout(); updateStepBar();
+    }
+    toast('No Street View within 60 m of that point' + (stepping ? '. Keep stepping to move past it.' : '. Try dragging the Pegman onto a road nearby.'));
+  }
+}
+
+function onPanoVisible(){
+  const on = pano.getVisible();
+  document.querySelector('main').classList.toggle('split', on);
+  if (on) requestAnimationFrame(() => google.maps.event.trigger(pano, 'resize'));
+  else {
+    svIdx = -1; svD = null; stepTarget = null;
+    viewerMarker.setVisible(false);
+    $('#imagery').hidden = true;
+    drawOverlay(); setReadout();
+  }
+}
+
+function onPanoMove(){
+  const pos = pano.getPosition();
+  if (!pos) return;
+  viewerMarker.setPosition(pos);
+  viewerMarker.setVisible(true);
+  if (stepTarget !== null){ ({ i: svIdx, d: svD } = stepTarget); stepTarget = null; }
+  else if (pts.length){
+    // Moved with Street View's own arrows, or the Pegman: follow it if it's on the route
+    const i = nearest(pos, svIdx);
+    svIdx = haversine(pts[i], { lat: pos.lat(), lng: pos.lng() }) < 40 ? i : -1;
+    svD = svIdx >= 0 ? pts[svIdx].d : null;
+  }
+  const b = map.getBounds();
+  if (b && !b.contains(pos)) map.panTo(pos);
+  drawOverlay(); setReadout(); updateStepBar();
+}
+
+async function updateImagery(){
+  const id = pano.getPano(), el = $('#imagery');
+  if (!id) return;
+  try {
+    const { data } = await svService.getPanorama({ pano: id });
+    if (pano.getPano() !== id) return;
+    const m = /^(\d{4})-(\d{2})/.exec(data.imageDate || '');
+    if (!m){ el.hidden = true; return; }
+    const date = new Date(+m[1], +m[2] - 1, 1), years = (Date.now() - date) / 31557600000;
+    el.textContent = 'Imagery ' + date.toLocaleString(undefined, { month: 'short', year: 'numeric' }) +
+      (years >= 4 ? ` · ${Math.floor(years)} years old, may be out of date` : '');
+    el.classList.toggle('old', years >= 4);
+    el.hidden = false;
+  } catch { el.hidden = true; }
+}
+
+function currentD(){
+  if (svIdx >= 0) return svD;
+  if (hoverIdx >= 0) return pts[hoverIdx].d;
+  return null;
+}
+
+function stepTurn(dir){
+  if (!pts.length) return;
+  if (!turns.length) return toast('No turns found on this route.');
+  const cur = currentD();
+  const t = cur === null
+    ? (dir > 0 ? turns[0] : null)
+    : dir > 0 ? turns.find(t => t.d > cur + APPROACH + 5) : [...turns].reverse().find(t => t.d < cur + APPROACH - 5);
+  if (!t) return toast(dir > 0 ? 'That was the last turn.' : 'That was the first turn.');
+  const d = Math.max(0, t.d - APPROACH);
+  showStreetView(nearestIndexAt(d), pointAt(t.d + 10), true, d);
+}
+
+function stepDist(dir){
+  if (!pts.length) return;
+  const cur = currentD() ?? 0;
+  const d = clamp(cur + dir * U[units].step, 0, total);
+  showStreetView(nearestIndexAt(d), null, true, d);
+}
+
+function updateStepBar(){
+  document.querySelectorAll('.stepLen').forEach(s => s.textContent = U[units].stepLabel);
+  if (svIdx < 0){
+    $('#stepMain').textContent = 'Off the route';
+    $('#stepSub').textContent = '← → or ↑ ↓ to rejoin it';
+    return;
+  }
+  const cur = svD;
+  const k = turns.findIndex(t => cur > t.d - APPROACH - 20 && cur < t.d + 15);
+  if (k >= 0) $('#stepMain').textContent = `Turn ${k + 1} of ${turns.length} · ${turns[k].dir}`;
+  else {
+    const next = turns.find(t => t.d > cur);
+    $('#stepMain').textContent = next ? `Next turn in ${fd(next.d - cur, 2)}, ${next.dir}` : 'No more turns';
+  }
+  $('#stepSub').textContent = `at ${fd(cur, 2)} of ${fd(total)}`;
+}
+
+document.querySelectorAll('[data-step]').forEach(b => b.addEventListener('click', () => {
+  ({ 'turn-prev': () => stepTurn(-1), 'turn-next': () => stepTurn(1), 'dist-prev': () => stepDist(-1), 'dist-next': () => stepDist(1) })[b.dataset.step]();
+}));
+
+// ---------- road types (OpenStreetMap)
+function classify(e){
+  const use = e.use || '', rc = e.road_class || '';
+  if (/^(compacted|dirt|gravel|path|impassable)$/.test(e.surface || '')) return 'unpaved';
+  if (use === 'track') return /^paved/.test(e.surface || '') ? 'lane' : 'unpaved';
+  if (/^(cycleway|mountain_bike|footway|sidewalk|path|pedestrian|bridleway|steps|pedestrian_crossing)$/.test(use)) return 'path';
+  if (/^(motorway|trunk|primary)$/.test(rc)) return 'main';
+  if (rc === 'secondary') return 'b';
+  if (rc === 'tertiary') return 'minor';
+  return rc ? 'lane' : 'unknown';
+}
+
+// One sample every 20 m along the route, each snapped to a road by Valhalla
+async function loadRoads(){
+  const forPts = pts;
+  roads = { state: 'loading', samples: [], forPts };
+  showRoads();
+  try {
+    const shape = [];
+    for (let d = 0; d <= total; d += ROAD_SAMPLE){
+      const p = pointAt(d);
+      shape.push({ lat: +p.lat.toFixed(6), lon: +p.lng.toFixed(6) });
+    }
+    const samples = [];
+    for (let i = 0; i < shape.length; i += 2500){
+      const part = shape.slice(i, i + 2500);
+      const res = await fetch(VALHALLA, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          shape: part, costing: 'bicycle', shape_match: 'map_snap',
+          filters: { attributes: ['edge.road_class', 'edge.surface', 'edge.use', 'edge.names', 'matched.edge_index', 'matched.type'], action: 'include' }
+        })
+      });
+      if (pts !== forPts) return;
+      if (res.status === 400){ // nothing to snap to (off-road, say): leave this piece unmatched
+        part.forEach(() => samples.push({ cat: 'unknown', name: '' }));
+        continue;
+      }
+      if (!res.ok) throw new Error(res.status === 429 || res.status >= 500
+        ? 'OpenStreetMap’s road server is busy. Try again in a minute.'
+        : `OpenStreetMap’s road server returned an error (${res.status}).`);
+      const { edges = [], matched_points = [] } = await res.json();
+      part.forEach((_, k) => {
+        const m = matched_points[k], e = m && m.type !== 'unmatched' ? edges[m.edge_index] : null;
+        samples.push(e ? { cat: classify(e), name: (e.names || []).slice(0, 2).join(' ') } : { cat: 'unknown', name: '' });
+      });
+    }
+    roads = { state: 'ready', samples, forPts };
+  } catch (e){
+    if (pts !== forPts) return;
+    roads = { state: 'error', error: e.message.startsWith('OpenStreetMap') ? e.message : 'Couldn’t reach OpenStreetMap’s road server.', samples: [], forPts };
+  }
+  showRoads();
+}
+
+const roadsReady = () => $('#roadsToggle').checked && roads.state === 'ready' && roads.forPts === pts && pts.length > 0;
+const roadAt = d => roads.samples[clamp(Math.round(d / ROAD_SAMPLE), 0, roads.samples.length - 1)];
+
+function showRoads(){
+  const on = $('#roadsToggle').checked && pts.length > 0, row = $('#roadRow');
+  roadOverlays.forEach(o => o.setMap(null));
+  roadOverlays = [];
+  routeLine?.setVisible(true);
+  row.hidden = !on;
+  if (on && roads.forPts !== pts) return loadRoads();
+  if (on){
+    if (roads.state === 'loading') row.innerHTML = '<span>Getting road types from OpenStreetMap…</span>';
+    else if (roads.state === 'error'){
+      row.innerHTML = `<span>${esc(roads.error)}</span><button id="roadRetry">Try again</button>`;
+      $('#roadRetry').addEventListener('click', loadRoads);
+    } else {
+      const dist = {}, per = total / roads.samples.length;
+      for (const s of roads.samples) dist[s.cat] = (dist[s.cat] || 0) + per;
+      row.innerHTML = ROAD_CATS.filter(c => dist[c.id] > 0).map(c =>
+        `<span class="chip"><i style="background:${c.color}"></i>${c.label} <b>${fd(dist[c.id])}</b> ${dist[c.id] / total < .01 ? '<1' : Math.round(dist[c.id] / total * 100)}%</span>`
+      ).join('') + '<a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap</a>';
+      drawRoadLines();
+    }
+  }
+  drawChart();
+  setReadout();
+}
+
+function drawRoadLines(){
+  if (!map) return;
+  routeLine.setVisible(false);
+  const catAt = i => roadAt(pts[i].d).cat;
+  let start = 0, cat = catAt(0);
+  for (let i = 1; i <= pts.length; i++){
+    const c = i < pts.length ? catAt(i) : null;
+    if (c === cat) continue;
+    roadOverlays.push(new google.maps.Polyline({
+      map, path: pts.slice(start, Math.min(i + 1, pts.length)).map(ll),
+      strokeColor: CAT[cat].color, strokeOpacity: 1, strokeWeight: 5, clickable: false, zIndex: 2
+    }));
+    start = i; cat = c;
+  }
+}
+
+// ---------- hover state shared by map and graph
+function setHover(i, src){
+  hoverIdx = i;
+  if (hoverMarker){
+    if (i < 0) hoverMarker.setVisible(false);
+    else {
+      hoverMarker.setPosition(ll(pts[i]));
+      hoverMarker.setVisible(true);
+      if (src === 'chart' && map.getBounds() && !map.getBounds().contains(ll(pts[i]))) map.panTo(ll(pts[i]));
+    }
+  }
+  drawOverlay();
+  setReadout();
+}
+
+function setReadout(){
+  const r = $('#readout');
+  if (!pts.length){ r.innerHTML = '<span>Hover the graph or the route</span>'; return; }
+  const i = hoverIdx >= 0 ? hoverIdx : svIdx;
+  if (i < 0){ r.innerHTML = '<span>Hover the graph or the route · click either one for Street View</span>'; return; }
+  const p = pts[i];
+  let html = `<span>Distance <b>${fd(p.d, 2)}</b></span>`;
+  if (eleOk) html += `<span>Elevation <b>${fe(p.ele)}</b></span><span>Gradient <b>${gradeAt(i).toFixed(1)}%</b></span>`;
+  if (roadsReady()){
+    const road = roadAt(p.d);
+    html += `<span>Road <b>${esc(road.name || CAT[road.cat].label)}</b>${road.name ? ' · ' + CAT[road.cat].label : ''}</span>`;
+  }
+  r.innerHTML = html;
+}
+
+// ---------- elevation profile
+const base = $('#chartBase'), over = $('#chartOver');
+
+function drawChart(){
+  const wrap = $('#profile'), W = wrap.clientWidth, H = wrap.clientHeight, dpr = window.devicePixelRatio || 1;
+  for (const c of [base, over]){ c.width = Math.round(W * dpr); c.height = Math.round(H * dpr); }
+  const ctx = base.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+  $('#emptyProfile').hidden = pts.length > 0 && eleOk;
+  if (pts.length && !eleOk) $('#emptyProfile').textContent = 'This route has no elevation data.';
+  if (!pts.length || !eleOk){ geom = null; drawOverlay(); return; }
+
+  const u = U[units], muted = cssVar('--muted'), grid = cssVar('--grid'), accent = cssVar('--accent');
+  const strip = roadsReady();
+  const L = 64, R = 18, T = 14, B = strip ? 38 : 26, w = Math.max(10, W - L - R), h = Math.max(10, H - T - B);
+  let lo = stats.min * u.e, hi = stats.max * u.e;
+  const minSpan = units === 'mi' ? 100 : 30;
+  if (hi - lo < minSpan){ const mid = (hi + lo) / 2; lo = mid - minSpan / 2; hi = mid + minSpan / 2; }
+  const ys = niceStep(hi - lo, h < 120 ? 3 : 4);
+  lo = Math.floor(lo / ys) * ys; hi = Math.ceil(hi / ys) * ys;
+  const x = d => L + d / total * w;
+  const y = e => T + h - (e * u.e - lo) / (hi - lo) * h;
+
+  ctx.font = '11px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif';
+  ctx.lineWidth = 1;
+  ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+  for (let v = lo; v <= hi + 1e-9; v += ys){
+    const yy = Math.round(T + h - (v - lo) / (hi - lo) * h) + .5;
+    ctx.strokeStyle = grid; ctx.beginPath(); ctx.moveTo(L, yy); ctx.lineTo(L + w, yy); ctx.stroke();
+    ctx.fillStyle = muted; ctx.fillText(Math.round(v).toLocaleString() + ' ' + u.el, L - 8, yy);
+  }
+  const totalU = total / u.d, xs = niceStep(totalU, Math.max(2, Math.floor(w / 90)));
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  for (let v = 0; v <= totalU + 1e-9; v += xs){
+    const xx = Math.round(L + v / totalU * w) + .5;
+    ctx.strokeStyle = grid; ctx.beginPath(); ctx.moveTo(xx, T); ctx.lineTo(xx, T + h); ctx.stroke();
+    ctx.fillStyle = muted; ctx.fillText(+v.toFixed(2) + ' ' + u.dl, Math.min(xx, L + w - 14), T + h + (strip ? 19 : 7));
+  }
+
+  // One column per pixel: elevation and gradient sampled along the route
+  const cols = [];
+  for (let px = 0; px <= w; px++){
+    const d = px / w * total, i = indexAt(d), p = pointAt(d);
+    cols.push({ px: L + px, d, e: p.ele, g: gradeAt(i, Math.max(50, total / w * 2)) });
+  }
+  if ($('#gradeToggle').checked){
+    for (let k = 0; k < cols.length - 1; k++){
+      const c = cols[k], n = cols[k + 1];
+      ctx.fillStyle = gradeColour(c.g);
+      ctx.beginPath();
+      ctx.moveTo(c.px, T + h); ctx.lineTo(c.px, y(c.e)); ctx.lineTo(n.px + .6, y(n.e)); ctx.lineTo(n.px + .6, T + h);
+      ctx.fill();
+    }
+  } else {
+    const grad = ctx.createLinearGradient(0, T, 0, T + h);
+    grad.addColorStop(0, accent + '66'); grad.addColorStop(1, accent + '10');
+    ctx.fillStyle = grad;
+    ctx.beginPath(); ctx.moveTo(L, T + h);
+    cols.forEach(c => ctx.lineTo(c.px, y(c.e)));
+    ctx.lineTo(L + w, T + h); ctx.closePath(); ctx.fill();
+  }
+  ctx.strokeStyle = $('#gradeToggle').checked ? 'rgba(0,0,0,.45)' : accent;
+  ctx.lineWidth = 1.5; ctx.lineJoin = 'round';
+  ctx.beginPath();
+  cols.forEach((c, k) => k ? ctx.lineTo(c.px, y(c.e)) : ctx.moveTo(c.px, y(c.e)));
+  ctx.stroke();
+
+  // Road types as a strip under the graph
+  if (strip){
+    for (let k = 0; k < cols.length - 1; k++){
+      ctx.fillStyle = CAT[roadAt(cols[k].d).cat].color;
+      ctx.fillRect(cols[k].px, T + h + 4, 1.6, 9);
+    }
+  }
+
+  geom = { L, T, w, h, W, H, dpr, x, y };
+  drawOverlay();
+}
+
+function drawOverlay(){
+  const ctx = over.getContext('2d'), tip = $('#tip');
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.clearRect(0, 0, over.width, over.height);
+  tip.style.display = 'none';
+  if (!geom) return;
+  const { T, h, W, dpr, x, y } = geom;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const marker = (i, colour, alpha, width) => {
+    const p = pts[i], xx = x(p.d), yy = y(p.ele);
+    ctx.globalAlpha = alpha; ctx.strokeStyle = colour; ctx.lineWidth = width;
+    ctx.beginPath(); ctx.moveTo(Math.round(xx) + .5, T); ctx.lineTo(Math.round(xx) + .5, T + h); ctx.stroke();
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = '#fff'; ctx.strokeStyle = colour === VIEWER ? VIEWER : ROUTE; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(xx, yy, 5.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    return xx;
+  };
+  // Where Street View is, in purple; the hover position over it
+  if (svIdx >= 0) marker(svIdx, VIEWER, .9, 2);
+  if (hoverIdx < 0) return;
+  const xx = marker(hoverIdx, cssVar('--text'), .55, 1), p = pts[hoverIdx];
+  tip.innerHTML = `<b>${fd(p.d, 2)}</b> · ${fe(p.ele)} · ${gradeAt(hoverIdx).toFixed(1)}%`;
+  tip.style.display = 'block';
+  const tw = tip.offsetWidth;
+  tip.style.left = (xx + 12 + tw > W - 4 ? xx - 12 - tw : xx + 12) + 'px';
+}
+
+function chartIndex(e){
+  if (!geom) return -1;
+  const r = over.getBoundingClientRect();
+  const d = clamp((e.clientX - r.left - geom.L) / geom.w, 0, 1) * total;
+  const i = indexAt(d);
+  return i > 0 && d - pts[i - 1].d < pts[i].d - d ? i - 1 : i;
+}
+over.addEventListener('pointermove', e => { const i = chartIndex(e); if (i >= 0) setHover(i, 'chart'); });
+over.addEventListener('pointerdown', e => { const i = chartIndex(e); if (i >= 0) setHover(i, 'chart'); });
+over.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') setHover(-1); });
+over.addEventListener('click', e => { if (geom) showStreetView(chartIndex(e)); });
+
+new ResizeObserver(() => drawChart()).observe($('#profile'));
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', drawChart);
+
+// ---------- controls
+function setUnits(u){
+  units = u; store.set(UNIT_STORE, u);
+  document.querySelectorAll('[data-units]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.units === u)));
+  updateStepBar();
+  if (pts.length){ showStats(); showRoads(); drawDistanceMarkers(); }
+}
+document.querySelectorAll('[data-units]').forEach(b => b.addEventListener('click', () => setUnits(b.dataset.units)));
+$('#gradeToggle').addEventListener('change', drawChart);
+$('#roadsToggle').checked = store.get(ROADS_STORE) === '1';
+$('#roadsToggle').addEventListener('change', e => { store.set(ROADS_STORE, e.target.checked ? '1' : '0'); showRoads(); });
+$('#markersToggle').addEventListener('change', drawDistanceMarkers);
+$('#openBtn').addEventListener('click', () => $('#fileInput').click());
+$('#chooseBtn').addEventListener('click', () => $('#fileInput').click());
+$('#fileInput').addEventListener('change', e => { loadFile(e.target.files[0]); e.target.value = ''; });
+
+// Arrow keys step along the route (captured before Street View or the map see them)
+window.addEventListener('keydown', e => {
+  if (e.target.closest?.('input, textarea, select') || e.metaKey || e.ctrlKey || e.altKey || !pano) return;
+  const act = {
+    ArrowRight: () => stepTurn(1), ArrowLeft: () => stepTurn(-1),
+    ArrowUp: () => stepDist(1), ArrowDown: () => stepDist(-1),
+    Escape: () => pano.setVisible(false)
+  }[e.key];
+  if (!act || (!pts.length && e.key !== 'Escape')) return;
+  e.preventDefault();
+  e.stopPropagation();
+  act();
+}, true);
+
+let dragDepth = 0;
+window.addEventListener('dragenter', e => { e.preventDefault(); dragDepth++; document.body.classList.add('dragging'); });
+window.addEventListener('dragleave', () => { if (--dragDepth <= 0){ dragDepth = 0; document.body.classList.remove('dragging'); } });
+window.addEventListener('dragover', e => e.preventDefault());
+window.addEventListener('drop', e => {
+  e.preventDefault(); dragDepth = 0; document.body.classList.remove('dragging');
+  loadFile(e.dataTransfer.files[0]);
+});
+
+// For scripted loading, e.g. from the console or the Mac app
+window.gpxViewer = { loadText };
+
+// ---------- start
+setUnits(units);
+if (BUILT_IN_KEY){
+  $('#keyBtn').hidden = true;
+  loadMaps(BUILT_IN_KEY);
+} else {
+  const urlKey = new URLSearchParams(location.search).get('key');
+  if (urlKey) store.set(KEY_STORE, urlKey);
+  const savedKey = store.get(KEY_STORE);
+  if (savedKey) loadMaps(savedKey === NO_KEY ? '' : savedKey);
+  else showKey();
+}
+</script>
+</body>
+</html>

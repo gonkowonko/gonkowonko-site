@@ -26,6 +26,8 @@ jobs:
           # Served at https://gonkowonko.com but hidden from search engines until launch.
           # To launch: delete these two lines (robots.txt then allows crawlers and the noindex tag goes).
           PUBLIC_NOINDEX: 'true'
+          # Google Maps key for the unlisted route checker (src/pages/tools/route-check-ckxljx/config.js.ts)
+          GMAPS_KEY: ${{ secrets.GMAPS_KEY }}
 
   deploy:
     needs: build
