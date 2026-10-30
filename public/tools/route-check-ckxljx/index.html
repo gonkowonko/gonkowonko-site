@@ -517,7 +517,7 @@ function drawRoute(){
   routeLine = new google.maps.Polyline({ map, path, strokeColor: ROUTE, strokeOpacity: 1, strokeWeight: 4, clickable: false, zIndex: 2 });
   // Wide, nearly invisible line so the route is easy to hover
   const hit = new google.maps.Polyline({ map, path, strokeColor: '#000', strokeOpacity: 0.01, strokeWeight: 28, zIndex: 3 });
-  hit.addListener('mousemove', e => setHover(nearest(e.latLng, hoverIdx), 'map'));
+  hit.addListener('mousemove', e => setHover(nearest(e.latLng, hoverIdx)));
   hit.addListener('mouseout', () => setHover(-1));
   hit.addListener('click', e => showStreetView(nearest(e.latLng, hoverIdx)));
   const end = (p, fill, title) => new google.maps.Marker({
@@ -598,10 +598,15 @@ async function showStreetView(i, lookAt = null, stepping = false, d = null){
 }
 
 function onPanoVisible(){
-  const on = pano.getVisible();
+  const on = pano.getVisible(), el = $('#map');
+  const before = { w: el.clientWidth, h: el.clientHeight, centre: map.getCenter() };
   document.querySelector('main').classList.toggle('split', on);
-  if (on) requestAnimationFrame(() => google.maps.event.trigger(pano, 'resize'));
-  else {
+  keepTopLeft(before);
+  if (on){
+    requestAnimationFrame(() => google.maps.event.trigger(pano, 'resize'));
+    const pos = pano.getPosition();
+    if (pos && !inView(pos)) map.panTo(pos);
+  } else {
     svIdx = -1; svD = null; stepTarget = null;
     viewerMarker.setVisible(false);
     $('#imagery').hidden = true;
@@ -621,9 +626,26 @@ function onPanoMove(){
     svIdx = haversine(pts[i], { lat: pos.lat(), lng: pos.lng() }) < 40 ? i : -1;
     svD = svIdx >= 0 ? pts[svIdx].d : null;
   }
-  const b = map.getBounds();
-  if (b && !b.contains(pos)) map.panTo(pos);
+  if (!inView(pos)) map.panTo(pos);
   drawOverlay(); setReadout(); updateStepBar();
+}
+
+// Google keeps a map's centre when its pane resizes, so opening Street View beside it would slide
+// everything sideways. Move the centre so the top-left corner stays put instead.
+function keepTopLeft({ w, h, centre }){
+  const el = $('#map'), dx = w - el.clientWidth, dy = h - el.clientHeight, proj = map.getProjection();
+  if ((!dx && !dy) || !proj || !centre) return;
+  const scale = 2 ** map.getZoom(), p = proj.fromLatLngToPoint(centre);
+  map.setCenter(proj.fromPointToLatLng(new google.maps.Point(p.x - dx / 2 / scale, p.y - dy / 2 / scale)));
+}
+
+// Whether a position is on screen (with a margin), worked out from the pane's current size,
+// since the map's own bounds lag behind a resize
+function inView(latLng, margin = 30){
+  const proj = map.getProjection(), el = $('#map');
+  if (!proj) return true;
+  const scale = 2 ** map.getZoom(), c = proj.fromLatLngToPoint(map.getCenter()), p = proj.fromLatLngToPoint(latLng);
+  return Math.abs((p.x - c.x) * scale) < el.clientWidth / 2 - margin && Math.abs((p.y - c.y) * scale) < el.clientHeight / 2 - margin;
 }
 
 async function updateImagery(){
@@ -788,14 +810,13 @@ function drawRoadLines(){
 }
 
 // ---------- hover state shared by map and graph
-function setHover(i, src){
+function setHover(i){
   hoverIdx = i;
   if (hoverMarker){
     if (i < 0) hoverMarker.setVisible(false);
     else {
       hoverMarker.setPosition(ll(pts[i]));
       hoverMarker.setVisible(true);
-      if (src === 'chart' && map.getBounds() && !map.getBounds().contains(ll(pts[i]))) map.panTo(ll(pts[i]));
     }
   }
   drawOverlay();
@@ -931,8 +952,8 @@ function chartIndex(e){
   const i = indexAt(d);
   return i > 0 && d - pts[i - 1].d < pts[i].d - d ? i - 1 : i;
 }
-over.addEventListener('pointermove', e => { const i = chartIndex(e); if (i >= 0) setHover(i, 'chart'); });
-over.addEventListener('pointerdown', e => { const i = chartIndex(e); if (i >= 0) setHover(i, 'chart'); });
+over.addEventListener('pointermove', e => { const i = chartIndex(e); if (i >= 0) setHover(i); });
+over.addEventListener('pointerdown', e => { const i = chartIndex(e); if (i >= 0) setHover(i); });
 over.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') setHover(-1); });
 over.addEventListener('click', e => { if (geom) showStreetView(chartIndex(e)); });
 
