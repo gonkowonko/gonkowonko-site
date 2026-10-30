@@ -71,12 +71,25 @@ body.dragging main::after{content:"Drop to load";position:absolute;inset:10px;bo
 /* Bottom panel: toolbar, road types and elevation profile */
 #bottom{flex:none;background:var(--panel);border-top:1px solid var(--line);display:flex;flex-direction:column}
 .toolbar{display:flex;align-items:center;gap:8px 16px;padding:8px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap;font-size:13px}
-.readout{display:flex;gap:4px 16px;font-variant-numeric:tabular-nums;color:var(--muted);flex:1 1 340px;min-width:0;flex-wrap:wrap}
+.readout{display:flex;gap:4px 16px;font-variant-numeric:tabular-nums;color:var(--muted);flex:1 1 240px;min-width:0;flex-wrap:wrap}
 .readout span{white-space:nowrap}
 .readout b{color:var(--text);font-weight:650}
 .seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
 .seg button{border:0;border-radius:0;padding:4px 10px}
 .seg button[aria-pressed="true"]{background:var(--accent);color:#fff}
+.stat-btn{appearance:none;background:none;border:0;border-radius:8px;padding:3px 6px;margin:-3px -6px;text-align:left;color:inherit;font:inherit;line-height:1.15;cursor:pointer}
+.stat-btn:hover,.stat-btn[aria-expanded="true"]{background:var(--btn)}
+.stat-btn span::after{content:" ▾"}
+.stat b.unset{color:var(--muted);font-weight:600}
+.popover{position:fixed;z-index:15;background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:12px 14px;display:flex;flex-direction:column;gap:10px;max-width:calc(100% - 16px)}
+.popover p{margin:0;font-size:12px;color:var(--muted);max-width:300px}
+.timing{display:inline-flex;gap:12px;align-items:center;color:var(--muted)}
+.timing label{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.timing input{font:inherit;color:var(--text);background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:0 8px;height:28px}
+.timing input:focus{outline:2px solid var(--accent);outline-offset:-1px}
+.timing input[type="number"]{width:64px}
+.timing input[type="text"]{width:84px}
+.timing input.bad{border-color:#d33;outline-color:#d33}
 label.check{display:inline-flex;gap:6px;align-items:center;cursor:pointer;color:var(--muted);white-space:nowrap}
 label.check input{accent-color:var(--accent);margin:0}
 .legend{display:inline-flex;gap:2px;align-items:center;color:var(--muted);font-size:11px}
@@ -132,6 +145,15 @@ label.check input{accent-color:var(--accent);margin:0}
     <div class="stat"><b id="sDown">–</b><span>Elevation loss</span></div>
     <div class="stat"><b id="sMax">–</b><span>Highest</span></div>
     <div class="stat"><b id="sGrade">–</b><span>Steepest</span></div>
+    <button class="stat stat-btn" data-focus="speedInput" title="Change the speed" aria-expanded="false"><b id="sTime">–</b><span id="sTimeLabel">Ride time</span></button>
+    <button class="stat stat-btn" data-focus="startInput" title="Change the start time" aria-expanded="false"><b id="sFinish">–</b><span>Finish</span></button>
+  </div>
+  <div class="popover" id="timingPop" hidden>
+    <div class="timing">
+      <label>Speed <input id="speedInput" type="number" min="1" max="99" step="0.5" inputmode="decimal"> <span id="speedUnit">mph</span></label>
+      <label>Start <input id="startInput" type="text" placeholder="e.g. 9:00" autocomplete="off" spellcheck="false"></label>
+    </div>
+    <p>Average moving speed; stops aren’t included. Set a start time to see when you’ll finish.</p>
   </div>
   <div class="actions">
     <button class="btn-primary" id="openBtn">Open GPX…</button>
@@ -216,12 +238,13 @@ const store = {
   set(k, v){ try { localStorage.setItem(k, v) } catch {} }
 };
 const KEY_STORE = 'gpxv.key', UNIT_STORE = 'gpxv.units', ROADS_STORE = 'gpxv.roads', NO_KEY = '-';
+const SPEED_STORE = 'gpxv.speed', START_STORE = 'gpxv.start';
 // The website copy gets its key from the site (config.js); elsewhere each person brings their own
 const BUILT_IN_KEY = window.GMAPS_KEY || '';
 const ROUTE = '#e2461f', VIEWER = '#7048e8';
 const U = {
-  mi: { d: 1609.344, dl: 'mi', e: 3.28084, el: 'ft', step: 160.9344, stepLabel: '0.1 mi' },
-  km: { d: 1000, dl: 'km', e: 1, el: 'm', step: 100, stepLabel: '100 m' }
+  mi: { d: 1609.344, dl: 'mi', e: 3.28084, el: 'ft', step: 160.9344, stepLabel: '0.1 mi', s: 2.236936, sl: 'mph' },
+  km: { d: 1000, dl: 'km', e: 1, el: 'm', step: 100, stepLabel: '100 m', s: 3.6, sl: 'km/h' }
 };
 // Gradient buckets, as in the legend
 const GRADES = [[3, 'var(--flat)'], [6, '#f2c94c'], [9, '#f2994a'], [12, '#eb5757'], [Infinity, '#9b1c31']];
@@ -460,7 +483,99 @@ function showStats(){
   $('#sDown').textContent = isFinite(stats.down) ? fe(stats.down) : '–';
   $('#sMax').textContent = isFinite(stats.max) ? fe(stats.max) : '–';
   $('#sGrade').textContent = isFinite(stats.steep) ? stats.steep.toFixed(1) + '%' : '–';
+  showTiming();
 }
+
+// ---------- ride time at a set average speed (moving time; no stops)
+let speed = parseFloat(store.get(SPEED_STORE)) || 18 / U.mi.s;   // metres per second, 18 mph to start
+
+function duration(sec){
+  const m = Math.round(sec / 60), h = Math.floor(m / 60);
+  return h ? `${h}h ${String(m % 60).padStart(2, '0')}m` : `${m} min`;
+}
+// Start time as minutes after midnight, or null when not set
+let startMins = null;
+const hhmm = mins => `${String(Math.floor(mins / 60)).padStart(2, '0')}:${String(mins % 60).padStart(2, '0')}`;
+// Reads a time however it's typed: 7:30, 0730, 730, 19:30, 7.30, 7pm, 7:30am. Undefined if it isn't one.
+function parseTime(s){
+  const m = /^(\d{1,2})(?:[:.h ]?(\d{2}))?\s*([ap])?\.?m?\.?$/.exec(s.trim().toLowerCase());
+  if (!m) return undefined;
+  let h = +m[1];
+  const min = m[2] ? +m[2] : 0;
+  if (m[3]){
+    if (h < 1 || h > 12) return undefined;
+    h = h % 12 + (m[3] === 'p' ? 12 : 0);
+  }
+  return h <= 23 && min <= 59 ? h * 60 + min : undefined;
+}
+// Clock time after riding for sec, if a start time is set
+function clockAfter(sec){
+  if (startMins === null) return null;
+  const mins = startMins + Math.round(sec / 60), days = Math.floor(mins / 1440);
+  return hhmm(mins % 1440) + (days ? ` +${days}d` : '');
+}
+function showTiming(){
+  if (!pts.length) return;
+  const finish = clockAfter(total / speed);
+  $('#sTime').textContent = duration(total / speed);
+  $('#sTimeLabel').textContent = `Ride time · ${Math.round(speed * U[units].s * 2) / 2} ${U[units].sl}`;
+  $('#sFinish').textContent = finish ?? 'Set start';
+  $('#sFinish').classList.toggle('unset', !finish);
+}
+function showSpeed(){
+  $('#speedInput').value = Math.round(speed * U[units].s * 2) / 2;
+  $('#speedUnit').textContent = U[units].sl;
+}
+$('#speedInput').addEventListener('input', e => {
+  const v = parseFloat(e.target.value);
+  if (!(v > 0)) return;
+  speed = v / U[units].s;
+  store.set(SPEED_STORE, String(speed));
+  showTiming(); setReadout(); drawOverlay();
+});
+// Clicking Ride time or Finish opens the speed and start boxes beneath it
+const timingPop = $('#timingPop'), timingBtns = document.querySelectorAll('.stat-btn');
+function openTiming(btn){
+  timingPop.hidden = false;
+  const r = btn.getBoundingClientRect();
+  timingPop.style.left = Math.max(8, Math.min(r.left - 6, innerWidth - timingPop.offsetWidth - 8)) + 'px';
+  timingPop.style.top = (r.bottom + 8) + 'px';
+  timingBtns.forEach(b => b.setAttribute('aria-expanded', String(b === btn)));
+  // Ride time goes to the speed box, Finish to the start box
+  const input = document.getElementById(btn.dataset.focus);
+  input.focus();
+  input.select();
+}
+function closeTiming(){
+  // Tidy what was typed into the usual form, e.g. 730 to 07:30
+  const start = $('#startInput');
+  start.value = startMins === null ? '' : hhmm(startMins);
+  start.classList.remove('bad');
+  timingPop.hidden = true;
+  timingBtns.forEach(b => b.setAttribute('aria-expanded', 'false'));
+}
+// Clicking the same stat again closes the panel; clicking the other one moves to its box
+timingBtns.forEach(b => b.addEventListener('click', () =>
+  b.getAttribute('aria-expanded') === 'true' ? closeTiming() : openTiming(b)));
+document.addEventListener('pointerdown', e => {
+  if (!timingPop.hidden && !timingPop.contains(e.target) && !e.target.closest('.stat-btn')) closeTiming();
+}, true);
+timingPop.addEventListener('keydown', e => { if (e.key === 'Escape' || e.key === 'Enter') closeTiming(); });
+addEventListener('resize', closeTiming);
+startMins = parseTime(store.get(START_STORE) || '') ?? null;
+$('#startInput').value = startMins === null ? '' : hhmm(startMins);
+$('#startInput').addEventListener('input', e => {
+  const typed = e.target.value.trim(), mins = parseTime(typed);
+  e.target.classList.remove('bad');
+  if (typed !== '' && mins === undefined) return;   // part-way through typing, or not a time
+  startMins = typed === '' ? null : mins;
+  store.set(START_STORE, startMins === null ? '' : hhmm(startMins));
+  showTiming(); setReadout(); drawOverlay();
+});
+$('#startInput').addEventListener('change', e => {
+  const typed = e.target.value.trim();
+  e.target.classList.toggle('bad', typed !== '' && parseTime(typed) === undefined);
+});
 
 // Turns: where the heading over the 30 m before a point differs from the 30 m after by 45°+.
 // Nearby hits (a roundabout, a staggered junction) merge into one, at the sharpest point.
@@ -831,6 +946,8 @@ function setReadout(){
   const p = pts[i];
   let html = `<span>Distance <b>${fd(p.d, 2)}</b></span>`;
   if (eleOk) html += `<span>Elevation <b>${fe(p.ele)}</b></span><span>Gradient <b>${gradeAt(i).toFixed(1)}%</b></span>`;
+  const at = clockAfter(p.d / speed);
+  html += `<span>Time <b>${duration(p.d / speed)}</b>${at ? ` · ${at}` : ''}</span>`;
   if (roadsReady()){
     const road = roadAt(p.d);
     html += `<span>Road <b>${esc(road.name || CAT[road.cat].label)}</b>${road.name ? ' · ' + CAT[road.cat].label : ''}</span>`;
@@ -939,7 +1056,8 @@ function drawOverlay(){
   if (svIdx >= 0) marker(svIdx, VIEWER, .9, 2);
   if (hoverIdx < 0) return;
   const xx = marker(hoverIdx, cssVar('--text'), .55, 1), p = pts[hoverIdx];
-  tip.innerHTML = `<b>${fd(p.d, 2)}</b> · ${fe(p.ele)} · ${gradeAt(hoverIdx).toFixed(1)}%`;
+  const at = clockAfter(p.d / speed);
+  tip.innerHTML = `<b>${fd(p.d, 2)}</b> · ${fe(p.ele)} · ${gradeAt(hoverIdx).toFixed(1)}% · ${at || duration(p.d / speed)}`;
   tip.style.display = 'block';
   const tw = tip.offsetWidth;
   tip.style.left = (xx + 12 + tw > W - 4 ? xx - 12 - tw : xx + 12) + 'px';
@@ -965,6 +1083,7 @@ function setUnits(u){
   units = u; store.set(UNIT_STORE, u);
   document.querySelectorAll('[data-units]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.units === u)));
   updateStepBar();
+  showSpeed();
   if (pts.length){ showStats(); showRoads(); drawDistanceMarkers(); }
 }
 document.querySelectorAll('[data-units]').forEach(b => b.addEventListener('click', () => setUnits(b.dataset.units)));
