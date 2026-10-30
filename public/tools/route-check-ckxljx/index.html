@@ -368,19 +368,18 @@ window.initMap = () => {
     mapTypeControl: true, streetViewControl: true, fullscreenControl: true,
     clickableIcons: false, gestureHandling: 'greedy'
   });
-  // Street View opens in its own pane beside the map, so the Pegman lands there too
-  pano = new google.maps.StreetViewPanorama($('#pano'), {
-    visible: false, enableCloseButton: true, keyboardShortcuts: false,
-    fullscreenControl: false, motionTracking: false, motionTrackingControl: false
+  // Google charges for each Street View viewer created, so ours is only made when Street View is
+  // first used. Until then the Pegman drops into the map's own Street View, which is handed over to ours.
+  const builtIn = map.getStreetView();
+  builtIn.addListener('visible_changed', () => {
+    if (!builtIn.getVisible() || pano) return;
+    const pos = builtIn.getPosition(), pov = builtIn.getPov();
+    builtIn.setVisible(false);
+    ensurePano();
+    pano.setPosition(pos);
+    pano.setPov(pov);
+    pano.setVisible(true);
   });
-  map.setStreetView(pano);
-  pano.addListener('visible_changed', onPanoVisible);
-  pano.addListener('position_changed', onPanoMove);
-  pano.addListener('pov_changed', () => {
-    const icon = viewerMarker.getIcon();
-    viewerMarker.setIcon({ ...icon, rotation: pano.getPov().heading });
-  });
-  pano.addListener('pano_changed', updateImagery);
 
   svService = new google.maps.StreetViewService();
   elevService = new google.maps.ElevationService();
@@ -395,6 +394,24 @@ window.initMap = () => {
   if (pending){ const p = pending; pending = null; loadText(p.text, p.name); }
   else lastRoute.get().then(r => { if (r && !pts.length) loadText(r.text, r.name); });
 };
+
+// Street View opens in its own pane beside the map, and once made the Pegman lands there too
+function ensurePano(){
+  if (pano) return pano;
+  pano = new google.maps.StreetViewPanorama($('#pano'), {
+    visible: false, enableCloseButton: true, keyboardShortcuts: false,
+    fullscreenControl: false, motionTracking: false, motionTrackingControl: false
+  });
+  map.setStreetView(pano);
+  pano.addListener('visible_changed', onPanoVisible);
+  pano.addListener('position_changed', onPanoMove);
+  pano.addListener('pov_changed', () => {
+    const icon = viewerMarker.getIcon();
+    viewerMarker.setIcon({ ...icon, rotation: pano.getPov().heading });
+  });
+  pano.addListener('pano_changed', updateImagery);
+  return pano;
+}
 
 function showKey(err = ''){
   $('#keyErr').textContent = err;
@@ -630,7 +647,7 @@ async function loadText(text, fileName){
   let r;
   try { r = parseGpx(text); } catch (e){ toast(e.message); return; }
   if (!map){ pending = { text, name: fileName }; if ($('#keyModal').hidden) showKey(); return; }
-  pano.setVisible(false);
+  pano?.setVisible(false);
   lastRoute.set({ text, name: fileName });
   pts = r.pts; total = pts[pts.length - 1].d; hoverIdx = -1; svIdx = -1;
   roads = { state: 'off', samples: [], forPts: null };
@@ -725,6 +742,7 @@ async function showStreetView(i, lookAt = null, stepping = false, d = null){
     const to = lookAt || pointAt(p.d + 30);
     const heading = google.maps.geometry.spherical.computeHeading(from, new google.maps.LatLng(ll(to)));
     stepTarget = { i, d };
+    ensurePano();
     pano.setPano(data.location.pano);
     pano.setPov({ heading, pitch: 0 });
     pano.setVisible(true);
@@ -757,6 +775,22 @@ function onPanoVisible(){
   }
 }
 
+// How far a position is from the route beside point i (measured to the line, not the points,
+// which can be far apart on a straight road), and how far along the route that is
+function nearRoute(lat, lng, i){
+  const kx = Math.cos(toRad(lat)) * 111320, ky = 110540;
+  let best = { dist: Infinity, d: pts[i].d };
+  for (const j of [i - 1, i]){
+    if (j < 0 || j + 1 >= pts.length) continue;
+    const a = pts[j], b = pts[j + 1];
+    const ax = (a.lng - lng) * kx, ay = (a.lat - lat) * ky, sx = (b.lng - a.lng) * kx, sy = (b.lat - a.lat) * ky;
+    const len2 = sx * sx + sy * sy, t = len2 ? clamp(-(ax * sx + ay * sy) / len2, 0, 1) : 0;
+    const dist = Math.hypot(ax + t * sx, ay + t * sy);
+    if (dist < best.dist) best = { dist, d: a.d + t * (b.d - a.d) };
+  }
+  return best;
+}
+
 function onPanoMove(){
   const pos = pano.getPosition();
   if (!pos) return;
@@ -765,9 +799,9 @@ function onPanoMove(){
   if (stepTarget !== null){ ({ i: svIdx, d: svD } = stepTarget); stepTarget = null; }
   else if (pts.length){
     // Moved with Street View's own arrows, or the Pegman: follow it if it's on the route
-    const i = nearest(pos, svIdx);
-    svIdx = haversine(pts[i], { lat: pos.lat(), lng: pos.lng() }) < 40 ? i : -1;
-    svD = svIdx >= 0 ? pts[svIdx].d : null;
+    const near = nearRoute(pos.lat(), pos.lng(), nearest(pos, svIdx));
+    svD = near.dist < 40 ? near.d : null;
+    svIdx = svD === null ? -1 : nearestIndexAt(svD);
   }
   if (!inView(pos)) map.panTo(pos);
   drawOverlay(); setReadout(); updateStepBar();
@@ -1125,11 +1159,11 @@ $('#fileInput').addEventListener('change', e => { loadFile(e.target.files[0]); e
 
 // Arrow keys step along the route (captured before Street View or the map see them)
 window.addEventListener('keydown', e => {
-  if (e.target.closest?.('input, textarea, select') || e.metaKey || e.ctrlKey || e.altKey || !pano) return;
+  if (e.target.closest?.('input, textarea, select') || e.metaKey || e.ctrlKey || e.altKey || !map) return;
   const act = {
     ArrowRight: () => stepTurn(1), ArrowLeft: () => stepTurn(-1),
     ArrowUp: () => stepDist(1), ArrowDown: () => stepDist(-1),
-    Escape: () => pano.setVisible(false)
+    Escape: () => pano?.setVisible(false)
   }[e.key];
   if (!act || (!pts.length && e.key !== 'Escape')) return;
   e.preventDefault();
