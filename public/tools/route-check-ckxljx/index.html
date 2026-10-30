@@ -146,7 +146,7 @@ label.check input{accent-color:var(--accent);margin:0}
     <div class="stat"><b id="sMax">–</b><span>Highest</span></div>
     <div class="stat"><b id="sGrade">–</b><span>Steepest</span></div>
     <button class="stat stat-btn" data-focus="speedInput" title="Change the speed" aria-expanded="false"><b id="sTime">–</b><span id="sTimeLabel">Ride time</span></button>
-    <button class="stat stat-btn" data-focus="startInput" title="Change the start time" aria-expanded="false"><b id="sFinish">–</b><span>Finish</span></button>
+    <button class="stat stat-btn" data-focus="startInput" title="Change the start time" aria-expanded="false"><b id="sFinish">–</b><span id="sFinishLabel">Finish</span></button>
   </div>
   <div class="popover" id="timingPop" hidden>
     <div class="timing">
@@ -521,6 +521,7 @@ function showTiming(){
   $('#sTimeLabel').textContent = `Ride time · ${Math.round(speed * U[units].s * 2) / 2} ${U[units].sl}`;
   $('#sFinish').textContent = finish ?? 'Set start';
   $('#sFinish').classList.toggle('unset', !finish);
+  $('#sFinishLabel').textContent = finish ? `Finish · from ${hhmm(startMins)}` : 'Finish';
 }
 function showSpeed(){
   $('#speedInput').value = Math.round(speed * U[units].s * 2) / 2;
