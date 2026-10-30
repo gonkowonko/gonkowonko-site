@@ -237,6 +237,31 @@ const store = {
   get(k){ try { return localStorage.getItem(k) } catch { return null } },
   set(k, v){ try { localStorage.setItem(k, v) } catch {} }
 };
+// The last route opened, kept in IndexedDB (a long GPX can outgrow localStorage) so a refresh brings it back
+const lastRoute = {
+  db: null,
+  open(){
+    return this.db ??= new Promise((resolve, reject) => {
+      const req = indexedDB.open('gpxv', 1);
+      req.onupgradeneeded = () => req.result.createObjectStore('kv');
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+  },
+  async get(){
+    try {
+      const db = await this.open();
+      return await new Promise((resolve, reject) => {
+        const req = db.transaction('kv').objectStore('kv').get('route');
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    } catch { return undefined; }
+  },
+  async set(route){
+    try { (await this.open()).transaction('kv', 'readwrite').objectStore('kv').put(route, 'route'); } catch {}
+  }
+};
 const KEY_STORE = 'gpxv.key', UNIT_STORE = 'gpxv.units', ROADS_STORE = 'gpxv.roads', NO_KEY = '-';
 const SPEED_STORE = 'gpxv.speed', START_STORE = 'gpxv.start';
 // The website copy gets its key from the site (config.js); elsewhere each person brings their own
@@ -368,6 +393,7 @@ window.initMap = () => {
     icon: { path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW, scale: 6, rotation: 0, fillColor: VIEWER, fillOpacity: 1, strokeColor: '#fff', strokeWeight: 2 }
   });
   if (pending){ const p = pending; pending = null; loadText(p.text, p.name); }
+  else lastRoute.get().then(r => { if (r && !pts.length) loadText(r.text, r.name); });
 };
 
 function showKey(err = ''){
@@ -605,6 +631,7 @@ async function loadText(text, fileName){
   try { r = parseGpx(text); } catch (e){ toast(e.message); return; }
   if (!map){ pending = { text, name: fileName }; if ($('#keyModal').hidden) showKey(); return; }
   pano.setVisible(false);
+  lastRoute.set({ text, name: fileName });
   pts = r.pts; total = pts[pts.length - 1].d; hoverIdx = -1; svIdx = -1;
   roads = { state: 'off', samples: [], forPts: null };
   $('#routeName').textContent = r.name || (fileName || 'Route').replace(/\.gpx$/i, '');
