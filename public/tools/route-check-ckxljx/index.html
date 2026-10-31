@@ -71,7 +71,7 @@ body.dragging main::after{content:"Drop to load";position:absolute;inset:10px;bo
 /* Bottom panel: toolbar, road types and elevation profile */
 #bottom{flex:none;background:var(--panel);border-top:1px solid var(--line);display:flex;flex-direction:column}
 .toolbar{display:flex;align-items:center;gap:8px 16px;padding:8px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap;font-size:13px}
-.readout{display:flex;gap:4px 16px;font-variant-numeric:tabular-nums;color:var(--muted);flex:1 1 240px;min-width:0;flex-wrap:wrap}
+.readout{display:flex;gap:4px 16px;font-variant-numeric:tabular-nums;color:var(--muted);flex:1 1 240px;min-width:0;flex-wrap:wrap;align-content:flex-start}
 .readout span{white-space:nowrap}
 .readout b{color:var(--text);font-weight:650}
 .seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
@@ -89,6 +89,7 @@ body.dragging main::after{content:"Drop to load";position:absolute;inset:10px;bo
 .timing input:focus{outline:2px solid var(--accent);outline-offset:-1px}
 .timing input[type="number"]{width:64px}
 .timing input[type="text"]{width:84px}
+.timing input[type="date"]{width:auto;color-scheme:light dark}
 .timing input.bad{border-color:#d33;outline-color:#d33}
 label.check{display:inline-flex;gap:6px;align-items:center;cursor:pointer;color:var(--muted);white-space:nowrap}
 label.check input{accent-color:var(--accent);margin:0}
@@ -99,6 +100,7 @@ label.check input{accent-color:var(--accent);margin:0}
 .chip b{color:var(--text);font-weight:650}
 .roadrow a{color:var(--muted);margin-left:auto}
 .roadrow button{padding:2px 10px;font-size:12px}
+.roadrow .note{color:var(--muted);font-style:italic}
 #profile{height:200px;position:relative}
 #profile canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 #chartOver{cursor:crosshair}
@@ -152,8 +154,9 @@ label.check input{accent-color:var(--accent);margin:0}
     <div class="timing">
       <label>Speed <input id="speedInput" type="number" min="1" max="99" step="0.5" inputmode="decimal"> <span id="speedUnit">mph</span></label>
       <label>Start <input id="startInput" type="text" placeholder="e.g. 9:00" autocomplete="off" spellcheck="false"></label>
+      <label>on <input id="startDate" type="date"></label>
     </div>
-    <p>Average moving speed; stops aren’t included. Set a start time to see when you’ll finish.</p>
+    <p>Average moving speed; stops aren’t included. Set a start time to see when you’ll finish, and the weather as you reach each part of the route.</p>
   </div>
   <div class="actions">
     <button class="btn-primary" id="openBtn">Open GPX…</button>
@@ -196,11 +199,13 @@ label.check input{accent-color:var(--accent);margin:0}
     <label class="check"><input type="checkbox" id="gradeToggle" checked> Colour by gradient</label>
     <label class="check"><input type="checkbox" id="roadsToggle"> Road types</label>
     <label class="check"><input type="checkbox" id="markersToggle" checked> Distance markers</label>
+    <label class="check"><input type="checkbox" id="weatherToggle"> Weather</label>
     <div class="seg" role="group" aria-label="Units">
       <button data-units="mi">mi / ft</button><button data-units="km">km / m</button>
     </div>
   </div>
   <div class="roadrow" id="roadRow" hidden></div>
+  <div class="roadrow" id="weatherRow" hidden></div>
   <div id="profile">
     <canvas id="chartBase"></canvas>
     <canvas id="chartOver"></canvas>
@@ -263,7 +268,7 @@ const lastRoute = {
   }
 };
 const KEY_STORE = 'gpxv.key', UNIT_STORE = 'gpxv.units', ROADS_STORE = 'gpxv.roads', NO_KEY = '-';
-const SPEED_STORE = 'gpxv.speed', START_STORE = 'gpxv.start';
+const SPEED_STORE = 'gpxv.speed', START_STORE = 'gpxv.start', DATE_STORE = 'gpxv.date', WEATHER_STORE = 'gpxv.weather';
 // The website copy gets its key from the site (config.js); elsewhere each person brings their own
 const BUILT_IN_KEY = window.GMAPS_KEY || '';
 const ROUTE = '#e2461f', VIEWER = '#7048e8';
@@ -559,6 +564,17 @@ function parseTime(s){
   }
   return h <= 23 && min <= 59 ? h * 60 + min : undefined;
 }
+// Start date as YYYY-MM-DD. A date gone by when the page opens moves on to today, since rides are planned ahead.
+const isoDay = t => { const n = new Date(t); return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}-${String(n.getDate()).padStart(2, '0')}`; };
+const dayLabel = t => new Date(t).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' });
+let startDate = store.get(DATE_STORE) || '';
+if (!/^\d{4}-\d{2}-\d{2}$/.test(startDate) || startDate < isoDay(Date.now())) startDate = isoDay(Date.now());
+// When the ride starts and ends, as times; null until a start time is set
+function rideWindow(){
+  if (startMins === null) return null;
+  const [y, m, d] = startDate.split('-').map(Number), start = new Date(y, m - 1, d, 0, startMins).getTime();
+  return { start, end: start + total / speed * 1000 };
+}
 // Clock time after riding for sec, if a start time is set
 function clockAfter(sec){
   if (startMins === null) return null;
@@ -572,7 +588,8 @@ function showTiming(){
   $('#sTimeLabel').textContent = `Ride time · ${Math.round(speed * U[units].s * 2) / 2} ${U[units].sl}`;
   $('#sFinish').textContent = finish ?? 'Set start';
   $('#sFinish').classList.toggle('unset', !finish);
-  $('#sFinishLabel').textContent = finish ? `Finish · from ${hhmm(startMins)}` : 'Finish';
+  const day = startDate === isoDay(Date.now()) ? '' : ' ' + dayLabel(rideWindow()?.start);
+  $('#sFinishLabel').textContent = finish ? `Finish · from ${hhmm(startMins)}${day}` : 'Finish';
 }
 function showSpeed(){
   $('#speedInput').value = Math.round(speed * U[units].s * 2) / 2;
@@ -583,7 +600,7 @@ $('#speedInput').addEventListener('input', e => {
   if (!(v > 0)) return;
   speed = v / U[units].s;
   store.set(SPEED_STORE, String(speed));
-  showTiming(); setReadout(); drawOverlay();
+  showTiming(); setReadout(); drawOverlay(); showWeather(600);
 });
 // Clicking Ride time or Finish opens the speed and start boxes beneath it
 const timingPop = $('#timingPop'), timingBtns = document.querySelectorAll('.stat-btn');
@@ -622,11 +639,19 @@ $('#startInput').addEventListener('input', e => {
   if (typed !== '' && mins === undefined) return;   // part-way through typing, or not a time
   startMins = typed === '' ? null : mins;
   store.set(START_STORE, startMins === null ? '' : hhmm(startMins));
-  showTiming(); setReadout(); drawOverlay();
+  showTiming(); setReadout(); drawOverlay(); showWeather(600);
 });
 $('#startInput').addEventListener('change', e => {
   const typed = e.target.value.trim();
   e.target.classList.toggle('bad', typed !== '' && parseTime(typed) === undefined);
+});
+$('#startDate').value = startDate;
+$('#startDate').addEventListener('change', e => {
+  // Clearing the box goes back to today
+  startDate = e.target.value || isoDay(Date.now());
+  e.target.value = startDate;
+  store.set(DATE_STORE, startDate);
+  showTiming(); showWeather(300);
 });
 
 // Turns: where the heading over the 30 m before a point differs from the 30 m after by 45°+.
@@ -659,6 +684,7 @@ async function loadText(text, fileName){
   lastRoute.set({ text, name: fileName });
   pts = r.pts; total = pts[pts.length - 1].d; hoverIdx = -1; svIdx = -1;
   roads = { state: 'off', samples: [], forPts: null };
+  drawWeather();   // takes the last route's weather off the map
   $('#routeName').textContent = r.name || (fileName || 'Route').replace(/\.gpx$/i, '');
   $('#fileName').textContent = fileName || '';
   $('#drop').hidden = true;
@@ -672,6 +698,7 @@ async function loadText(text, fileName){
   computeStats();
   showStats();
   showRoads();   // draws the chart and readout too
+  showWeather();
 }
 
 async function loadFile(file){
@@ -1004,6 +1031,174 @@ function drawRoadLines(){
   }
 }
 
+// ---------- weather along the route (Open-Meteo), for the time you reach each part of it
+const FORECAST = 'https://api.open-meteo.com/v1/forecast', ARCHIVE = 'https://archive-api.open-meteo.com/v1/archive';
+const WX_VARS = ['temperature_2m', 'precipitation', 'precipitation_probability', 'wind_speed_10m', 'wind_direction_10m', 'wind_gusts_10m'];
+const DAY = 86400000;
+// Wind against the way you're riding there
+const WIND = {
+  head: { label: 'Headwind', color: '#e03131' },
+  cross: { label: 'Crosswind', color: '#f08c00' },
+  tail: { label: 'Tailwind', color: '#2f9e44' },
+  calm: { label: 'Light wind', color: '#adb5bd' }
+};
+const RAIN = '#1c7ed6';
+const COMPASS = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
+// places: forecast points along the route, each with its hourly data; view: the weather at each when you'd be there
+let wx = { state: 'off', forPts: null, places: [], view: [] }, wxOverlays = [], wxTimer, wxSeq = 0;
+const isoUTC = t => new Date(t).toISOString().slice(0, 10);
+const fws = ms => Math.round(ms * U[units].s) + ' ' + U[units].sl;
+const wxReady = () => $('#weatherToggle').checked && wx.forPts === pts && wx.view.length > 0 && pts.length > 0;
+const wxNear = d => wx.view[Math.round(d / total * (wx.view.length - 1))];
+
+// Up to 61 points, at least 3 km apart (the forecast grid is a few km across anyway)
+function wxPlaces(){
+  const n = Math.min(61, Math.max(2, Math.round(total / 3000) + 1)), out = [];
+  for (let k = 0; k < n; k++){
+    const d = k / (n - 1) * total, p = pointAt(d);
+    out.push({ d, lat: p.lat, lng: p.lng, heading: bearing(pointAt(d - 150), pointAt(d + 150)) });
+  }
+  return out;
+}
+
+// Forecasts reach 15 days ahead and 92 back; older dates come from the archive of past weather
+function wxSource(win){
+  const now = Date.now();
+  if (isoUTC(win.end + 3600000) > isoUTC(now + 15 * DAY)) return 'far';
+  return win.start - 3600000 < now - 90 * DAY ? 'archive' : 'forecast';
+}
+const wxCovers = win => wx.state === 'ready' && wx.forPts === pts && wx.from <= win.start && wx.to >= win.end;
+
+async function loadWeather(){
+  const win = rideWindow(), forPts = pts, seq = ++wxSeq, src = wxSource(win);
+  const places = wxPlaces(), vars = src === 'archive' ? WX_VARS.filter(v => v !== 'precipitation_probability') : WX_VARS;
+  wx = { state: 'loading', forPts, places: [], view: [] };
+  const q = new URLSearchParams({
+    latitude: places.map(p => p.lat.toFixed(4)).join(','), longitude: places.map(p => p.lng.toFixed(4)).join(','),
+    hourly: vars.join(','), wind_speed_unit: 'ms', timeformat: 'unixtime',
+    start_date: isoUTC(win.start - 3600000), end_date: isoUTC(win.end + 3600000)
+  });
+  try {
+    const res = await fetch((src === 'archive' ? ARCHIVE : FORECAST) + '?' + q);
+    const body = await res.json().catch(() => ({}));
+    if (seq !== wxSeq || pts !== forPts) return;
+    if (!res.ok || body.error) throw new Error(res.status === 429 ? 'Open-Meteo is busy. Try again in a minute.' : `Open-Meteo couldn’t give a forecast${body.reason ? ': ' + body.reason : '.'}`);
+    // One place comes back as an object, several as a list
+    const list = Array.isArray(body) ? body : [body];
+    places.forEach((p, k) => p.h = list[k].hourly);
+    const time = places[0].h.time;
+    wx = { state: 'ready', forPts, places, view: [], src, from: time[0] * 1000, to: time[time.length - 1] * 1000 };
+  } catch (e){
+    if (seq !== wxSeq || pts !== forPts) return;
+    wx = { state: 'error', forPts, places: [], view: [], win, error: e.message.startsWith('Open-Meteo') ? e.message : 'Couldn’t reach Open-Meteo for the weather.' };
+  }
+  showWeather();
+}
+
+// The weather at a place at time t, between its hourly values
+function wxAt(place, t){
+  const h = place.h, s = t / 1000, n = h.time.length;
+  let i = 0;
+  while (i < n - 2 && h.time[i + 1] <= s) i++;
+  const f = clamp((s - h.time[i]) / 3600, 0, 1);
+  const at = k => { const a = h[k]?.[i], b = h[k]?.[i + 1]; return a == null ? null : b == null ? a : a + (b - a) * f; };
+  // Rain is given for the hour before each time, so the hour being ridden is the next one
+  const next = k => h[k]?.[Math.min(i + 1, n - 1)] ?? null;
+  // Direction goes between the hours as a vector, so 350° to 10° passes through north
+  const vec = j => { const ws = h.wind_speed_10m[j] ?? 0, wd = toRad(h.wind_direction_10m[j] ?? 0); return [ws * Math.sin(wd), ws * Math.cos(wd)]; };
+  const [ax, ay] = vec(i), [bx, by] = vec(Math.min(i + 1, n - 1));
+  const from = (Math.atan2(ax + (bx - ax) * f, ay + (by - ay) * f) * 180 / Math.PI + 360) % 360;
+  const wind = at('wind_speed_10m') ?? 0, prob = next('precipitation_probability'), mm = next('precipitation') ?? 0;
+  // 0° is wind straight into your face, 180° straight behind
+  const off = Math.abs(((from - place.heading + 540) % 360) - 180);
+  return {
+    d: place.d, lat: place.lat, lng: place.lng, t, wind, from, gust: at('wind_gusts_10m'), temp: at('temperature_2m'), prob, mm,
+    rel: wind < 1.5 ? 'calm' : off <= 50 ? 'head' : off >= 130 ? 'tail' : 'cross',
+    // How likely it's wet there, 0 to 1: the chance of rain, or without one (past weather), how much fell
+    rain: Math.max((prob ?? 0) / 100, Math.min(1, mm))
+  };
+}
+
+function rainText(s){
+  if (s.prob === null) return s.mm >= .05 ? s.mm.toFixed(1) + ' mm' : 'Dry';
+  return Math.round(s.prob) + '%' + (s.mm >= .05 ? ` · ${s.mm.toFixed(1)} mm` : '');
+}
+
+// delay waits for typing to settle before asking for a new forecast
+function showWeather(delay = 0){
+  const on = $('#weatherToggle').checked && pts.length > 0, row = $('#weatherRow');
+  row.hidden = !on;
+  clearTimeout(wxTimer);
+  wx.view = [];
+  if (on){
+    const win = rideWindow(), src = win && wxSource(win);
+    if (!win){
+      row.innerHTML = '<span>Set a start time to see the weather as you reach each part of the route.</span><button id="wxStart">Set start time</button>';
+      $('#wxStart').addEventListener('click', () => openTiming(document.querySelector('.stat-btn[data-focus="startInput"]')));
+    } else if (src === 'far'){
+      row.innerHTML = `<span>Forecasts only reach about two weeks ahead, so pick a ride finishing by ${dayLabel(Date.now() + 15 * DAY)}.</span>`;
+    } else if (wxCovers(win)){
+      wx.view = wx.places.map(p => wxAt(p, win.start + p.d / speed * 1000));
+      row.innerHTML = wxSummary(win);
+    } else if (wx.state === 'error' && wx.forPts === pts && wx.win.start === win.start && wx.win.end === win.end){
+      row.innerHTML = `<span>${esc(wx.error)}</span><button id="wxRetry">Try again</button>`;
+      $('#wxRetry').addEventListener('click', loadWeather);
+    } else {
+      row.innerHTML = '<span>Getting the weather from Open-Meteo…</span>';
+      wxTimer = setTimeout(loadWeather, delay);
+    }
+  }
+  drawWeather();
+  drawChart();
+  setReadout();
+}
+
+function wxSummary(win){
+  const v = wx.view, per = total / v.length, by = {};
+  let wet = 0, lo = Infinity, hi = -Infinity, gust = 0;
+  for (const s of v){
+    by[s.rel] = (by[s.rel] || 0) + per;
+    if (s.rain >= .4) wet += per;
+    if (s.temp !== null){ lo = Math.min(lo, s.temp); hi = Math.max(hi, s.temp); }
+    gust = Math.max(gust, s.gust ?? s.wind);
+  }
+  const past = win.end < Date.now();
+  const when = past ? 'Past weather' : win.start > Date.now() + 7 * DAY ? 'Forecast, a long way off so likely to change' : 'Forecast';
+  let html = `<span>${when} · ${dayLabel(win.start)}</span>`;
+  html += Object.entries(WIND).filter(([k]) => by[k] > 0).map(([k, c]) =>
+    `<span class="chip"><i style="background:${c.color}"></i>${c.label} <b>${Math.round(by[k] / total * 100)}%</b></span>`).join('');
+  html += `<span class="chip">Gusts to <b>${fws(gust)}</b></span>`;
+  html += wet > 0
+    ? `<span class="chip"><i style="background:${RAIN}"></i>${past ? 'Rain' : 'Rain likely'} <b>${fd(wet)}</b></span>`
+    : `<span class="chip">${past ? 'Dry' : 'Rain unlikely'}</span>`;
+  if (isFinite(lo)) html += `<span class="chip"><b>${Math.round(lo)}${Math.round(hi) !== Math.round(lo) ? '–' + Math.round(hi) : ''}°C</b></span>`;
+  return html + '<a href="https://open-meteo.com/" target="_blank" rel="noopener">Weather by Open-Meteo</a>';
+}
+
+// Arrows blowing the way the wind goes, coloured by how it meets you; blue under the route where it's likely wet
+function drawWeather(){
+  wxOverlays.forEach(o => o.setMap(null));
+  wxOverlays = [];
+  if (!map || !wxReady()) return;
+  // At most about 24 arrows, so a long route isn't buried in them
+  const v = wx.view, half = total / (v.length - 1) / 2, every = Math.ceil(v.length / 24);
+  v.forEach((s, k) => {
+    if (s.rain >= .3){
+      const a = clamp(s.d - half, 0, total), b = clamp(s.d + half, 0, total);
+      const path = [pointAt(a), ...pts.slice(indexAt(a), indexAt(b)), pointAt(b)].map(ll);
+      wxOverlays.push(new google.maps.Polyline({ map, path, strokeColor: RAIN, strokeOpacity: .15 + .45 * s.rain, strokeWeight: 18, clickable: false, zIndex: 0 }));
+    }
+    if (k % every) return;
+    wxOverlays.push(new google.maps.Marker({
+      map, position: ll(s), clickable: false, zIndex: 850,
+      icon: {
+        path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW, rotation: (s.from + 180) % 360, scale: clamp(3 + s.wind * .4, 3.5, 9),
+        fillColor: WIND[s.rel].color, fillOpacity: 1, strokeColor: '#fff', strokeWeight: 1.5
+      }
+    }));
+  });
+}
+
 // ---------- hover state shared by map and graph
 function setHover(i){
   hoverIdx = i;
@@ -1018,11 +1213,27 @@ function setHover(i){
   setReadout();
 }
 
+// The readout keeps the height it has while hovering, even with only the hint in it, so the map above
+// doesn't resize (and the route move under the pointer) each time the pointer comes on or off the route
+let readoutKey = '', readoutH = 0;
 function setReadout(){
   const r = $('#readout');
-  if (!pts.length){ r.innerHTML = '<span>Hover the graph or the route</span>'; return; }
+  if (!pts.length){ r.style.minHeight = ''; readoutKey = ''; r.innerHTML = '<span>Hover the graph or the route</span>'; return; }
+  // Measure afresh, at a point midway along, whenever what the readout holds or the room for it changes
+  const key = [innerWidth, units, eleOk, startMins !== null, roadsReady(), wxReady(), total].join('|');
+  if (key !== readoutKey){
+    readoutKey = key;
+    r.style.minHeight = '';
+    r.innerHTML = readoutHtml(nearestIndexAt(total / 2));
+    readoutH = r.offsetHeight;
+  }
   const i = hoverIdx >= 0 ? hoverIdx : svIdx;
-  if (i < 0){ r.innerHTML = '<span>Hover the graph or the route · click either one for Street View</span>'; return; }
+  r.innerHTML = i < 0 ? '<span>Hover the graph or the route · click either one for Street View</span>' : readoutHtml(i);
+  // A long road name can take another line; keep that too rather than shrink back
+  readoutH = Math.max(readoutH, r.offsetHeight);
+  r.style.minHeight = readoutH + 'px';
+}
+function readoutHtml(i){
   const p = pts[i];
   let html = `<span>Distance <b>${fd(p.d, 2)}</b></span>`;
   if (eleOk) html += `<span>Elevation <b>${fe(p.ele)}</b></span><span>Gradient <b>${gradeAt(i).toFixed(1)}%</b></span>`;
@@ -1032,7 +1243,13 @@ function setReadout(){
     const road = roadAt(p.d);
     html += `<span>Road <b>${esc(road.name || CAT[road.cat].label)}</b>${road.name ? ' · ' + CAT[road.cat].label : ''}</span>`;
   }
-  r.innerHTML = html;
+  if (wxReady()){
+    const s = wxNear(p.d);
+    html += `<span>Wind <b>${fws(s.wind)} ${COMPASS[Math.round(s.from / 22.5) % 16]}</b> · ${WIND[s.rel].label.toLowerCase()}${s.gust !== null ? `, gusts ${fws(s.gust)}` : ''}</span>`;
+    html += `<span>Rain <b>${rainText(s)}</b></span>`;
+    if (s.temp !== null) html += `<span>Temp <b>${Math.round(s.temp)}°C</b></span>`;
+  }
+  return html;
 }
 
 // ---------- elevation profile
@@ -1049,8 +1266,8 @@ function drawChart(){
   if (!pts.length || !eleOk){ geom = null; drawOverlay(); return; }
 
   const u = U[units], muted = cssVar('--muted'), grid = cssVar('--grid'), accent = cssVar('--accent');
-  const strip = roadsReady();
-  const L = 64, R = 18, T = 14, B = strip ? 38 : 26, w = Math.max(10, W - L - R), h = Math.max(10, H - T - B);
+  const strip = roadsReady(), wstrip = wxReady(), strips = strip + wstrip;
+  const L = 64, R = 18, T = 14, B = 26 + 12 * strips, w = Math.max(10, W - L - R), h = Math.max(10, H - T - B);
   let lo = stats.min * u.e, hi = stats.max * u.e;
   const minSpan = units === 'mi' ? 100 : 30;
   if (hi - lo < minSpan){ const mid = (hi + lo) / 2; lo = mid - minSpan / 2; hi = mid + minSpan / 2; }
@@ -1072,7 +1289,7 @@ function drawChart(){
   for (let v = 0; v <= totalU + 1e-9; v += xs){
     const xx = Math.round(L + v / totalU * w) + .5;
     ctx.strokeStyle = grid; ctx.beginPath(); ctx.moveTo(xx, T); ctx.lineTo(xx, T + h); ctx.stroke();
-    ctx.fillStyle = muted; ctx.fillText(+v.toFixed(2) + ' ' + u.dl, Math.min(xx, L + w - 14), T + h + (strip ? 19 : 7));
+    ctx.fillStyle = muted; ctx.fillText(+v.toFixed(2) + ' ' + u.dl, Math.min(xx, L + w - 14), T + h + 7 + 12 * strips);
   }
 
   // One column per pixel: elevation and gradient sampled along the route
@@ -1110,6 +1327,19 @@ function drawChart(){
       ctx.fillRect(cols[k].px, T + h + 4, 1.6, 9);
     }
   }
+  // Wind as a strip under that, and the chance of rain hanging from the top
+  if (wstrip){
+    for (let k = 0; k < cols.length - 1; k++){
+      const s = wxNear(cols[k].d);
+      ctx.fillStyle = WIND[s.rel].color;
+      ctx.fillRect(cols[k].px, T + h + 4 + 12 * strip, 1.6, 9);
+      if (s.rain >= .1){
+        ctx.globalAlpha = .35; ctx.fillStyle = RAIN;
+        ctx.fillRect(cols[k].px, T, 1.6, h * .35 * s.rain);
+        ctx.globalAlpha = 1;
+      }
+    }
+  }
 
   geom = { L, T, w, h, W, H, dpr, x, y };
   drawOverlay();
@@ -1138,9 +1368,10 @@ function drawOverlay(){
   const xx = marker(hoverIdx, cssVar('--text'), .55, 1), p = pts[hoverIdx];
   const at = clockAfter(p.d / speed);
   tip.innerHTML = `<b>${fd(p.d, 2)}</b> · ${fe(p.ele)} · ${gradeAt(hoverIdx).toFixed(1)}% · ${at || duration(p.d / speed)}`;
+  if (wxReady()){ const s = wxNear(p.d); tip.innerHTML += ` · ${fws(s.wind)} ${s.rel === 'calm' ? 'light wind' : s.rel} · ${s.prob === null ? rainText(s) : Math.round(s.prob) + '% rain'}`; }
   tip.style.display = 'block';
   const tw = tip.offsetWidth;
-  tip.style.left = (xx + 12 + tw > W - 4 ? xx - 12 - tw : xx + 12) + 'px';
+  tip.style.left = Math.max(4, xx + 12 + tw > W - 4 ? xx - 12 - tw : xx + 12) + 'px';
 }
 
 function chartIndex(e){
@@ -1154,6 +1385,7 @@ over.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') setH
 over.addEventListener('click', e => { if (geom) showStreetView(chartIndex(e)); });
 
 new ResizeObserver(() => drawChart()).observe($('#profile'));
+addEventListener('resize', () => setReadout());
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', drawChart);
 
 // ---------- controls
@@ -1162,13 +1394,15 @@ function setUnits(u){
   document.querySelectorAll('[data-units]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.units === u)));
   updateStepBar();
   showSpeed();
-  if (pts.length){ showStats(); showRoads(); drawDistanceMarkers(); }
+  if (pts.length){ showStats(); showRoads(); showWeather(); drawDistanceMarkers(); }
 }
 document.querySelectorAll('[data-units]').forEach(b => b.addEventListener('click', () => setUnits(b.dataset.units)));
 $('#gradeToggle').addEventListener('change', drawChart);
 $('#roadsToggle').checked = store.get(ROADS_STORE) === '1';
 $('#roadsToggle').addEventListener('change', e => { store.set(ROADS_STORE, e.target.checked ? '1' : '0'); showRoads(); });
 $('#markersToggle').addEventListener('change', drawDistanceMarkers);
+$('#weatherToggle').checked = store.get(WEATHER_STORE) === '1';
+$('#weatherToggle').addEventListener('change', e => { store.set(WEATHER_STORE, e.target.checked ? '1' : '0'); showWeather(); });
 $('#openBtn').addEventListener('click', () => $('#fileInput').click());
 $('#chooseBtn').addEventListener('click', () => $('#fileInput').click());
 $('#fileInput').addEventListener('change', e => { loadFile(e.target.files[0]); e.target.value = ''; });
