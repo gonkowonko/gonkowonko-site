@@ -73,6 +73,7 @@ body.dragging main::after{content:"Drop to load";position:absolute;inset:10px;bo
 .toolbar{display:flex;align-items:center;gap:8px 16px;padding:8px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap;font-size:13px}
 .readout{display:flex;gap:4px 16px;font-variant-numeric:tabular-nums;color:var(--muted);flex:1 1 240px;min-width:0;flex-wrap:wrap;align-content:flex-start}
 .readout span{white-space:nowrap}
+.readout span.hint{white-space:normal}
 .readout b{color:var(--text);font-weight:650}
 .seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
 .seg button{border:0;border-radius:0;padding:4px 10px}
@@ -95,13 +96,18 @@ label.check{display:inline-flex;gap:6px;align-items:center;cursor:pointer;color:
 label.check input{accent-color:var(--accent);margin:0}
 .legend{display:inline-flex;gap:2px;align-items:center;color:var(--muted);font-size:11px}
 .legend i,.chip i{display:inline-block;width:18px;height:8px;border-radius:2px}
-.roadrow{display:flex;align-items:center;gap:6px 16px;padding:7px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap;font-size:12px;color:var(--muted)}
+.roadrow{display:flex;align-items:center;gap:6px 16px;padding:6px 0 6px 16px;border-bottom:1px solid var(--line);flex-wrap:nowrap;overflow:hidden;font-size:12px;color:var(--muted)}
+.roadrow:not(.open) > span:not(.chip){white-space:nowrap}
+.roadrow.open{flex-wrap:wrap;padding-right:16px}
+.roadrow.open .rowend{padding-right:0}
 .chip{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;font-variant-numeric:tabular-nums}
 .chip b{color:var(--text);font-weight:650}
-.roadrow a{color:var(--muted);margin-left:auto}
-.roadrow button{padding:2px 10px;font-size:12px}
+.roadrow a{color:var(--muted);white-space:nowrap}
+.rowend{position:sticky;right:0;margin-left:auto;display:inline-flex;align-items:center;gap:12px;padding:0 16px 0 10px;background:var(--panel);box-shadow:-12px 0 10px -2px var(--panel)}
+.roadrow button{padding:0 10px;font-size:12px;line-height:20px}
 .roadrow .note{color:var(--muted);font-style:italic}
 #profile{height:200px;position:relative}
+@media (max-height:820px){ #profile{height:160px} }
 #profile canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 #chartOver{cursor:crosshair}
 #tip{position:absolute;top:10px;pointer-events:none;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 9px;box-shadow:var(--shadow);font-size:12px;white-space:nowrap;display:none;font-variant-numeric:tabular-nums;z-index:2}
@@ -126,11 +132,22 @@ label.check input{accent-color:var(--accent);margin:0}
   main{flex-direction:column}
   #panoWrap{border-left:0;border-top:1px solid var(--line)}
 }
+/* On a phone or a short window the page scrolls, so the map keeps its room however much is below it */
+@media (max-width:760px), (max-height:560px){
+  html,body{height:auto;min-height:100%}
+  body{overflow:visible}
+  main{flex:1 0 auto;min-height:max(280px,55svh)}
+  main.split{min-height:max(440px,85svh)}
+  /* and the road and weather rows show in full, with no More */
+  .roadrow{flex-wrap:wrap;padding-right:16px}
+  .roadrow .rowend{padding-right:0}
+  .roadrow:not(.open) > span:not(.chip){white-space:normal}
+}
 @media (max-width:640px){
   #profile{height:150px}
   .stat b{font-size:15px}
   .stats{gap:6px 14px}
-  .legend{display:none}
+  .legend i{width:10px}
   .steprow button{padding:7px 7px}
 }
 </style>
@@ -191,7 +208,7 @@ label.check input{accent-color:var(--accent);margin:0}
 
 <section id="bottom">
   <div class="toolbar">
-    <div class="readout" id="readout"><span>Hover the graph or the route</span></div>
+    <div class="readout" id="readout"><span class="hint">Hover the graph or the route</span></div>
     <span class="legend" title="Gradient">
       <i style="background:var(--flat)"></i><i style="background:#f2c94c"></i><i style="background:#f2994a"></i><i style="background:#eb5757"></i><i style="background:#9b1c31"></i>
       &nbsp;0 · 3 · 6 · 9 · 12%+
@@ -726,8 +743,16 @@ function drawRoute(){
   drawDistanceMarkers();
   const b = new google.maps.LatLngBounds();
   path.forEach(p => b.extend(p));
+  routeBounds = b;
   map.fitBounds(b, 40);
 }
+// A map with no room when the route was drawn (say, a phone's page before it settled) fits it again once it has some
+let routeBounds = null, mapH = 0;
+new ResizeObserver(([e]) => {
+  const h = e.contentRect.height;
+  if (mapH < 100 && h >= 100 && routeBounds) map?.fitBounds(routeBounds, 40);
+  mapH = h;
+}).observe($('#map'));
 
 function drawDistanceMarkers(){
   distOverlays.forEach(o => o.setMap(null));
@@ -1011,8 +1036,27 @@ function showRoads(){
       drawRoadLines();
     }
   }
+  fitRow(row);
   drawChart();
   setReadout();
+}
+
+// The road and weather rows keep to one line, with More to show the rest; their credit link stays in view at the end
+function fitRow(row){
+  let end = row.querySelector('.rowend');
+  if (!end){
+    end = document.createElement('span');
+    end.className = 'rowend';
+    end.innerHTML = '<button class="more"></button>';
+    const credit = row.querySelector(':scope > a');
+    if (credit) end.append(credit);
+    row.append(end);
+    end.firstChild.addEventListener('click', () => { row.classList.toggle('open'); fitRow(row); });
+  }
+  const more = end.firstChild, open = row.classList.contains('open');
+  more.hidden = true;
+  more.hidden = SCROLLS.matches || !open && row.scrollWidth <= row.clientWidth;
+  more.textContent = open ? 'Less' : 'More';
 }
 
 function drawRoadLines(){
@@ -1148,6 +1192,7 @@ function showWeather(delay = 0){
       wxTimer = setTimeout(loadWeather, delay);
     }
   }
+  fitRow(row);
   drawWeather();
   drawChart();
   setReadout();
@@ -1213,12 +1258,25 @@ function setHover(i){
   setReadout();
 }
 
+// On a touch screen there's no hover: dragging along the graph shows where you are, and a tap opens Street View
+const TOUCH = matchMedia('(hover: none)').matches;
+const HINT = TOUCH ? 'Drag along the graph to see where you are · tap it or the route for Street View'
+  : 'Hover the graph or the route · click either one for Street View';
+// Matches the CSS where the page scrolls and the map keeps a fixed height
+const SCROLLS = matchMedia('(max-width:760px), (max-height:560px)');
+
 // The readout keeps the height it has while hovering, even with only the hint in it, so the map above
-// doesn't resize (and the route move under the pointer) each time the pointer comes on or off the route
+// doesn't resize (and the route move under the pointer) each time the pointer comes on or off the route.
+// Where the page scrolls the map can't resize, so there's no space to keep.
 let readoutKey = '', readoutH = 0;
 function setReadout(){
   const r = $('#readout');
-  if (!pts.length){ r.style.minHeight = ''; readoutKey = ''; r.innerHTML = '<span>Hover the graph or the route</span>'; return; }
+  if (!pts.length || SCROLLS.matches){
+    r.style.minHeight = ''; readoutKey = '';
+    const i = hoverIdx >= 0 ? hoverIdx : svIdx;
+    r.innerHTML = pts.length && i >= 0 ? readoutHtml(i) : `<span class="hint">${pts.length ? HINT : HINT.split(' · ')[0]}</span>`;
+    return;
+  }
   // Measure afresh, at a point midway along, whenever what the readout holds or the room for it changes
   const key = [innerWidth, units, eleOk, startMins !== null, roadsReady(), wxReady(), total].join('|');
   if (key !== readoutKey){
@@ -1228,7 +1286,7 @@ function setReadout(){
     readoutH = r.offsetHeight;
   }
   const i = hoverIdx >= 0 ? hoverIdx : svIdx;
-  r.innerHTML = i < 0 ? '<span>Hover the graph or the route · click either one for Street View</span>' : readoutHtml(i);
+  r.innerHTML = i < 0 ? `<span class="hint">${HINT}</span>` : readoutHtml(i);
   // A long road name can take another line; keep that too rather than shrink back
   readoutH = Math.max(readoutH, r.offsetHeight);
   r.style.minHeight = readoutH + 'px';
@@ -1267,7 +1325,7 @@ function drawChart(){
 
   const u = U[units], muted = cssVar('--muted'), grid = cssVar('--grid'), accent = cssVar('--accent');
   const strip = roadsReady(), wstrip = wxReady(), strips = strip + wstrip;
-  const L = 64, R = 18, T = 14, B = 26 + 12 * strips, w = Math.max(10, W - L - R), h = Math.max(10, H - T - B);
+  const L = 64, R = 18, T = 14, sgap = strips ? 3 : 0, B = 26 + 12 * strips + sgap, w = Math.max(10, W - L - R), h = Math.max(10, H - T - B);
   let lo = stats.min * u.e, hi = stats.max * u.e;
   const minSpan = units === 'mi' ? 100 : 30;
   if (hi - lo < minSpan){ const mid = (hi + lo) / 2; lo = mid - minSpan / 2; hi = mid + minSpan / 2; }
@@ -1289,7 +1347,7 @@ function drawChart(){
   for (let v = 0; v <= totalU + 1e-9; v += xs){
     const xx = Math.round(L + v / totalU * w) + .5;
     ctx.strokeStyle = grid; ctx.beginPath(); ctx.moveTo(xx, T); ctx.lineTo(xx, T + h); ctx.stroke();
-    ctx.fillStyle = muted; ctx.fillText(+v.toFixed(2) + ' ' + u.dl, Math.min(xx, L + w - 14), T + h + 7 + 12 * strips);
+    ctx.fillStyle = muted; ctx.fillText(+v.toFixed(2) + ' ' + u.dl, Math.min(xx, L + w - 14), T + h + 7 + 12 * strips + sgap);
   }
 
   // One column per pixel: elevation and gradient sampled along the route
@@ -1320,19 +1378,27 @@ function drawChart(){
   cols.forEach((c, k) => k ? ctx.lineTo(c.px, y(c.e)) : ctx.moveTo(c.px, y(c.e)));
   ctx.stroke();
 
+  // Each strip is named to its left, since roads and wind share colours
+  const stripLabel = (text, top) => {
+    ctx.font = '10px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif';
+    ctx.textAlign = 'right'; ctx.textBaseline = 'middle'; ctx.fillStyle = muted;
+    ctx.fillText(text, L - 8, top + 5);
+  };
   // Road types as a strip under the graph
   if (strip){
+    stripLabel('Roads', T + h + 7);
     for (let k = 0; k < cols.length - 1; k++){
       ctx.fillStyle = CAT[roadAt(cols[k].d).cat].color;
-      ctx.fillRect(cols[k].px, T + h + 4, 1.6, 9);
+      ctx.fillRect(cols[k].px, T + h + 7, 1.6, 9);
     }
   }
   // Wind as a strip under that, and the chance of rain hanging from the top
   if (wstrip){
+    stripLabel('Wind', T + h + 7 + 12 * strip);
     for (let k = 0; k < cols.length - 1; k++){
       const s = wxNear(cols[k].d);
       ctx.fillStyle = WIND[s.rel].color;
-      ctx.fillRect(cols[k].px, T + h + 4 + 12 * strip, 1.6, 9);
+      ctx.fillRect(cols[k].px, T + h + 7 + 12 * strip, 1.6, 9);
       if (s.rain >= .1){
         ctx.globalAlpha = .35; ctx.fillStyle = RAIN;
         ctx.fillRect(cols[k].px, T, 1.6, h * .35 * s.rain);
@@ -1385,7 +1451,7 @@ over.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') setH
 over.addEventListener('click', e => { if (geom) showStreetView(chartIndex(e)); });
 
 new ResizeObserver(() => drawChart()).observe($('#profile'));
-addEventListener('resize', () => setReadout());
+addEventListener('resize', () => { setReadout(); fitRow($('#roadRow')); fitRow($('#weatherRow')); });
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', drawChart);
 
 // ---------- controls
