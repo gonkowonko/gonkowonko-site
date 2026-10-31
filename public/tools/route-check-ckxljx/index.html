@@ -637,11 +637,14 @@ $('#speedInput').addEventListener('input', e => {
 });
 // Clicking Ride time or Finish opens the speed and start boxes beneath it
 const timingPop = $('#timingPop'), timingBtns = document.querySelectorAll('.stat-btn');
-function openTiming(btn){
-  timingPop.hidden = false;
+function placeTiming(btn){
   const r = btn.getBoundingClientRect();
   timingPop.style.left = Math.max(8, Math.min(r.left - 6, innerWidth - timingPop.offsetWidth - 8)) + 'px';
   timingPop.style.top = (r.bottom + 8) + 'px';
+}
+function openTiming(btn){
+  timingPop.hidden = false;
+  placeTiming(btn);
   timingBtns.forEach(b => b.setAttribute('aria-expanded', String(b === btn)));
   // Ride time goes to the speed box, Finish to the start box
   const input = document.getElementById(btn.dataset.focus);
@@ -664,6 +667,12 @@ document.addEventListener('pointerdown', e => {
 }, true);
 timingPop.addEventListener('keydown', e => { if (e.key === 'Escape' || e.key === 'Enter') closeTiming(); });
 addEventListener('resize', closeTiming);
+// Where the page scrolls the box moves with its stat rather than closing, since a phone scrolls
+// the page itself to bring the box's input into view above the keyboard
+addEventListener('scroll', () => {
+  const btn = document.querySelector('.stat-btn[aria-expanded="true"]');
+  if (btn) placeTiming(btn);
+}, { passive: true });
 
 // The Options panel opens above its button, since the button sits at the foot of the page
 const optPop = $('#optPop'), optBtn = $('#optBtn');
@@ -1262,8 +1271,12 @@ function wxSummary(win){
   html += Object.entries(WIND).filter(([k]) => by[k] > 0).map(([k, c]) =>
     `<span class="chip"><i style="background:${c.color}"></i>${c.label} <b>${Math.round(by[k] / total * 100)}%</b></span>`).join('');
   html += `<span class="chip">Gusts to <b>${fws(gust)}</b></span>`;
+  // The swatch shows whenever the graph has any rain shading on it, so the chip says what the blue is
+  const swatch = v.some(s => s.rain >= .1) ? `<i style="background:${RAIN};opacity:.55"></i>` : '';
+  const tip = 'title="Blue hanging from the top of the graph, and under the route on the map, shows where rain is likely"';
   html += wet > 0
-    ? `<span class="chip"><i style="background:${RAIN}"></i>${past ? 'Rain' : 'Rain likely'} <b>${fd(wet)}</b></span>`
+    ? `<span class="chip" ${tip}>${swatch}${past ? 'Rain' : 'Rain likely'} <b>${fd(wet)}</b></span>`
+    : swatch ? `<span class="chip" ${tip}>${swatch}${past ? 'Light rain' : 'Small chance of rain'}</span>`
     : `<span class="chip">${past ? 'Dry' : 'Rain unlikely'}</span>`;
   if (isFinite(lo)) html += `<span class="chip"><b>${Math.round(lo)}${Math.round(hi) !== Math.round(lo) ? '–' + Math.round(hi) : ''}°C</b></span>`;
   return html + '<a href="https://open-meteo.com/" target="_blank" rel="noopener">Weather by Open-Meteo</a>';
