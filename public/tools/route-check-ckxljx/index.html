@@ -78,12 +78,37 @@ body.dragging main::after{content:"Drop to load";position:absolute;inset:10px;bo
 .seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
 .seg button{border:0;border-radius:0;padding:4px 10px}
 .seg button[aria-pressed="true"]{background:var(--accent);color:#fff}
-.stat-btn{appearance:none;background:none;border:0;border-radius:8px;padding:3px 6px;margin:-3px -6px;text-align:left;color:inherit;font:inherit;line-height:1.15;cursor:pointer}
-.stat-btn:hover,.stat-btn[aria-expanded="true"]{background:var(--btn)}
-.stat-btn span::after{content:" ▾"}
-.stat b.unset{color:var(--muted);font-weight:600}
+/* The ride button is tinted with the route colour and led by a clock, so it reads as something to open */
+.plan-btn{appearance:none;display:flex;align-items:center;gap:9px;background:color-mix(in srgb,var(--accent) 12%,var(--panel));border:1px solid color-mix(in srgb,var(--accent) 45%,var(--panel));border-radius:10px;padding:5px 12px 5px 9px;margin:-6px 0;text-align:left;color:inherit;font:inherit;line-height:1.15;cursor:pointer}
+.plan-btn:hover,.plan-btn[aria-expanded="true"]{background:color-mix(in srgb,var(--accent) 20%,var(--panel));border-color:var(--accent)}
+.plan-btn svg{flex:none;width:22px;height:22px;color:var(--accent)}
+#sPlanLabel::after{content:" ▾"}
+.plan-btn[aria-expanded="true"] #sPlanLabel::after{content:" ▴"}
+.stat b .unset{color:var(--muted);font-weight:600;font-size:inherit;text-transform:none;letter-spacing:normal}
 .popover{position:fixed;z-index:15;background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:12px 14px;display:flex;flex-direction:column;gap:10px;max-width:calc(100% - 16px)}
 .popover p{margin:0;font-size:12px;color:var(--muted);max-width:300px}
+/* The ride plan: speed and start, and the ride laid across the day */
+#planPop{width:500px;gap:12px}
+#planPop p{max-width:none}
+.popover .plan-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;color:var(--muted)}
+.plan-row .plan-head{width:44px;color:var(--text)}
+.popover .plan-row input[type="range"]{flex:1 1 120px;min-width:100px;height:28px;padding:0;margin:0;border:0;background:none;accent-color:var(--accent)}
+.popover .plan-row input[type="range"]:focus{outline:0}
+.popover .plan-row input[type="range"]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.nudge{padding:0;width:28px;height:28px;line-height:26px;text-align:center;font-size:15px}
+.day{position:relative;height:40px;border-radius:8px;background:var(--panel-2);border:1px solid var(--line);overflow:hidden;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
+.day:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.day.dragging{cursor:grabbing}
+.day .night{position:absolute;top:0;bottom:0;background:var(--line)}
+.day .rain{position:absolute;top:0;height:6px}
+.day .ride{position:absolute;top:9px;bottom:9px;min-width:6px;border-radius:6px;background:var(--accent);color:#fff;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;overflow:hidden;white-space:nowrap;font-variant-numeric:tabular-nums}
+.day .ride.on-next{border-top-right-radius:0;border-bottom-right-radius:0}
+.day .ghost{position:absolute;inset:0;display:grid;place-items:center;font-size:12px;color:var(--muted);pointer-events:none}
+.day-axis{position:relative;height:28px;margin-top:-6px;font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+.day-axis span{position:absolute;top:0;transform:translateX(-50%);white-space:nowrap}
+.day-axis span.sun{top:14px}
+.day-axis span:first-child{transform:none}
+.day-axis span.end{transform:translateX(-100%)}
 .timing{display:inline-flex;gap:12px;align-items:center;color:var(--muted)}
 .timing label{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
 .timing input{font:inherit;color:var(--text);background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:0 8px;height:28px}
@@ -93,7 +118,8 @@ body.dragging main::after{content:"Drop to load";position:absolute;inset:10px;bo
 .timing input[type="date"]{width:auto;color-scheme:light dark}
 .timing input.bad{border-color:#d33;outline-color:#d33}
 label.check{display:inline-flex;gap:6px;align-items:center;cursor:pointer;color:var(--muted);white-space:nowrap}
-.opt-btn{margin-left:auto;padding:4px 10px}
+.opt-btn{margin-left:auto;padding:4px 10px 4px 8px;display:inline-flex;align-items:center;gap:6px}
+.opt-btn svg{width:15px;height:15px;color:var(--muted)}
 .opt-btn[aria-expanded="true"]{background:var(--btn-hover)}
 #optPop{gap:14px;font-size:13px}
 #optPop label.check{color:var(--text)}
@@ -170,16 +196,36 @@ label.check input{accent-color:var(--accent);margin:0}
     <div class="stat"><b id="sDown">–</b><span>Elevation loss</span></div>
     <div class="stat"><b id="sMax">–</b><span>Highest</span></div>
     <div class="stat"><b id="sGrade">–</b><span>Steepest</span></div>
-    <button class="stat stat-btn" data-focus="speedInput" title="Change the speed" aria-expanded="false"><b id="sTime">–</b><span id="sTimeLabel">Ride time</span></button>
-    <button class="stat stat-btn" data-focus="startInput" title="Change the start time" aria-expanded="false"><b id="sFinish">–</b><span id="sFinishLabel">Finish</span></button>
+    <button class="plan-btn" id="planBtn" title="Change the speed and start time" aria-expanded="false" aria-controls="planPop">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M10 2h4M12 2v3"/></svg>
+      <span class="stat"><b id="sPlan">–</b><span id="sPlanLabel">Ride time</span></span>
+    </button>
   </div>
-  <div class="popover" id="timingPop" hidden>
-    <div class="timing">
-      <label>Speed <input id="speedInput" type="number" min="1" max="99" step="0.5" inputmode="decimal"> <span id="speedUnit">mph</span></label>
-      <label>Start <input id="startInput" type="text" placeholder="e.g. 9:00" autocomplete="off" spellcheck="false"></label>
+  <div class="popover" id="planPop" hidden>
+    <div class="plan-row timing">
+      <span class="plan-head">Speed</span>
+      <button class="nudge" data-speed="-0.5" aria-label="Slower">−</button>
+      <input id="speedRange" type="range" step="0.5" aria-label="Average speed">
+      <button class="nudge" data-speed="0.5" aria-label="Faster">+</button>
+      <label><input id="speedInput" type="number" min="1" max="99" step="0.5" inputmode="decimal" aria-label="Average speed"> <span id="speedUnit">mph</span></label>
+    </div>
+    <div class="plan-row timing">
+      <span class="plan-head">Start</span>
+      <button class="nudge" data-start="-15" aria-label="15 minutes earlier">−</button>
+      <input id="startInput" type="text" placeholder="e.g. 9:00" autocomplete="off" spellcheck="false" aria-label="Start time">
+      <button class="nudge" data-start="15" aria-label="15 minutes later">+</button>
       <label>on <input id="startDate" type="date"></label>
     </div>
-    <p>Average moving speed; stops aren’t included. Set a start time to see when you’ll finish, and the weather as you reach each part of the route.</p>
+    <div>
+      <div class="day" id="dayBar" role="slider" tabindex="0" aria-label="Start time, across the day" aria-valuemin="0" aria-valuemax="1425">
+        <div class="night" id="nightAm"></div><div class="night" id="nightPm"></div>
+        <div id="dayRain"></div>
+        <div class="ride" id="dayRide" hidden></div>
+        <div class="ghost" id="dayGhost">Tap or drag here to set a start time</div>
+      </div>
+      <div class="day-axis" id="dayAxis"></div>
+    </div>
+    <p id="dayNote">Average moving speed. Drag the ride along the day to change the start, and see if you’ll finish in daylight.</p>
   </div>
   <div class="actions">
     <button class="btn-primary" id="openBtn">Open GPX…</button>
@@ -219,7 +265,7 @@ label.check input{accent-color:var(--accent);margin:0}
       <i style="background:var(--flat)"></i><i style="background:#f2c94c"></i><i style="background:#f2994a"></i><i style="background:#eb5757"></i><i style="background:#9b1c31"></i>
       &nbsp;0 · 3 · 6 · 9 · 12%+
     </span>
-    <button class="opt-btn" id="optBtn" aria-expanded="false" aria-controls="optPop">Options ▾</button>
+    <button class="opt-btn" id="optBtn" aria-expanded="false" aria-controls="optPop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.3 4.3c.4-1.8 3-1.8 3.4 0a1.7 1.7 0 0 0 2.6 1.1c1.5-.9 3.3.8 2.4 2.4a1.7 1.7 0 0 0 1 2.5c1.8.4 1.8 3 0 3.4a1.7 1.7 0 0 0-1 2.6c.9 1.5-.9 3.3-2.4 2.4a1.7 1.7 0 0 0-2.6 1c-.4 1.8-3 1.8-3.4 0a1.7 1.7 0 0 0-2.6-1c-1.5.9-3.3-.9-2.4-2.4a1.7 1.7 0 0 0-1-2.6c-1.8-.4-1.8-3 0-3.4a1.7 1.7 0 0 0 1-2.5c-.9-1.6.9-3.3 2.4-2.4a1.7 1.7 0 0 0 2.6-1.1z"/><circle cx="12" cy="12" r="3"/></svg>Options ▾</button>
   </div>
   <!-- What the map and graph show, and the units, kept out of the toolbar since they're set once a route -->
   <div class="popover" id="optPop" hidden>
@@ -614,65 +660,183 @@ function clockAfter(sec){
   const mins = startMins + Math.round(sec / 60), days = Math.floor(mins / 1440);
   return hhmm(mins % 1440) + (days ? ` +${days}d` : '');
 }
+const shownSpeed = () => Math.round(speed * U[units].s * 2) / 2;
+// One button in the top bar sums up the plan: ride time and finish, then speed and start
 function showTiming(){
   if (!pts.length) return;
   const finish = clockAfter(total / speed);
-  $('#sTime').textContent = duration(total / speed);
-  $('#sTimeLabel').textContent = `Ride time · ${Math.round(speed * U[units].s * 2) / 2} ${U[units].sl}`;
-  $('#sFinish').textContent = finish ?? 'Set start';
-  $('#sFinish').classList.toggle('unset', !finish);
+  $('#sPlan').innerHTML = duration(total / speed) + (finish ? ` → ${finish}` : ' <span class="unset">· set start</span>');
   const day = startDate === isoDay(Date.now()) ? '' : ' ' + dayLabel(rideWindow()?.start);
-  $('#sFinishLabel').textContent = finish ? `Finish · from ${hhmm(startMins)}${day}` : 'Finish';
+  $('#sPlanLabel').textContent = `Ride · ${shownSpeed()} ${U[units].sl}` + (finish ? ` · from ${hhmm(startMins)}${day}` : '');
+  showDay();
 }
 function showSpeed(){
-  $('#speedInput').value = Math.round(speed * U[units].s * 2) / 2;
+  const v = shownSpeed(), [min, max] = units === 'mi' ? [8, 30] : [12, 48];
+  $('#speedInput').value = v;
+  // The range goes before the value, or the value is clamped to the old range
+  Object.assign($('#speedRange'), { min, max });
+  $('#speedRange').value = v;
   $('#speedUnit').textContent = U[units].sl;
 }
-$('#speedInput').addEventListener('input', e => {
-  const v = parseFloat(e.target.value);
+function setSpeed(v){
   if (!(v > 0)) return;
   speed = v / U[units].s;
   store.set(SPEED_STORE, String(speed));
   showTiming(); setReadout(); drawOverlay(); showWeather(600);
+}
+$('#speedInput').addEventListener('input', e => { setSpeed(parseFloat(e.target.value)); $('#speedRange').value = shownSpeed(); });
+$('#speedRange').addEventListener('input', e => { setSpeed(+e.target.value); $('#speedInput').value = shownSpeed(); });
+document.querySelectorAll('[data-speed]').forEach(b => b.addEventListener('click', () => {
+  setSpeed(Math.max(1, shownSpeed() + +b.dataset.speed));
+  showSpeed();
+}));
+// fromBox is when it was typed, so the box is left as it is mid-typing
+function setStart(mins, fromBox){
+  startMins = mins;
+  store.set(START_STORE, mins === null ? '' : hhmm(mins));
+  if (!fromBox){
+    $('#startInput').value = mins === null ? '' : hhmm(mins);
+    $('#startInput').classList.remove('bad');
+  }
+  showTiming(); setReadout(); drawOverlay(); showWeather(600);
+}
+// − and + go to the quarter hour before or after; with no start yet, they start at 09:00
+function nudgeStart(by){
+  if (startMins === null) return setStart(540);
+  const q = by > 0 ? Math.floor(startMins / 15) * 15 + by : Math.ceil(startMins / 15) * 15 + by;
+  setStart(clamp(q, 0, 1425));
+}
+document.querySelectorAll('[data-start]').forEach(b => b.addEventListener('click', () => nudgeStart(+b.dataset.start)));
+
+// Sunrise and sunset on a day at a place, as minutes after local midnight (the sunrise equation, good to a
+// minute or two). Where the sun doesn't rise or set that day, up says whether it's day or night throughout.
+function sunTimes(lat, lng, iso){
+  const [y, m, d] = iso.split('-').map(Number);
+  const n = Math.round(Date.UTC(y, m - 1, d, 12) / 86400000 + 2440587.5 - 2451545);   // days since 2000, at noon
+  const J = n - lng / 360, M = (357.5291 + .98560028 * J) % 360, Mr = toRad(M);
+  const L = toRad((M + 1.9148 * Math.sin(Mr) + .02 * Math.sin(2 * Mr) + .0003 * Math.sin(3 * Mr) + 282.9372) % 360);
+  const transit = 2451545 + J + .0053 * Math.sin(Mr) - .0069 * Math.sin(2 * L);
+  const dec = Math.asin(Math.sin(L) * Math.sin(toRad(23.4397))), phi = toRad(lat);
+  const cosW = (Math.sin(toRad(-.833)) - Math.sin(phi) * Math.sin(dec)) / (Math.cos(phi) * Math.cos(dec));
+  if (Math.abs(cosW) > 1) return { rise: null, set: null, up: cosW < -1 };
+  const w = Math.acos(cosW) / (2 * Math.PI), midnight = new Date(y, m - 1, d).getTime();
+  const at = jd => Math.round(((jd - 2440587.5) * 86400000 - midnight) / 60000);
+  return { rise: at(transit - w), set: at(transit + w) };
+}
+
+// The ride laid across its day: night shaded either side of daylight where the route starts,
+// and blue along the top for the hours rain is likely somewhere on the route
+function showDay(){
+  if (planPop.hidden || !pts.length) return;
+  const pct = m => clamp(m / 1440 * 100, 0, 100) + '%', sun = sunTimes(pts[0].lat, pts[0].lng, startDate);
+  const rise = sun.rise ?? (sun.up ? 0 : 1440), set = sun.set ?? 1440;
+  Object.assign($('#nightAm').style, { left: 0, width: pct(rise) });
+  Object.assign($('#nightPm').style, { left: pct(set), right: 0 });
+  const ride = $('#dayRide'), mins = total / speed / 60;
+  ride.hidden = startMins === null;
+  $('#dayGhost').hidden = startMins !== null;
+  if (startMins !== null){
+    Object.assign(ride.style, { left: pct(startMins), width: pct(Math.min(mins, 1440 - startMins)) });
+    ride.classList.toggle('on-next', startMins + mins > 1440);
+    ride.textContent = `${hhmm(startMins)} – ${clockAfter(mins * 60)}`;
+    // A short ride shows just its start, or too short for that, just the bar
+    if (ride.scrollWidth > ride.clientWidth) ride.textContent = hhmm(startMins);
+    if (ride.scrollWidth > ride.clientWidth) ride.textContent = '';
+    dayBar.setAttribute('aria-valuenow', startMins);
+    dayBar.setAttribute('aria-valuetext', `Start ${hhmm(startMins)}, finish ${clockAfter(mins * 60)}`);
+  } else {
+    dayBar.removeAttribute('aria-valuenow');
+    dayBar.setAttribute('aria-valuetext', 'No start time');
+  }
+  let axis = ['00', '06', '12', '18', '24'].map((h, k) => `<span${k === 4 ? ' class="end"' : ''} style="left:${k * 25}%">${h}</span>`).join('');
+  if (sun.rise !== null) axis += `<span class="sun" style="left:${pct(clamp(sun.rise, 60, 1380))}">Sunrise ${hhmm(sun.rise)}</span>`;
+  if (sun.set !== null) axis += `<span class="sun" style="left:${pct(clamp(sun.set, 60, 1380))}">Sunset ${hhmm(sun.set)}</span>`;
+  $('#dayAxis').innerHTML = axis;
+  let rain = '', wet = false;
+  if (wx.state === 'ready' && wx.forPts === pts){
+    const [y, m, d] = startDate.split('-').map(Number), midnight = new Date(y, m - 1, d).getTime();
+    for (let h = 0; h < 24; h++){
+      const t = midnight + h * 3600000;
+      if (t < wx.from || t + 3600000 > wx.to) continue;
+      const r = Math.max(...wx.places.map(p => wxAt(p, t).rain));
+      if (r < .1) continue;
+      wet = true;
+      rain += `<div class="rain" style="left:${h / 24 * 100}%;width:${100 / 24}%;background:${RAIN};opacity:${(.25 + .7 * r).toFixed(2)}"></div>`;
+    }
+  }
+  $('#dayRain').innerHTML = rain;
+  $('#dayNote').textContent = 'Average moving speed. Drag the ride along the day to change the start. ' +
+    (!$('#weatherToggle').checked ? 'Turn on Weather in Options to see when rain’s likely.'
+      : wet ? 'Blue along the top: hours rain’s likely somewhere on the route.'
+      : wx.state === 'ready' && wx.forPts === pts ? 'Rain’s unlikely all day.' : '');
+}
+
+// Dragging along the day moves the start, a quarter hour at a time. Picked up on the ride it keeps
+// that grip; anywhere else, the ride centres on the pointer.
+const planPop = $('#planPop'), planBtn = $('#planBtn'), dayBar = $('#dayBar');
+let dayGrip = null;
+const dayAt = e => { const r = dayBar.getBoundingClientRect(); return (e.clientX - r.left) / r.width * 1440; };
+dayBar.addEventListener('pointerdown', e => {
+  const at = dayAt(e), mins = total / speed / 60;
+  dayGrip = startMins !== null && at >= startMins && at <= startMins + mins ? at - startMins : Math.min(mins, 1440) / 2;
+  dayBar.setPointerCapture(e.pointerId);
+  dayBar.classList.add('dragging');
+  dragDay(e);
 });
-// Clicking Ride time or Finish opens the speed and start boxes beneath it
-const timingPop = $('#timingPop'), timingBtns = document.querySelectorAll('.stat-btn');
-function placeTiming(btn){
-  const r = btn.getBoundingClientRect();
-  timingPop.style.left = Math.max(8, Math.min(r.left - 6, innerWidth - timingPop.offsetWidth - 8)) + 'px';
-  timingPop.style.top = (r.bottom + 8) + 'px';
+function dragDay(e){
+  if (dayGrip === null) return;
+  const m = clamp(Math.round((dayAt(e) - dayGrip) / 15) * 15, 0, 1425);
+  if (m !== startMins) setStart(m);
 }
-function openTiming(btn){
-  timingPop.hidden = false;
-  placeTiming(btn);
-  timingBtns.forEach(b => b.setAttribute('aria-expanded', String(b === btn)));
-  // Ride time goes to the speed box, Finish to the start box
-  const input = document.getElementById(btn.dataset.focus);
-  input.focus();
-  input.select();
+dayBar.addEventListener('pointermove', dragDay);
+const dropDay = () => { dayGrip = null; dayBar.classList.remove('dragging'); };
+dayBar.addEventListener('pointerup', dropDay);
+dayBar.addEventListener('pointercancel', dropDay);
+dayBar.addEventListener('keydown', e => {
+  const by = { ArrowLeft: -15, ArrowDown: -15, ArrowRight: 15, ArrowUp: 15, PageDown: -60, PageUp: 60 }[e.key];
+  if (!by) return;
+  e.preventDefault();
+  nudgeStart(by);
+});
+
+// The plan button opens the panel beneath it
+function placePlan(){
+  const r = planBtn.getBoundingClientRect();
+  planPop.style.left = Math.max(8, Math.min(r.left, innerWidth - planPop.offsetWidth - 8)) + 'px';
+  planPop.style.top = (r.bottom + 8) + 'px';
 }
-function closeTiming(){
+function openPlan(focus = $('#speedRange')){
+  planPop.hidden = false;
+  placePlan();
+  planBtn.setAttribute('aria-expanded', 'true');
+  showDay();
+  focus.focus();
+  focus.select?.();
+}
+function closePlan(){
   // Tidy what was typed into the usual form, e.g. 730 to 07:30
   const start = $('#startInput');
   start.value = startMins === null ? '' : hhmm(startMins);
   start.classList.remove('bad');
-  timingPop.hidden = true;
-  timingBtns.forEach(b => b.setAttribute('aria-expanded', 'false'));
+  planPop.hidden = true;
+  planBtn.setAttribute('aria-expanded', 'false');
 }
-// Clicking the same stat again closes the panel; clicking the other one moves to its box
-timingBtns.forEach(b => b.addEventListener('click', () =>
-  b.getAttribute('aria-expanded') === 'true' ? closeTiming() : openTiming(b)));
+planBtn.addEventListener('click', () => planPop.hidden ? openPlan() : closePlan());
 document.addEventListener('pointerdown', e => {
-  if (!timingPop.hidden && !timingPop.contains(e.target) && !e.target.closest('.stat-btn')) closeTiming();
+  if (!planPop.hidden && !planPop.contains(e.target) && !planBtn.contains(e.target)) closePlan();
 }, true);
-timingPop.addEventListener('keydown', e => { if (e.key === 'Escape' || e.key === 'Enter') closeTiming(); });
-addEventListener('resize', closeTiming);
-// Where the page scrolls the box moves with its stat rather than closing, since a phone scrolls
-// the page itself to bring the box's input into view above the keyboard
-addEventListener('scroll', () => {
-  const btn = document.querySelector('.stat-btn[aria-expanded="true"]');
-  if (btn) placeTiming(btn);
-}, { passive: true });
+planPop.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.matches('input')) closePlan(); });
+// Captured, so Escape closes the panel before the route keys take it for Street View
+addEventListener('keydown', e => {
+  if (e.key !== 'Escape' || planPop.hidden) return;
+  e.stopPropagation();
+  closePlan();
+  planBtn.focus();
+}, true);
+addEventListener('resize', closePlan);
+// Where the page scrolls the panel moves with its button rather than closing, since a phone scrolls
+// the page itself to bring the panel's input into view above the keyboard
+addEventListener('scroll', () => { if (!planPop.hidden) placePlan(); }, { passive: true });
 
 // The Options panel opens above its button, since the button sits at the foot of the page
 const optPop = $('#optPop'), optBtn = $('#optBtn');
@@ -712,9 +876,7 @@ $('#startInput').addEventListener('input', e => {
   const typed = e.target.value.trim(), mins = parseTime(typed);
   e.target.classList.remove('bad');
   if (typed !== '' && mins === undefined) return;   // part-way through typing, or not a time
-  startMins = typed === '' ? null : mins;
-  store.set(START_STORE, startMins === null ? '' : hhmm(startMins));
-  showTiming(); setReadout(); drawOverlay(); showWeather(600);
+  setStart(typed === '' ? null : mins, true);
 });
 $('#startInput').addEventListener('change', e => {
   const typed = e.target.value.trim();
@@ -1236,7 +1398,7 @@ function showWeather(delay = 0){
     const win = rideWindow(), src = win && wxSource(win);
     if (!win){
       row.innerHTML = '<span>Set a start time to see the weather as you reach each part of the route.</span><button id="wxStart">Set start time</button>';
-      $('#wxStart').addEventListener('click', () => openTiming(document.querySelector('.stat-btn[data-focus="startInput"]')));
+      $('#wxStart').addEventListener('click', () => openPlan($('#startInput')));
     } else if (src === 'far'){
       row.innerHTML = `<span>Forecasts only reach about two weeks ahead, so pick a ride finishing by ${dayLabel(Date.now() + 15 * DAY)}.</span>`;
     } else if (wxCovers(win)){
@@ -1537,7 +1699,7 @@ $('#fileInput').addEventListener('change', e => { loadFile(e.target.files[0]); e
 
 // Arrow keys step along the route (captured before Street View or the map see them)
 window.addEventListener('keydown', e => {
-  if (e.target.closest?.('input, textarea, select') || e.metaKey || e.ctrlKey || e.altKey || !map) return;
+  if (e.target.closest?.('input, textarea, select, [role="slider"]') || e.metaKey || e.ctrlKey || e.altKey || !map) return;
   const act = {
     ArrowRight: () => stepTurn(1), ArrowLeft: () => stepTurn(-1),
     ArrowUp: () => stepDist(1), ArrowDown: () => stepDist(-1),
