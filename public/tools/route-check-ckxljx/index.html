@@ -376,7 +376,7 @@ const APPROACH = 25;      // stop this far before a turn, looking at it
 let units = store.get(UNIT_STORE) === 'km' ? 'km' : 'mi';
 let map, pano, svService, elevService, hoverMarker, viewerMarker, routeLine;
 let routeOverlays = [], distOverlays = [], roadOverlays = [];
-let pts = [], total = 0, eleOk = false, stats = null, turns = [];
+let pts = [], total = 0, eleOk = false, eleFromGoogle = false, stats = null, turns = [];
 let roads = { state: 'off', samples: [], forPts: null };
 // svIdx is the route point Street View is at, svD its exact distance along the route
 let hoverIdx = -1, svIdx = -1, svD = null, stepTarget = null, stepSeq = 0;
@@ -476,7 +476,7 @@ window.initMap = () => {
     icon: { path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW, scale: 6, rotation: 0, fillColor: VIEWER, fillOpacity: 1, strokeColor: '#fff', strokeWeight: 2 }
   });
   if (pending){ const p = pending; pending = null; loadText(p.text, p.name); }
-  else lastRoute.get().then(r => { if (r && !pts.length) loadText(r.text, r.name); });
+  else lastRoute.get().then(r => { if (r && !pts.length) loadText(r.text, r.name, r.ele); });
 };
 
 // Street View opens in its own pane beside the map, and once made the Pegman lands there too
@@ -570,17 +570,40 @@ function fillElevationGaps(){
   }
 }
 
+// Adds points along each straight stretch so none are more than gap metres apart, for Google's heights to land on
+function addPoints(list, gap){
+  const out = [list[0]];
+  for (let i = 1; i < list.length; i++){
+    const a = list[i - 1], b = list[i], n = Math.ceil((b.d - a.d) / gap);
+    for (let k = 1; k < n; k++){
+      const t = k / n;
+      out.push({ lat: a.lat + (b.lat - a.lat) * t, lng: a.lng + (b.lng - a.lng) * t, ele: NaN, d: a.d + (b.d - a.d) * t });
+    }
+    out.push(b);
+  }
+  return out;
+}
+
+// Google's heights about every 50 m along the route, for a GPX with none. A request gives up to 512, so the
+// route goes a stretch at a time (at most 20, so a very long route gets them further apart). Any coarser and
+// short climbs fall between the heights, and the climbing comes out well short.
+const ELE_GAP = 50, ELE_PER = 512, ELE_MAX = 20;
 async function fetchElevation(){
-  const route = pts, step = Math.max(1, Math.ceil(pts.length / 300));
-  const path = pts.filter((_, i) => i % step === 0 || i === pts.length - 1).map(ll);
+  const route = pts, n = Math.min(Math.ceil(total / ELE_GAP), ELE_MAX * (ELE_PER - 1)) + 1;
+  const at = k => k / (n - 1) * total, heights = new Array(n);
   try {
-    const { results } = await elevService.getElevationAlongPath({ path, samples: 512 });
-    if (pts !== route) return;   // another route was opened while this one waited
-    const n = results.length;
+    // Neighbouring stretches share their end height, so there's no gap between them
+    for (let a = 0; a < n - 1; a += ELE_PER - 1){
+      const b = Math.min(n - 1, a + ELE_PER - 1), from = indexAt(at(a)), to = indexAt(at(b));
+      const inner = pts.slice(from, to).filter(p => p.d > at(a)), step = Math.ceil(inner.length / 300);
+      const path = [pointAt(at(a)), ...inner.filter((_, i) => i % step === 0), pointAt(at(b))].map(ll);
+      const { results } = await elevService.getElevationAlongPath({ path, samples: b - a + 1 });
+      if (pts !== route) return;   // another route was opened while this one waited
+      results.forEach((r, j) => heights[a + j] = r.elevation);
+    }
     for (const p of pts){
-      const f = p.d / total * (n - 1), i = Math.min(n - 1, Math.floor(f)), t = f - i;
-      const a = results[i].elevation, b = results[Math.min(i + 1, n - 1)].elevation;
-      p.ele = a + (b - a) * t;
+      const f = p.d / total * (n - 1), i = Math.min(n - 2, Math.floor(f)), t = f - i;
+      p.ele = heights[i] + (heights[i + 1] - heights[i]) * t;
     }
     eleOk = true;
     toast('This GPX had no elevation, so the profile uses Google’s elevation data.');
@@ -593,10 +616,12 @@ async function fetchElevation(){
 
 function computeStats(){
   if (!eleOk){ stats = { up: NaN, down: NaN, max: NaN, min: NaN, steep: NaN }; return; }
-  // Smooth over ±2 points so GPS jitter doesn't inflate the climbing
+  // Smooth over ±2 points so GPS jitter doesn't inflate the climbing. Google's heights have no jitter,
+  // and smoothing them only flattens the short climbs they were fetched closely to catch.
+  const r = eleFromGoogle ? 0 : 2;
   const sm = pts.map((_, i) => {
     let s = 0, c = 0;
-    for (let j = Math.max(0, i - 2); j <= Math.min(pts.length - 1, i + 2); j++){ s += pts[j].ele; c++; }
+    for (let j = Math.max(0, i - r); j <= Math.min(pts.length - 1, i + r); j++){ s += pts[j].ele; c++; }
     return s / c;
   });
   let up = 0, down = 0;
@@ -913,13 +938,20 @@ function findTurns(){
   for (const t of turns) t.dir = Math.abs(t.change) >= 150 ? 'U-turn' : t.change > 0 ? 'right' : 'left';
 }
 
-async function loadText(text, fileName){
+// saved: heights fetched for this route last time, kept with it so reopening it doesn't fetch them again
+async function loadText(text, fileName, saved){
   let r;
   try { r = parseGpx(text); } catch (e){ toast(e.message); return; }
   if (!map){ pending = { text, name: fileName }; if ($('#keyModal').hidden) showKey(); return; }
   pano?.setVisible(false);
-  lastRoute.set({ text, name: fileName });
-  pts = r.pts; total = pts[pts.length - 1].d; hoverIdx = -1; svIdx = -1;
+  // With no heights in the GPX, points go in about every 50 m for Google's heights to land on
+  eleFromGoogle = !r.pts.some(p => isFinite(p.ele));
+  pts = eleFromGoogle ? addPoints(r.pts, ELE_GAP) : r.pts;
+  const reuse = eleFromGoogle && saved?.length === pts.length;
+  if (reuse) pts.forEach((p, i) => p.ele = saved[i]);
+  lastRoute.set(reuse ? { text, name: fileName, ele: saved } : { text, name: fileName });
+  const route = pts;
+  total = pts[pts.length - 1].d; hoverIdx = -1; svIdx = -1;
   roads = { state: 'off', samples: [], forPts: null };
   drawWeather();   // takes the last route's weather off the map
   $('#routeName').textContent = r.name || (fileName || 'Route').replace(/\.gpx$/i, '');
@@ -930,7 +962,8 @@ async function loadText(text, fileName){
   drawRoute();
   if (!eleOk){
     await fetchElevation();
-    if (pts !== r.pts) return;   // superseded by a later route, which finishes its own loading
+    if (pts !== route) return;   // superseded by a later route, which finishes its own loading
+    if (eleOk) lastRoute.set({ text, name: fileName, ele: pts.map(p => Math.round(p.ele * 10) / 10) });
   }
   computeStats();
   showStats();
