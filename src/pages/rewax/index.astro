@@ -6,7 +6,8 @@ import Wordmark from '../../components/rewax/Wordmark.astro';
 import Phone from '../../components/rewax/Phone.astro';
 import ChainBar from '../../components/rewax/ChainBar.astro';
 import { asset } from '../../lib/asset';
-import { author } from '../../config/projects';
+import StoreBadges from '../../components/rewax/StoreBadges.astro';
+import { author, projects } from '../../config/projects';
 
 import iList from '../../assets/rewax/iphone/bikes.png';
 import iBike from '../../assets/rewax/iphone/bike.png';
@@ -104,13 +105,14 @@ const faqs = [
   ['How far back can I log a wax?', 'Up to 60 days, as long as it’s after the bike’s last wax. If the chain was waxed longer ago than that, start counting from its next wax.'],
   ['Do I need a paid Strava subscription?', 'No, a free Strava account is all Rewax needs.'],
   ['Can I try it without Strava?', 'Yes. Choose Explore with demo data on the first screen and Rewax fills up with sample bikes, so you can try everything before connecting your own.'],
-  ['When can I get it?', 'Rewax is being tested by a small group of riders at the moment. It’s coming to the App Store and Google Play once testing is done.'],
+  ['Where can I get it?', 'Rewax is free on the App Store for iPhone (iOS 26 or later) and on Google Play for Android (Android 12 or later).'],
 ];
 
 const page = new URL(asset('/rewax/'), Astro.site).href;
 const site = new URL(asset('/'), Astro.site).href;
 const person = { '@type': 'Person', name: author.name, url: author.github };
-const app = (os: string, device: string) => ({
+const { stores } = projects.find((p) => p.id === 'rewax')!;
+const app = (os: string, device: string, store: string) => ({
   '@type': 'SoftwareApplication',
   name: 'Rewax',
   description: `An ${device} app that counts how far each bike has been ridden since its chain was last waxed, from your Strava rides, and reminds you when it’s time to rewax.`,
@@ -118,6 +120,8 @@ const app = (os: string, device: string) => ({
   applicationCategory: 'SportsApplication',
   image: new URL(asset('/rewax/icon-256.png'), Astro.site).href,
   url: page,
+  installUrl: store,
+  offers: { '@type': 'Offer', price: 0, priceCurrency: 'GBP' },
   featureList: ['Miles since each chain was waxed, from Strava', 'Limits for each bike', 'Overdue reminders', 'Chain link uses', 'Widgets', 'Backup and restore between iPhone and Android'],
   author: person,
 });
@@ -125,8 +129,8 @@ const jsonld = {
   '@context': 'https://schema.org',
   '@graph': [
     { '@type': 'WebPage', name: 'Rewax', url: page, inLanguage: 'en-GB', isPartOf: { '@type': 'WebSite', name: 'gonkowonko', url: site }, author: person },
-    app('iOS 26 or later', 'iPhone'),
-    app('Android 12 or later', 'Android'),
+    app('iOS 26 or later', 'iPhone', stores.appStore),
+    app('Android 12 or later', 'Android', stores.googlePlay),
     { '@type': 'FAQPage', mainEntity: faqs.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })) },
   ],
 };
@@ -138,7 +142,7 @@ const heroAlt = 'Rewax’s bike list: a Canyon Aeroad 50 miles over its limit, i
 
 <Base
   title="Rewax — know when to rewax your bike chain"
-  description="Know when to rewax your bike chain. Rewax counts the miles on each chain since its last wax, from your Strava rides. For iPhone and Android, in closed beta."
+  description="Know when to rewax your bike chain. Rewax counts the miles on each chain since its last wax, from your Strava rides. Free for iPhone and Android."
   theme="rewax"
   siteName="Rewax"
   favicon="/rewax/favicon.png"
@@ -176,8 +180,8 @@ const heroAlt = 'Rewax’s bike list: a Canyon Aeroad 50 miles over its limit, i
           <p class="mt-5 max-w-[44ch] text-lg leading-relaxed text-rewax-body text-pretty">
             Waxing is easy. Remembering when isn’t. Rewax counts the miles on each chain from your Strava rides and tells you when it’s due.
           </p>
-          <p class="mt-6 text-sm text-rewax-dim sm:mt-8">In closed beta. Coming to the App Store and Google Play.</p>
-          <a href="#try" class="mt-2 inline-block text-sm text-rewax-text underline decoration-rewax-dim underline-offset-4 hover:decoration-rewax-text">Try it now: log a wax on the chain below</a>
+          <StoreBadges class="mt-6 sm:mt-8" />
+          <a href="#try" class="mt-5 inline-block text-sm text-rewax-text underline decoration-rewax-dim underline-offset-4 hover:decoration-rewax-text">Try it now: log a wax on the chain below</a>
         </div>
         <div class="mx-auto aspect-[400/650] min-h-0 w-[86vw] max-w-[360px] overflow-y-clip md:w-full md:max-w-none md:self-end">
           <div class="iphone"><Phone src={iList} alt={heroAlt} platform="iphone" sizes="(min-width: 1024px) 400px, (min-width: 768px) 300px, 86vw" eager /></div>
@@ -348,7 +352,8 @@ const heroAlt = 'Rewax’s bike list: a Canyon Aeroad 50 miles over its limit, i
         <div>
           <div class="wordmark text-[16px]"><Wordmark id="rewax-footer" /></div>
           <p class="mt-4 text-rewax-body">For waxed chains, on iPhone and Android.</p>
-          <p class="mt-1 text-rewax-dim">In closed beta. Coming to the App Store and Google Play.</p>
+          <p class="mt-1 text-rewax-dim">Free on the App Store and Google Play.</p>
+          <StoreBadges class="mt-5" height={40} />
         </div>
         <ul class="flex flex-col gap-2.5 text-rewax-body sm:items-end [&_a]:underline-offset-4 [&_a:hover]:text-rewax-text [&_a:hover]:underline">
           <li><a href={asset('/rewax/privacy-policy.html')}>Privacy policy</a></li>
@@ -356,7 +361,10 @@ const heroAlt = 'Rewax’s bike list: a Canyon Aeroad 50 miles over its limit, i
         </ul>
       </div>
       <div class="mt-10 flex flex-col gap-2 border-t border-rewax-rule pt-6 text-rewax-dim sm:flex-row sm:justify-between sm:gap-8">
-        <p>Rewax is an independent app. It isn’t made, sponsored or endorsed by Strava.</p>
+        <div class="space-y-2">
+          <p>Rewax is an independent app. It isn’t made, sponsored or endorsed by Strava.</p>
+          <p>Apple and the Apple logo are trademarks of Apple Inc., registered in the U.S. and other countries. App Store is a service mark of Apple Inc. Google Play and the Google Play logo are trademarks of Google LLC.</p>
+        </div>
         <p class="shrink-0">Made by Gary Dalley · <a href={asset('/')} class="underline-offset-4 hover:text-rewax-text hover:underline">gonkowonko.com</a></p>
       </div>
     </footer>
