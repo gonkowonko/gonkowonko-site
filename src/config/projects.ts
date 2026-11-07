@@ -27,6 +27,11 @@ export const projects = [
       'Know when to rewax your bike chain. Rewax counts the miles on each chain from your Strava rides and tells you when it’s due.',
     purpose: 'Counts the miles on each bike chain from your Strava rides and tells you when it’s time to rewax.',
     platforms: 'iPhone · Android',
-    status: { label: 'In closed beta', live: false },
+    status: { label: 'Released', live: true },
+    // Store listings. The App Store link is the app's Apple ID (App Store Connect → App Information).
+    stores: {
+      appStore: 'https://apps.apple.com/app/id6795850674',
+      googlePlay: 'https://play.google.com/store/apps/details?id=com.gonkowonko.rewax',
+    },
   },
 ] as const;

@@ -1,0 +1,32 @@
+---
+// Apple's and Google's official store badges, unaltered, linking to Rewax's
+// listings. They're drawn at the same visible height: Google's PNG carries
+// 41 px of clear space around a 564 × 168 badge in its 646 × 250, so it's
+// scaled up by 250/168 and the clear space is taken back with negative margins.
+import { asset } from '../../lib/asset';
+import { projects } from '../../config/projects';
+
+interface Props {
+  /** Visible height of each badge in px. */
+  height?: number;
+  class?: string;
+}
+const { height = 48, class: className = '' } = Astro.props;
+const { stores } = projects.find((p) => p.id === 'rewax')!;
+const playHeight = (height * 250) / 168;
+const playInset = (playHeight * 41) / 250;
+---
+
+<div class={`flex flex-wrap items-center gap-x-3 gap-y-3 ${className}`}>
+  <a href={stores.appStore} class="badge-ios">
+    <img src={asset('/rewax/badges/app-store.svg')} alt="Download on the App Store" width={(height * 119.66407) / 40} height={height} />
+  </a>
+  <a href={stores.googlePlay} class="badge-android" style={`margin: -${playInset}px`}>
+    <img src={asset('/rewax/badges/google-play.png')} alt="Get it on Google Play" width={(playHeight * 646) / 250} height={playHeight} />
+  </a>
+</div>
+
+<style>
+  /* The visitor's own phone's store first; the head sets data-phone. */
+  :global(html[data-phone='android']) .badge-android { order: -1; }
+</style>
