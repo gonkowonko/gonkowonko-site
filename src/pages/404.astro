@@ -1,0 +1,61 @@
+---
+// Not found: GitHub Pages serves 404.html for any address that isn't a page.
+// The home page's look, a line in its voice, and the ways back: each app and home.
+import '@fontsource-variable/fraunces/full.css';
+import '@fontsource-variable/fraunces/full-italic.css';
+import Base from '../layouts/Base.astro';
+import Logo from '../components/Logo.astro';
+import { author, projects } from '../config/projects';
+import { asset } from '../lib/asset';
+import '../styles/home.css';
+
+const [nightscout, rewax] = projects;
+const year = new Date().getFullYear();
+const serif = "font-['Fraunces_Variable',Georgia,serif]";
+---
+
+<Base title="Page not found — gonkowonko" description="That page isn't here. The apps by Gary Dalley are a click away." image={null}>
+  <meta slot="head" name="robots" content="noindex" />
+
+  <div class="page flex flex-col">
+    <div class="mx-auto flex w-full max-w-[1120px] flex-1 flex-col px-5 sm:px-8">
+      <header class="py-6 sm:py-7">
+        <a href={asset('/')} class="text-[18px] min-[360px]:text-[22px] sm:text-[24px] lg:text-[26px]"><Logo /></a>
+      </header>
+
+      <main class="flex-1 pt-14 pb-16 sm:pt-24">
+        <p class="text-lg text-[#a39d91]">404 · Page not found</p>
+        <h1 class={`${serif} mt-4 max-w-[14ch] text-5xl leading-[1.02] font-medium tracking-[-0.02em] text-[#f1ece2] text-balance sm:text-7xl [font-variation-settings:'SOFT'_50,'opsz'_144]`}>
+          This page took a <em class="text-[#ffb224] [font-variation-settings:'SOFT'_100,'WONK'_1]">wrong</em> turn.
+        </h1>
+        <p class="mt-8 max-w-[40ch] text-lg leading-relaxed text-[#c9c3b7] text-pretty">
+          The link may be old, or the address typed slightly wrong. Here’s where you can go instead.
+        </p>
+
+        <ul class="mt-12 grid max-w-[760px] gap-4 sm:grid-cols-2">
+          <li>
+            <a href={rewax.href} class="block h-full rounded-[20px] border border-rewax-rule bg-rewax-sheet p-6 transition-colors hover:border-rewax-dim">
+              <span class="block text-sm text-rewax-dim">For iPhone and Android</span>
+              <span class={`${serif} mt-2 block text-2xl font-medium tracking-tight text-rewax-text`}>Rewax →</span>
+              <span class="mt-2 block leading-relaxed text-rewax-body">{rewax.purpose}</span>
+            </a>
+          </li>
+          <li>
+            <a href={nightscout.href} class="block h-full rounded-[20px] border border-white/10 bg-[#0b1320] p-6 transition-colors hover:border-white/30">
+              <span class="block text-sm text-[#8fb3d9]">For Mac and Windows</span>
+              <span class={`${serif} mt-2 block text-2xl font-medium tracking-tight text-white`}>{nightscout.name} →</span>
+              <span class="mt-2 block leading-relaxed text-[#9fb2c8]">{nightscout.purpose}</span>
+            </a>
+          </li>
+        </ul>
+
+        <p class="mt-8"><a href={asset('/')} class="inline-block py-3 text-[#f1ece2] underline decoration-[#a39d91] underline-offset-[6px] hover:decoration-[#f1ece2]">Back to the home page</a></p>
+      </main>
+
+      <footer class="flex flex-col gap-3 border-t border-[#f1ece2]/10 py-8 text-sm text-[#8a8478] sm:flex-row sm:justify-between">
+        <p>© {year} {author.name}</p>
+        <a href={author.github} rel="noopener" class="hover:text-[#f1ece2]">GitHub</a>
+      </footer>
+    </div>
+  </div>
+</Base>

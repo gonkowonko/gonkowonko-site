@@ -10,6 +10,7 @@ import NightscoutVisual from '../components/home/NightscoutVisual.astro';
 import RewaxVisual from '../components/home/RewaxVisual.astro';
 import { author, projects } from '../config/projects';
 import { asset } from '../lib/asset';
+import '../styles/home.css';
 
 const [nightscout, rewax] = projects;
 const home = new URL(asset('/'), Astro.site).href;
@@ -102,7 +103,7 @@ const serif = "font-['Fraunces_Variable',Georgia,serif]";
           <h2 class={`${serif} text-4xl font-medium tracking-tight text-[#f1ece2]`}>About</h2>
           <div class="max-w-[50ch] space-y-4 text-lg leading-relaxed text-[#c9c3b7] lg:pt-2">
             <p>Every app here started as something I wanted for myself. When one works well enough that I stop thinking about it, I tidy it up and share it.</p>
-            <p>They do one job each. No accounts, no ads, no tracking, and your data stays with you.</p>
+            <p>They do one job each. No ads, no tracking, and your data stays with you.</p>
           </div>
         </section>
 
@@ -120,50 +121,3 @@ const serif = "font-['Fraunces_Variable',Georgia,serif]";
   </div>
 
 </Base>
-
-<style>
-  /* The home page's own type: Satoshi, whose round O matches the wordmark's
-     wheels, for the wordmark and the text; Fraunces for the headline. From
-     Fontshare (ITF Free Font License), self-hosted. */
-  @font-face {
-    font-family: 'Satoshi';
-    src: url('../assets/home/fonts/satoshi-500.woff2') format('woff2');
-    font-weight: 500;
-    font-display: swap;
-  }
-  @font-face {
-    font-family: 'Satoshi';
-    src: url('../assets/home/fonts/satoshi-700.woff2') format('woff2');
-    font-weight: 700;
-    font-display: swap;
-  }
-  @font-face {
-    font-family: 'Satoshi';
-    src: url('../assets/home/fonts/satoshi-900.woff2') format('woff2');
-    font-weight: 900;
-    font-display: swap;
-  }
-
-  /* A warmer black than the current page, and a faint grain so it reads as paper, not a screen. */
-  .page {
-    min-height: 100dvh;
-    background: #121110;
-    color: #f1ece2;
-    /* The wordmark sets var(--font-sans), so this reaches it too. */
-    --font-sans: 'Satoshi', 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
-    font-family: var(--font-sans);
-    /* Satoshi's regular is lighter than Inter's; its medium reads as Inter did. */
-    font-weight: 500;
-    position: relative;
-    isolation: isolate;
-  }
-  .page::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    z-index: -1;
-    pointer-events: none;
-    opacity: 0.06;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  }
-</style>

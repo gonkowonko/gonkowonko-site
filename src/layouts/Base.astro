@@ -15,6 +15,8 @@ interface Props {
   /** Share image path, or null for none. */
   image?: string | null;
   imageAlt?: string;
+  /** Share image size; a wide one gets the large card, a square icon the small one. */
+  imageSize?: [number, number];
 }
 const {
   title = 'gonkowonko — apps by Gary Dalley',
@@ -26,6 +28,7 @@ const {
   themeColor = '#0c0c0d',
   image = '/og.png',
   imageAlt = 'gonkowonko: apps by Gary Dalley',
+  imageSize = [1200, 630],
 } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 const og = image && new URL(asset(image), Astro.site);
@@ -53,14 +56,14 @@ const og = image && new URL(asset(image), Astro.site);
     {og && (
       <>
         <meta property="og:image" content={og} />
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
+        <meta property="og:image:width" content={imageSize[0]} />
+        <meta property="og:image:height" content={imageSize[1]} />
         <meta property="og:image:alt" content={imageAlt} />
       </>
     )}
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="en_GB" />
-    <meta name="twitter:card" content={og ? "summary_large_image" : "summary"} />
+    <meta name="twitter:card" content={og && imageSize[0] > imageSize[1] ? "summary_large_image" : "summary"} />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
     {og && <meta name="twitter:image" content={og} />}

@@ -16,6 +16,7 @@ ${projects.map((p) => `- [${p.name}](${url(p.href)}): ${p.summary} Platforms: ${
 ## More
 
 - [NightscoutBar & NightscoutWidget in detail](${url(projects[0].href + 'llms.txt')})
+- [Rewax in detail](${url(projects[1].href + 'llms.txt')})
 - [GitHub](${author.github})
 `;
   return new Response(body, { headers: { 'Content-Type': 'text/plain; charset=utf-8' } });

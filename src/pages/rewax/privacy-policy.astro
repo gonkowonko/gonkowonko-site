@@ -5,7 +5,7 @@ import Email from '../../components/Email.astro';
 
 // Linked from both apps' About pages, App Store Connect and Google Play, so the address
 // (/rewax/privacy-policy.html) must not change.
-const updated = '21 October 2026';
+const updated = '10 November 2026';
 ---
 
 <Base
@@ -16,12 +16,14 @@ const updated = '21 October 2026';
   favicon="/rewax/favicon.png"
   touchIcon="/rewax/icon-256.png"
   themeColor="#111210"
-  image={null}
+  image="/rewax/icon-256.png"
+  imageSize={[256, 256]}
+  imageAlt="The Rewax app icon: a drop of wax over a bike chain."
 >
   <header class="px-4 pt-20 pb-6 text-center">
-    <div class="text-[28px] sm:text-[36px]">
+    <a href="/rewax/" class="inline-block rounded-sm text-[28px] focus-visible:outline-2 focus-visible:outline-offset-8 focus-visible:outline-rewax-text sm:text-[36px]">
       <Wordmark />
-    </div>
+    </a>
   </header>
 
   <main class="px-4 pb-24">
@@ -60,7 +62,7 @@ const updated = '21 October 2026';
       <p>Everything is stored on your phone:</p>
       <ul>
         <li>The data read from Strava, listed above.</li>
-        <li>The things you enter in Rewax: the waxes you log, your chain links, bike nicknames, limits and other settings.</li>
+        <li>The things you enter in Rewax: the waxes and top-ups you log, your chain links, bike nicknames, limits and other settings.</li>
         <li>Your Strava sign-in. On iPhone it's kept in the iOS Keychain; on Android it's encrypted with a key held in the Android Keystore, which never leaves your phone.</li>
       </ul>
       <p>Rewax's Home Screen widgets read this data from the same phone. It isn't sent to me or to anyone else.</p>
@@ -68,7 +70,7 @@ const updated = '21 October 2026';
         Your phone's own backups include Rewax's data like any other app's. On iPhone that's iCloud Backup or a backup to a computer. On Android it's Backup by Google, which keeps everything above except your Strava sign-in, so after moving to a new phone you connect Strava again. Apple and Google handle those backups under their own privacy policies.
       </p>
       <p>
-        You can also save a Rewax backup file yourself, from Settings → Backup &amp; restore. It holds only what you've entered (your waxes, chain links and settings) and nothing read from Strava. It goes wherever you choose to save or send it.
+        You can also save a Rewax backup file yourself, from Settings → Backup &amp; restore. It holds only what you've entered (your waxes, top-ups, chain links and settings) and nothing read from Strava. It goes wherever you choose to save or send it.
       </p>
 
       <h2>How long it's kept</h2>

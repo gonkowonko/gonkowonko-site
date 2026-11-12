@@ -8,19 +8,22 @@ import ChainBar from '../../components/rewax/ChainBar.astro';
 import { asset } from '../../lib/asset';
 import StoreBadges from '../../components/rewax/StoreBadges.astro';
 import { author, projects } from '../../config/projects';
+import { privacy, faqs } from '../../config/rewax';
 
 import iList from '../../assets/rewax/iphone/bikes.png';
 import iBike from '../../assets/rewax/iphone/bike.png';
 import iHistory from '../../assets/rewax/iphone/history.png';
 import iLogWax from '../../assets/rewax/iphone/log-wax.png';
+import iTopUp from '../../assets/rewax/iphone/top-up.png';
 import iWidget from '../../assets/rewax/iphone/home-widget.png';
 import aList from '../../assets/rewax/android/bikes.png';
 import aBike from '../../assets/rewax/android/bike.png';
 import aHistory from '../../assets/rewax/android/history.png';
 import aLogWax from '../../assets/rewax/android/log-wax.png';
+import aTopUp from '../../assets/rewax/android/top-up.png';
 import aWidget from '../../assets/rewax/android/home-widget.png';
 
-// The app: one screen leads, the bike's page, with what it shows; two smaller
+// The app: one screen leads, the bike's page, with what it shows; three smaller
 // ones support it. The screenshots come in matching pairs from the same demo
 // data in each app; the visitor's phone is shown (data-phone on <html>), and
 // the switch changes it. The bike list isn't here: it's the hero.
@@ -30,26 +33,33 @@ const lead = {
   specs: [
     ['Forecast', 'From the last four weeks of riding, roughly when the next wax is due.'],
     ['Limits', 'One for every bike, or its own for the bike that sees the worst of the weather. Miles or kilometres.'],
-    ['Chain link', 'How many more uses a reusable quick link has left.'],
+    ['Chain link', 'How many more times your reusable quick link can be refitted.'],
   ],
   iphone: iBike,
   android: aBike,
-  alt: 'A bike’s page: the Canyon Aeroad 50 miles over its limit, last waxed on 20 September, with its chain link’s uses and the Log chain wax button.',
+  alt: 'A bike’s page: the Giant Propel with 35 miles left before its next wax, in amber, last waxed on 26 October and due around 14 November, with its chain link’s uses and the Top up and Log chain wax buttons.',
 };
 const supporting = [
   {
     title: 'Waxed it? Log it.',
-    text: 'The count starts again from zero. Backdate it up to 60 days, add a note, or log it straight from the reminder.',
+    text: 'The miles start again from zero. Backdate it up to 60 days, add a note, or log it straight from the reminder.',
     iphone: iLogWax,
     android: aLogWax,
-    alt: 'Logging a wax: the date and time it was waxed, and an optional note.',
+    alt: 'Logging a wax: the date and time it was waxed, whether a new chain link was fitted, and an optional note.',
+  },
+  {
+    title: 'Not time for a full wax?',
+    text: 'Drip some on and log a top-up. The chain is good for another 150 miles from there, or however far you set, and the extra shows in teal.',
+    iphone: iTopUp,
+    android: aTopUp,
+    alt: 'Logging a top-up on a bike 50 miles over its limit: the date and time, how many miles it adds, 150, and an optional note.',
   },
   {
     title: 'How long each wax lasts',
-    text: 'A bar for every wax against the limit, with your average, shortest and longest. Chain links get the same chart.',
+    text: 'A bar for every wax against the limit, with top-ups in teal, your average, shortest and longest, and a log of it all. Chain links get the same chart.',
     iphone: iHistory,
     android: aHistory,
-    alt: 'A bike’s history: a bar for each wax showing how far it lasted against the limit, and the average, shortest and longest.',
+    alt: 'A bike’s history: a bar for each wax showing how far it lasted against the limit, with top-ups in teal, the average, shortest and longest, and a log of waxes, top-ups and chain links.',
   },
 ];
 // The wax cycle's chain: 10 plates, as the app draws a bike's chain, the app's
@@ -64,8 +74,8 @@ const platforms = [
     name: 'iPhone',
     needs: 'iOS 26 or later',
     widget: iWidget,
-    widgetAlt: 'The Rewax bikes overview widget on an iPhone Home Screen: Canyon Aeroad 50 miles over, with two more bikes below.',
-    points: ['Home Screen and Lock Screen widgets', 'Overdue bikes counted on the app icon', 'Liquid Glass, as iOS 26 draws it'],
+    widgetAlt: 'The Rewax bikes overview widget on an iPhone Home Screen: Canyon Aeroad 50 miles over, with three more bikes below.',
+    points: ['Home Screen and Lock Screen widgets', 'A badge on the app icon shows how many bikes are overdue'],
   },
   {
     id: 'android',
@@ -73,45 +83,16 @@ const platforms = [
     needs: 'Android 12 or later',
     widget: aWidget,
     widgetAlt: 'The Rewax bikes overview widget on an Android home screen: Canyon Aeroad 50 miles over, with two more bikes below.',
-    points: ['Widgets that resize, from one bike to all of them', 'Overdue alerts with a Log wax button on them', 'Material 3, as Android draws it'],
+    points: ['Widgets that resize, from one bike to all of them', 'Overdue alerts with Log wax and Topped up buttons on them'],
   },
-];
-// Privacy, as the privacy policy says it (/rewax/privacy-policy.html): what's
-// read from Strava, and what never is.
-const privacy = {
-  facts: [
-    ['Account', 'None'],
-    ['Tracking', 'None'],
-    ['Talks to', 'Strava only'],
-  ],
-  reads: [
-    'Your name, to show which account is connected',
-    'Your Strava account and bike IDs, to match rides to bikes',
-    'Your bikes: name, total distance, and whether each is your primary or retired',
-    'Your rides from the last 60 days: name, date, distance, bike, and what recorded it, such as a Garmin, a Wahoo or Zwift. Runs and walks are skipped, and private rides are read only if you allow them',
-  ],
-  never: [
-    'Reading routes, locations, heart rate, power or photos',
-    'Posting, editing or deleting anything on Strava',
-    'Sending your data to anyone else',
-  ],
-};
-// Questions the sections above don't already answer. Data has a section of
-// its own.
-const faqs = [
-  ['Which rides count?', 'Any activity on Strava with that bike chosen for it, indoors or out, from a Garmin, a Wahoo, Zwift or anything else. A ride with no bike set doesn’t count; set one on Strava and it’s counted on the next sync.'],
-  ['What limit should I set?', 'Rewax starts at 300 miles (483 km) for every bike. Change it for all of them, or give one bike its own: a lower one for the bike that rides in the wet, say. Miles or kilometres.'],
-  ['What happens when I get a new phone?', 'Your wax log comes with you. iCloud Backup and Backup by Google include Rewax like any other app; on Android, connect Strava again afterwards. Or save a backup file from Settings → Backup & restore and restore it on the new phone, iPhone or Android. It shows what will change before anything’s replaced, then reloads your rides from Strava.'],
-  ['How far back can I log a wax?', 'Up to 60 days, as long as it’s after the bike’s last wax. If the chain was waxed longer ago than that, start counting from its next wax.'],
-  ['Do I need a paid Strava subscription?', 'No, a free Strava account is all Rewax needs.'],
-  ['Can I try it without Strava?', 'Yes. Choose Explore with demo data on the first screen and Rewax fills up with sample bikes, so you can try everything before connecting your own.'],
-  ['Where can I get it?', 'Rewax is free on the App Store for iPhone (iOS 26 or later) and on Google Play for Android (Android 12 or later).'],
 ];
 
 const page = new URL(asset('/rewax/'), Astro.site).href;
 const site = new URL(asset('/'), Astro.site).href;
 const person = { '@type': 'Person', name: author.name, url: author.github };
 const { stores } = projects.find((p) => p.id === 'rewax')!;
+// Safari on iPhone shows Apple's Smart App Banner (Get, or Open if installed) from this ID.
+const appStoreId = stores.appStore.match(/id(\d+)/)![1];
 const app = (os: string, device: string, store: string) => ({
   '@type': 'SoftwareApplication',
   name: 'Rewax',
@@ -122,7 +103,7 @@ const app = (os: string, device: string, store: string) => ({
   url: page,
   installUrl: store,
   offers: { '@type': 'Offer', price: 0, priceCurrency: 'GBP' },
-  featureList: ['Miles since each chain was waxed, from Strava', 'Limits for each bike', 'Overdue reminders', 'Chain link uses', 'Widgets', 'Backup and restore between iPhone and Android'],
+  featureList: ['Miles since each chain was waxed, from Strava', 'Limits for each bike', 'Drip wax top-ups', 'Overdue reminders', 'Chain link uses', 'Widgets', 'Backup and restore between iPhone and Android'],
   author: person,
 });
 const jsonld = {
@@ -137,7 +118,7 @@ const jsonld = {
 
 // The app's instrumentLabel: 11pt semibold capitals, 1.6pt tracking, dim.
 const instrument = 'text-[11px] font-semibold tracking-[0.145em] text-rewax-dim uppercase';
-const heroAlt = 'Rewax’s bike list: a Canyon Aeroad 50 miles over its limit, in red; a Specialized Tarmac SL9 with 45 miles left, in amber; and a Dolan DF5 with 108 miles left. Under each, a chain filled to how far it’s been ridden.';
+const heroAlt = 'Rewax’s bike list: a Canyon Aeroad 50 miles over its limit, in red; a Giant Propel with 35 miles left, in amber; a Specialized Tarmac SL9 with 150 miles left after a top-up, in teal; and a Dolan DF5 with 108 miles left. Under each, a chain filled to how far it’s been ridden.';
 ---
 
 <Base
@@ -148,9 +129,10 @@ const heroAlt = 'Rewax’s bike list: a Canyon Aeroad 50 miles over its limit, i
   favicon="/rewax/favicon.png"
   touchIcon="/rewax/icon-256.png"
   themeColor="#111210"
-  image="/rewax/og.png"
-  imageAlt="Rewax on an iPhone: three bikes, each with the miles left or over since its chain was waxed, beside the words Know when to rewax your chain."
+  image="/rewax/og-1.1.png"
+  imageAlt="Rewax on an iPhone: a list of bikes, each with the miles left or over since its chain was waxed, beside the words Know when to rewax your chain, with the Powered by Strava mark."
 >
+  <meta slot="head" name="apple-itunes-app" content={`app-id=${appStoreId}`} />
   <script slot="head" type="application/ld+json" set:html={JSON.stringify(jsonld)} />
   <!-- Which phone's screenshots to show first: Android's for Android visitors,
        the iPhone's for everyone else. Set before the page draws, so the hero
@@ -164,9 +146,9 @@ const heroAlt = 'Rewax’s bike list: a Canyon Aeroad 50 miles over its limit, i
     <header class="flex items-center justify-between py-5 text-sm">
       <div class="wordmark text-[12px] min-[360px]:text-[14px] sm:text-[16px]"><Wordmark /></div>
       <nav class="flex gap-2.5 text-[13px] text-rewax-dim min-[360px]:gap-4 min-[360px]:text-sm sm:gap-5" aria-label="On this page">
-        <a href="#screens" class="hover:text-rewax-text">The app</a>
-        <a href="#privacy" class="hover:text-rewax-text">Privacy</a>
-        <a href="#faq" class="hover:text-rewax-text">FAQ</a>
+        <a href="#screens" class="-my-3 py-3 hover:text-rewax-text">The app</a>
+        <a href="#privacy" class="-my-3 py-3 hover:text-rewax-text">Privacy</a>
+        <a href="#faq" class="-my-3 py-3 hover:text-rewax-text">FAQ</a>
       </nav>
     </header>
 
@@ -181,7 +163,7 @@ const heroAlt = 'Rewax’s bike list: a Canyon Aeroad 50 miles over its limit, i
             Waxing is easy. Remembering when isn’t. Rewax counts the miles on each chain from your Strava rides and tells you when it’s due.
           </p>
           <StoreBadges class="mt-6 sm:mt-8" />
-          <a href="#try" class="mt-5 inline-block text-sm text-rewax-text underline decoration-rewax-dim underline-offset-4 hover:decoration-rewax-text">Try it now: log a wax on the chain below</a>
+          <a href="#try" class="mt-2 -mb-3 inline-block py-3 text-sm text-rewax-text underline decoration-rewax-dim underline-offset-4 hover:decoration-rewax-text">Try it now: log a wax on the chain below</a>
         </div>
         <div class="mx-auto aspect-[400/650] min-h-0 w-[86vw] max-w-[360px] overflow-y-clip md:w-full md:max-w-none md:self-end">
           <div class="iphone"><Phone src={iList} alt={heroAlt} platform="iphone" sizes="(min-width: 1024px) 400px, (min-width: 768px) 300px, 86vw" eager /></div>
@@ -229,7 +211,7 @@ const heroAlt = 'Rewax’s bike list: a Canyon Aeroad 50 miles over its limit, i
       </section>
 
       <!-- The app: one switch for the page's screenshots, then one screen that
-           leads, big, and two that support it, smaller, side by side. (Not cut
+           leads, big, and three that support it, smaller, side by side. (Not cut
            off like the hero's: the Log wax sheet runs to the foot of the screen.) -->
       <section id="screens" class="scroll-mt-8 pt-8">
         <div class="flex flex-wrap items-center justify-between gap-4">
@@ -263,13 +245,13 @@ const heroAlt = 'Rewax’s bike list: a Canyon Aeroad 50 miles over its limit, i
           </div>
         </article>
 
-        <div class="mt-20 grid gap-16 sm:mt-28 md:grid-cols-2 md:gap-12 lg:gap-20">
+        <div class="mt-20 grid gap-16 sm:mt-28 md:grid-cols-3 md:gap-8 lg:gap-12">
           {supporting.map((c) => (
             <article class="flex flex-col">
               <h3 class="text-2xl leading-tight font-semibold tracking-tight text-balance">{c.title}</h3>
               <p class="mt-3 max-w-[40ch] leading-relaxed text-rewax-body text-pretty">{c.text}</p>
               <div class="mt-auto border-b border-rewax-rule pt-8">
-                <div class="mx-auto w-[64vw] max-w-[260px]">
+                <div class="mx-auto w-[64vw] max-w-[260px] md:w-full">
                   <div class="iphone"><Phone src={c.iphone} alt={c.alt} platform="iphone" sizes="(min-width: 768px) 260px, 64vw" /></div>
                   <div class="android"><Phone src={c.android} alt={c.alt} platform="android" sizes="(min-width: 768px) 260px, 64vw" /></div>
                 </div>
@@ -303,7 +285,7 @@ const heroAlt = 'Rewax’s bike list: a Canyon Aeroad 50 miles over its limit, i
       <section id="privacy" class="mt-24 scroll-mt-8 sm:mt-32">
         <div class="grid gap-4 md:grid-cols-2 md:items-end md:gap-12">
           <h2 class="text-3xl leading-tight font-semibold tracking-tight text-balance sm:text-4xl">Your data stays on your phone.</h2>
-          <p class="max-w-[46ch] leading-relaxed text-rewax-body text-pretty">Rewax has no account, no server of its own, no ads and no analytics. Your bikes, wax log and chain links are kept on your phone.</p>
+          <p class="max-w-[46ch] leading-relaxed text-rewax-body text-pretty">You connect with Strava, so there’s no Rewax account to create. Rewax never sends your data to me, and has no ads and nothing that tracks you. Your bikes, wax log and chain links are kept on your phone.</p>
         </div>
 
         <dl class="mt-10 grid grid-cols-3 border-y border-rewax-rule sm:mt-12">
